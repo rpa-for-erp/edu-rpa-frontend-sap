@@ -1,15 +1,15 @@
 export const LibrabryConfigurations = {
-  "EduRPA.Document": {
-    "lang": "vi",
-    "performance": "accurate" 
-  }
-}
+  'EduRPA.Document': {
+    lang: 'vi',
+    performance: 'accurate',
+  },
+};
 
 export enum RFVarType {
-  "scalar" = "$",
-  "any" =  "$",
-  "dictionary" = "&",
-  "list" = "@"
+  'scalar' = '$',
+  'any' = '$',
+  'dictionary' = '&',
+  'list' = '@',
 }
 
 export const ActivityPackages = [
@@ -1171,7 +1171,7 @@ export const ActivityPackages = [
     _id: 'data_manipulation',
     displayName: 'Data manipulation',
     description: 'Help you manipulate data in your robot',
-    library: "Collections",
+    library: 'Collections',
     activityTemplates: [
       {
         templateId: 'set_variable',
@@ -1208,13 +1208,13 @@ export const ActivityPackages = [
             type: 'list',
             description: 'The list',
             // keywordArg: 'list_',
-            overrideType: RFVarType["any"],
+            overrideType: RFVarType['any'],
             value: [],
           },
           Item: {
             type: 'any',
             description: 'The item to add to the list',
-            overrideType: RFVarType["any"],
+            overrideType: RFVarType['any'],
             value: '',
           },
         },
@@ -1406,12 +1406,12 @@ export const ActivityPackages = [
             keywordArg: 'correct_answer',
             value: {},
           },
-          'Names': {
+          Names: {
             type: 'list',
             description: 'The list of student names',
             keywordArg: 'file_names',
             value: [],
-          }
+          },
         },
         return: {
           displayName: 'Grade report file name',
@@ -1435,7 +1435,7 @@ export const ActivityPackages = [
         description: "Upload a file to the platform's file storage",
         iconCode: 'FaFileUpload',
         type: 'activity',
-        keyword: 'Upload File',
+        keyword: 'Upload Drive File',
         arguments: {
           File: {
             type: 'string',
@@ -1495,13 +1495,14 @@ export const ActivityPackages = [
   {
     _id: 'rpa-sap-mock',
     displayName: 'SAP MOCK',
-    description: "Help you to handle sap activities",
+    description: 'Help you to handle sap activities',
     library: 'RPA.MOCK_SAP',
     activityTemplates: [
       {
         templateId: 'connect_to_sap_system',
         displayName: 'Connect to SAP System',
-        description: 'Connect to the SAP system using a base URL and token file',
+        description:
+          'Connect to the SAP system using a base URL and token file',
         iconCode: 'FaLink',
         type: 'activity',
         keyword: 'Connect To SAP System',
@@ -1510,26 +1511,26 @@ export const ActivityPackages = [
             type: 'string',
             description: 'The base URL of the SAP system',
             keywordArg: 'base_url',
-            value: ''
+            value: '',
           },
           'Token File Path': {
             type: 'connection.SAP Mock',
             description: 'The path to the file containing the SAP access token',
             keywordArg: 'token_file_path',
-            value: ''
+            value: '',
           },
           'Verify SSL': {
             type: 'boolean',
             description: 'Whether to verify SSL certificates',
             keywordArg: 'verify_ssl',
-            value: false
-          }
+            value: false,
+          },
         },
         return: {
           displayName: 'Connection Status',
           type: 'void',
-          description: 'Indicates successful connection to the SAP system'
-        }
+          description: 'Indicates successful connection to the SAP system',
+        },
       },
       {
         templateId: 'get_business_partner',
@@ -1543,19 +1544,21 @@ export const ActivityPackages = [
             type: 'string',
             description: 'The ID of the business partner to retrieve',
             keywordArg: 'partner_id',
-            value: ''
-          }
+            value: '',
+          },
         },
         return: {
           displayName: 'Business Partner Data',
           type: 'object',
-          description: 'The business partner data retrieved from the SAP system'
-        }
+          description:
+            'The business partner data retrieved from the SAP system',
+        },
       },
       {
         templateId: 'create_business_partner_address',
         displayName: 'Create Business Partner Address',
-        description: 'Create a new address for a business partner in the SAP system',
+        description:
+          'Create a new address for a business partner in the SAP system',
         iconCode: 'FaAddressCard',
         type: 'activity',
         keyword: 'Create Business Partner Address',
@@ -1564,25 +1567,26 @@ export const ActivityPackages = [
             type: 'string',
             description: 'The ID of the business partner',
             keywordArg: 'partner_id',
-            value: ''
+            value: '',
           },
           'JSON Data': {
             type: 'string',
             description: 'The address data in JSON format',
             keywordArg: 'json_data',
-            value: ''
-          }
+            value: '',
+          },
         },
         return: {
           displayName: 'Created Address Data',
           type: 'object',
-          description: 'The created address data returned from the SAP system'
-        }
+          description: 'The created address data returned from the SAP system',
+        },
       },
       {
         templateId: 'update_business_partner_address',
         displayName: 'Update Business Partner Address',
-        description: 'Update an existing address for a business partner in the SAP system',
+        description:
+          'Update an existing address for a business partner in the SAP system',
         iconCode: 'FaEdit',
         type: 'activity',
         keyword: 'Update Business Partner Address',
@@ -1591,31 +1595,32 @@ export const ActivityPackages = [
             type: 'string',
             description: 'The ID of the business partner',
             keywordArg: 'partner_id',
-            value: ''
+            value: '',
           },
           'Address ID': {
             type: 'string',
             description: 'The ID of the address to update',
             keywordArg: 'address_id',
-            value: ''
+            value: '',
           },
           'JSON Data': {
             type: 'string',
             description: 'The updated address data in JSON format',
             keywordArg: 'json_data',
-            value: ''
-          }
+            value: '',
+          },
         },
         return: {
           displayName: 'Updated Address Data',
           type: 'object',
-          description: 'The updated address data returned from the SAP system'
-        }
+          description: 'The updated address data returned from the SAP system',
+        },
       },
       {
         templateId: 'delete_business_partner_address',
         displayName: 'Delete Business Partner Address',
-        description: 'Delete an address for a business partner in the SAP system',
+        description:
+          'Delete an address for a business partner in the SAP system',
         iconCode: 'FaTrash',
         type: 'activity',
         keyword: 'Delete Business Partner Address',
@@ -1624,21 +1629,217 @@ export const ActivityPackages = [
             type: 'string',
             description: 'The ID of the business partner',
             keywordArg: 'partner_id',
-            value: ''
+            value: '',
           },
           'Address ID': {
             type: 'string',
             description: 'The ID of the address to delete',
             keywordArg: 'address_id',
-            value: ''
-          }
+            value: '',
+          },
         },
         return: {
           displayName: 'Deletion Status',
           type: 'string',
-          description: 'The response text indicating the deletion status'
-        }
-      }
-    ]
-  }
+          description: 'The response text indicating the deletion status',
+        },
+      },
+    ],
+  },
+  {
+    _id: 'rpa-erpnext',
+    displayName: 'ERPNext',
+    description:
+      'Automate procurement workflows in ERPNext (Item, MR, RFQ, PO)',
+    library: 'RPA.ERPNext',
+    activityTemplates: [
+      {
+        templateId: 'connect_to_erpnext',
+        displayName: 'Connect to ERPNext',
+        description: 'Connect to ERPNext using a base URL and API token',
+        iconCode: 'FaLink',
+        type: 'activity',
+        keyword: 'Connect To ERPNext',
+        arguments: {
+          'Base URL': {
+            type: 'string',
+            description: 'The base URL of the ERPNext system',
+            keywordArg: 'base_url',
+            value: '',
+          },
+          'Token File Path': {
+            type: 'connection.ERPNext',
+            description:
+              'The path to the file containing the ERPNext access token',
+            keywordArg: 'token_file_path',
+            value: '',
+          },
+          'Verify SSL': {
+            type: 'boolean',
+            description: 'Whether to verify SSL certificates',
+            keywordArg: 'verify_ssl',
+            value: false,
+          },
+        },
+        return: {
+          displayName: 'Connection Status',
+          type: 'void',
+          description: 'Indicates successful connection to ERPNext',
+        },
+      },
+      {
+        templateId: 'ensure_item_exists',
+        displayName: 'Ensure Item Exists',
+        description:
+          'Check if an Item exists in ERPNext; if not, create one automatically.',
+        iconCode: 'FaBox',
+        type: 'activity',
+        keyword: 'Ensure ERP Item Exists',
+        arguments: {
+          'Item Code': {
+            type: 'string',
+            description: 'The code of the item (unique)',
+            keywordArg: 'item_code',
+            value: '',
+          },
+          'Item Name': {
+            type: 'string',
+            description: 'The display name of the item',
+            keywordArg: 'item_name',
+            value: '',
+          },
+          'Unit of Measure': {
+            type: 'string',
+            description: 'The default stock unit (e.g., Nos, Kg)',
+            keywordArg: 'uom',
+            value: 'Nos',
+          },
+        },
+        return: {
+          displayName: 'Item Name',
+          type: 'string',
+          description: 'The name of the created or existing item',
+        },
+      },
+      {
+        templateId: 'create_material_request',
+        displayName: 'Create Material Request',
+        description:
+          'Create a Material Request document in ERPNext with multiple items.',
+        iconCode: 'FaClipboardList',
+        type: 'activity',
+        keyword: 'Create ERP Material Request',
+        arguments: {
+          Items: {
+            type: 'list',
+            description:
+              'List of items to request. Each item must include item_code, qty, schedule_date',
+            keywordArg: 'items',
+            value: [],
+          },
+        },
+        return: {
+          displayName: 'Material Request ID',
+          type: 'string',
+          description: 'The name of the created Material Request document',
+        },
+      },
+      {
+        templateId: 'create_request_for_quotation',
+        displayName: 'Create Request For Quotation (RFQ)',
+        description: 'Create an RFQ in ERPNext for one or more suppliers.',
+        iconCode: 'FaFileInvoiceDollar',
+        type: 'activity',
+        keyword: 'Create ERP RFQ',
+        arguments: {
+          Items: {
+            type: 'list',
+            description: 'List of items to request for quotation',
+            keywordArg: 'items',
+            value: [],
+          },
+          Suppliers: {
+            type: 'list',
+            description: 'List of supplier names',
+            keywordArg: 'suppliers',
+            value: [],
+          },
+          'Message For Supplier': {
+            type: 'string',
+            description: 'Message shown to suppliers in the RFQ',
+            keywordArg: 'message_for_supplier',
+            value: 'Xin vui lòng báo giá cho các mặt hàng này.',
+          },
+        },
+        return: {
+          displayName: 'RFQ ID',
+          type: 'string',
+          description: 'The name of the created RFQ document',
+        },
+      },
+      {
+        templateId: 'create_purchase_order',
+        displayName: 'Create Purchase Order',
+        description:
+          'Create a Purchase Order document in ERPNext for a supplier.',
+        iconCode: 'FaFileInvoice',
+        type: 'activity',
+        keyword: 'Create ERP Purchase Order',
+        arguments: {
+          Supplier: {
+            type: 'string',
+            description: 'Supplier name',
+            keywordArg: 'supplier',
+            value: '',
+          },
+          Items: {
+            type: 'list',
+            description: 'List of items to order (with item_code, qty, rate)',
+            keywordArg: 'items',
+            value: [],
+          },
+          'Default Rate': {
+            type: 'number',
+            description: 'Default rate per item if not specified',
+            keywordArg: 'default_rate',
+            value: 1000,
+          },
+        },
+        return: {
+          displayName: 'Purchase Order ID',
+          type: 'string',
+          description: 'The name of the created Purchase Order',
+        },
+      },
+      {
+        templateId: 'submit_erp_document',
+        displayName: 'Submit ERP Document',
+        description:
+          'Submit an existing ERPNext document (Material Request, RFQ, or Purchase Order).',
+        iconCode: 'FaCheckCircle',
+        type: 'activity',
+        keyword: 'Submit ERP Document',
+        arguments: {
+          DocType: {
+            type: 'string',
+            description:
+              'The ERPNext doctype (e.g., Material Request, Request for Quotation, Purchase Order)',
+            keywordArg: 'doctype',
+            value: '',
+          },
+          'Document ID': {
+            type: 'string',
+            description: 'The name or ID of the document to submit',
+            keywordArg: 'name',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'Submission Result',
+          type: 'string',
+          description: 'The name of the submitted document',
+        },
+      },
+    ],
+  },
 ];

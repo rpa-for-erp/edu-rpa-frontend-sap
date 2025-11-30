@@ -78,7 +78,8 @@ const ConnectionRow = (props: ConnectionRowProps) => {
             colorScheme={value === 'Connected' ? 'green' : 'red'}
             size="md"
             p={3}
-            rounded={10}>
+            rounded={10}
+          >
             {value}
           </Tag>
         );
@@ -96,9 +97,11 @@ const ConnectionRow = (props: ConnectionRowProps) => {
           </Box>
         );
       case 'provider':
-        const provider = providerData.find(
-          (provider) => provider.name === value
-        );
+        const provider = providerData.find((provider) => {
+          console.log(provider.name, value);
+          console.log(provider.name === value);
+          return provider.name === value;
+        });
         return (
           <Box className="flex justify-between items-center">
             <IconImage icon={provider!.icon} label={provider!.name} />
@@ -141,7 +144,8 @@ const ConnectionRow = (props: ConnectionRowProps) => {
       }}
       onClick={() =>
         props.onView && props.onView(connectionKey, data.provider, data.name)
-      }>
+      }
+    >
       {Object.keys(data).map((key, columnIndex) => (
         <Td key={key}>{renderTableCell(key, data[key])}</Td>
       ))}
@@ -153,7 +157,8 @@ const ConnectionRow = (props: ConnectionRowProps) => {
             colorScheme="teal"
             variant="outline"
             size="sm"
-            onClick={handleRefreshConnection}>
+            onClick={handleRefreshConnection}
+          >
             Refresh
           </Button>
         ) : (
@@ -161,7 +166,8 @@ const ConnectionRow = (props: ConnectionRowProps) => {
             colorScheme={status === 'Connected' ? 'green' : 'red'}
             size="md"
             p={3}
-            rounded={10}>
+            rounded={10}
+          >
             {status}
           </Tag>
         )}
@@ -174,7 +180,8 @@ const ConnectionRow = (props: ConnectionRowProps) => {
               colorScheme={isActivate ? 'green' : 'red'}
               variant="outline"
               className="hover:cursor-pointer"
-              onClick={handleActivate}>
+              onClick={handleActivate}
+            >
               {isActivate ? 'Activated' : 'Inactivated'}
             </Button>
             <Modal isOpen={isOpen} onClose={onClose}>
@@ -203,7 +210,8 @@ const ConnectionRow = (props: ConnectionRowProps) => {
                         status: !isActivate,
                       });
                       onClose();
-                    }}>
+                    }}
+                  >
                     {isActivate ? 'Inactivate' : 'Activate'}
                   </Button>
                 </ModalFooter>

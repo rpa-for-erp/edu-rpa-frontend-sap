@@ -2,6 +2,7 @@ import ControlIcon from '@/assets/images/packages/icons8-control-100.png';
 import BrowserAutomationIcon from '@/assets/images/packages/icons8-browser-64.png';
 import DocumentAutomationIcon from '@/assets/images/packages/icons8-document-100.png';
 import GoogleDriveIcon from '@/assets/images/services/icons8-google-drive-96.png';
+import ERPNextIcon from '@/assets/images/packages/erpnext-icon.png';
 import GmailIcon from '@/assets/images/services/icons8-gmail-96.png';
 import GoogleSheetIcon from '@/assets/images/services/icons8-google-sheets-96.png';
 import GoogleClassroomIcon from '@/assets/images/services/icons8-google-classroom-96.png';
@@ -54,7 +55,7 @@ const getLibrary = (packageName: string) => {
     case 'SAP MOCK':
       return 'rpa_sap.SAPKeywords';
     case 'Data manipulation':
-        return 'Collections';
+      return 'Collections';
     default:
       return null;
   }
@@ -84,6 +85,8 @@ const getPackageIcon = (displayName: string) => {
       return FileStorageIcon;
     case 'SAP MOCK':
       return SapMockIcon;
+    case 'ERPNext':
+      return ERPNextIcon;
     default:
       return null;
   }

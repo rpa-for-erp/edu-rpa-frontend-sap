@@ -179,7 +179,8 @@ export default function PropertiesSideBar({
         isOpen={isOpen}
         placement="right"
         onClose={onClose}
-        onCloseComplete={handleUpdateProperties}>
+        onCloseComplete={handleUpdateProperties}
+      >
         <DrawerOverlay />
         <DrawerContent w={400} maxW={400}>
           <DrawerCloseButton />
@@ -255,7 +256,8 @@ export default function PropertiesSideBar({
                           onClick={() => {
                             setActivity(activity.displayName);
                             dispatch(isSavedChange(false));
-                          }}>
+                          }}
+                        >
                           {activity.displayName}
                         </Button>
                       </Tooltip>
@@ -306,7 +308,8 @@ export default function PropertiesSideBar({
               ) => (
                 <Select
                   defaultValue={formValues[paramKey]?.value ?? options[0].value}
-                  onChange={(e) => handleInputChange(paramKey, e.target.value)}>
+                  onChange={(e) => handleInputChange(paramKey, e.target.value)}
+                >
                   {options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
@@ -424,6 +427,11 @@ export default function PropertiesSideBar({
                       paramKey,
                       AuthorizationProvider.SAP_MOCK
                     );
+                  case 'connection.ERP Next':
+                    return renderConnectionSelect(
+                      paramKey,
+                      AuthorizationProvider.ERP_NEXT
+                    );
                   case 'enum.shareType':
                     return renderSelect(paramKey, [
                       { value: 'user', label: 'User' },
@@ -431,19 +439,34 @@ export default function PropertiesSideBar({
                     ]);
                   case 'enum.permission':
                     return renderSelect(paramKey, [
-                      { value: 'reader', label: 'Reader' },
-                      { value: 'commenter', label: 'Commenter' },
-                      { value: 'editor', label: 'Editor' },
+                      {
+                        value: 'reader',
+                        label: 'Reader',
+                      },
+                      {
+                        value: 'commenter',
+                        label: 'Commenter',
+                      },
+                      {
+                        value: 'editor',
+                        label: 'Editor',
+                      },
                       { value: 'all', label: 'All' },
                     ]);
                   case 'label_ids':
                     return renderSelect(paramKey, [
                       { value: 'inbox', label: 'Inbox' },
-                      { value: 'starred', label: 'Starred' },
+                      {
+                        value: 'starred',
+                        label: 'Starred',
+                      },
                       { value: 'sent', label: 'Sent' },
                       { value: 'spam', label: 'Spam' },
                       { value: 'trash', label: 'Trash' },
-                      { value: 'scheduled', label: 'Scheduled' },
+                      {
+                        value: 'scheduled',
+                        label: 'Scheduled',
+                      },
                     ]);
                   case 'enum.operator.logic':
                     return renderSelect(paramKey, [
@@ -484,7 +507,8 @@ export default function PropertiesSideBar({
                             return (
                               <Tooltip
                                 label={paramValue.description as string}
-                                key={paramKey}>
+                                key={paramKey}
+                              >
                                 <FormControl>
                                   {!paramValue['hidden'] && (
                                     <FormLabel>{paramKey}</FormLabel>
@@ -503,7 +527,8 @@ export default function PropertiesSideBar({
                     {returnType && (
                       <Tooltip
                         label={returnType.description}
-                        key={returnType.displayName}>
+                        key={returnType.displayName}
+                      >
                         <FormControl>
                           <FormLabel>Result Variable</FormLabel>
                           <Select
@@ -511,7 +536,8 @@ export default function PropertiesSideBar({
                             placeholder="Choose Variable"
                             onChange={(e) => {
                               setSaveResult(e.target.value);
-                            }}>
+                            }}
+                          >
                             {variableStorage &&
                               variableStorage.map((variable: any) => (
                                 <option
@@ -519,7 +545,8 @@ export default function PropertiesSideBar({
                                   value={handleKeywordRobotFramework(
                                     variable[0],
                                     variable[1]
-                                  )}>
+                                  )}
+                                >
                                   {handleKeywordRobotFramework(
                                     variable[0],
                                     variable[1]
@@ -546,7 +573,8 @@ export default function PropertiesSideBar({
               <Button
                 className="mt-[20px]"
                 colorScheme="teal"
-                onClick={handleGoBack}>
+                onClick={handleGoBack}
+              >
                 Back
               </Button>
             )}
