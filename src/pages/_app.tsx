@@ -41,10 +41,11 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
       '/integration-service',
       '/storage',
       '/document-template',
+      '/workspace',
     ];
     if (path.startsWith('/auth') || path == '/') {
       return HeaderLayout;
-    } else if (sidebarRoutes.includes(path)) {
+    } else if (sidebarRoutes.includes(path) || path.startsWith('/workspace')) {
       return SidebarLayout;
     } else {
       return DefaultLayout;

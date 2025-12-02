@@ -1,5 +1,5 @@
 export const LibrabryConfigurations = {
-  'EduRPA.Document': {
+  'ErpRpa.Document': {
     lang: 'vi',
     performance: 'accurate',
   },
@@ -624,7 +624,7 @@ export const ActivityPackages = [
     _id: 'google_classroom',
     displayName: 'Google Classroom',
     description: 'Help you integrate your work with Google Classroom',
-    library: 'EduRPA.Google',
+    library: 'ErpRpa.Google',
     activityTemplates: [
       {
         templateId: 'google_classroom.set_up_connection',
@@ -636,7 +636,7 @@ export const ActivityPackages = [
         arguments: {
           Librabry: {
             type: 'string',
-            value: 'EduRPA.Google',
+            value: 'ErpRpa.Google',
             description: 'Librabry for setup OAuth token',
             hidden: true,
           },
@@ -996,7 +996,7 @@ export const ActivityPackages = [
     _id: 'google_form',
     displayName: 'Google Form',
     description: 'Help you integrate your work with Google Form',
-    library: 'EduRPA.Google',
+    library: 'ErpRpa.Google',
     activityTemplates: [
       {
         templateId: 'google_form.set_up_connection',
@@ -1008,7 +1008,7 @@ export const ActivityPackages = [
         arguments: {
           Librabry: {
             type: 'string',
-            value: 'EduRPA.Google',
+            value: 'ErpRpa.Google',
             description: 'Librabry for setup OAuth token',
             hidden: true,
           },
@@ -1356,7 +1356,7 @@ export const ActivityPackages = [
     displayName: 'Document automation',
     description:
       'Help you automate tasks related to documents (traditional paper documents or digital documents like PDFs) with the help of AI',
-    library: 'EduRPA.Document',
+    library: 'ErpRpa.Document',
     activityTemplates: [
       {
         templateId: 'extract_data_from_document',
@@ -1427,7 +1427,7 @@ export const ActivityPackages = [
     displayName: 'File storage',
     description:
       "Help you store and retrieve files in the platform's file storage",
-    library: 'EduRPA.Storage',
+    library: 'ErpRpa.Storage',
     activityTemplates: [
       {
         templateId: 'upload_file',

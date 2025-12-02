@@ -27,7 +27,8 @@ export default function Footer() {
       bg={'white'}
       color={useColorModeValue('gray.700', 'gray.200')}
       position="relative"
-      zIndex="9999">
+      zIndex="9999"
+    >
       <Container as={Stack} maxW={'6xl'} py={10}>
         <SimpleGrid columns={{ base: 1, sm: 2, md: 4 }} spacing={8}>
           <Stack align={'flex-start'}>
@@ -123,8 +124,9 @@ export default function Footer() {
             className="text-primary font-bold"
             href="https://github.com/edu-rpa"
             target="_blank"
-            rel="noreferrer">
-            EduRPA Team
+            rel="noreferrer"
+          >
+            ErpRpa Team
           </a>{' '}
           for a better education
         </Text>

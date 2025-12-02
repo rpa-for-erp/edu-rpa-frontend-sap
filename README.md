@@ -1,6 +1,6 @@
-# EduRPA
+# ErpRpa
 
-[![EduRPA](https://github.com/user-attachments/assets/efbce81e-04e1-4c24-9902-ba8b6767551f)](https://youtu.be/5Pq27mQelzI?si=JwAPtHjDV4HLEJpX)
+[![ErpRpa](https://github.com/user-attachments/assets/efbce81e-04e1-4c24-9902-ba8b6767551f)](https://youtu.be/5Pq27mQelzI?si=JwAPtHjDV4HLEJpX)
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
@@ -40,5 +40,6 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
 
 ## How to debug jest
+
 - Open Javascript Debug Terminal
 - Run "npm test --watch"

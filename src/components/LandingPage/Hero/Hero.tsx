@@ -21,12 +21,14 @@ export default function HeroHome() {
         spacing={{ base: 8, md: 10 }}
         py={{ base: 20, md: 28 }}
         px={{ base: 10, md: 14 }}
-        direction={{ base: 'column', md: 'row' }}>
+        direction={{ base: 'column', md: 'row' }}
+      >
         <Stack flex={1} spacing={{ base: 5, md: 10 }}>
           <Heading
             lineHeight={1.1}
             fontWeight={600}
-            fontSize={{ base: '3xl', sm: '4xl', lg: '5xl' }}>
+            fontSize={{ base: '3xl', sm: '4xl', lg: '5xl' }}
+          >
             <Text as={'span'}>More automation,</Text>
             <br />
             <Text as={'span'} color={'#319795'} fontSize={55}>
@@ -34,7 +36,7 @@ export default function HeroHome() {
             </Text>
           </Heading>
           <Text color={'gray.500'}>
-            EduRPA is a transformative platform integrating Robotic Process
+            ErpRpa is a transformative platform integrating Robotic Process
             Automation (RPA) within the education sector, designed to assist
             teachers and students.
             <br />
@@ -45,7 +47,8 @@ export default function HeroHome() {
           </Text>
           <Stack
             spacing={{ base: 4, sm: 6 }}
-            direction={{ base: 'column', sm: 'row' }}>
+            direction={{ base: 'column', sm: 'row' }}
+          >
             <Button
               rounded={'lg'}
               size={'lg'}
@@ -53,7 +56,8 @@ export default function HeroHome() {
               px={6}
               color={'white'}
               bg={'#319795'}
-              _hover={{ bg: '#4FD1C5' }}>
+              _hover={{ bg: '#4FD1C5' }}
+            >
               {' '}
               Get started
             </Button>
@@ -64,9 +68,8 @@ export default function HeroHome() {
               borderColor={'#319795'}
               fontWeight={'normal'}
               px={6}
-              leftIcon={
-                <FaPlayCircle height={4} width={4} color={'#319795'} />
-              }>
+              leftIcon={<FaPlayCircle height={4} width={4} color={'#319795'} />}
+            >
               How It Works
             </Button>
           </Stack>
@@ -75,9 +78,10 @@ export default function HeroHome() {
           <iframe
             className="w-full h-full"
             src="https://www.youtube.com/embed/5Pq27mQelzI?si=Gi8smiZjocIYrT2T"
-            title="EduRPA"
+            title="ErpRpa"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen></iframe>
+            allowFullScreen
+          ></iframe>
         </Box>
       </Stack>
     </Container>
@@ -91,7 +95,8 @@ const Blob = (props: IconProps) => {
       viewBox="0 0 578 440"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}>
+      {...props}
+    >
       <path
         fillRule="evenodd"
         clipRule="evenodd"

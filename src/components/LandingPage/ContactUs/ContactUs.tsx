@@ -36,7 +36,8 @@ export default function ContactUsHome() {
           fontSize={{ base: '2xl', sm: '4xl' }}
           fontWeight={'bold'}
           mt={10}
-          color="teal.500">
+          color="teal.500"
+        >
           Contact Us
         </Heading>
         <Text color={'gray.600'} fontSize={{ base: 'sm', sm: 'lg' }}>
@@ -51,7 +52,8 @@ export default function ContactUsHome() {
             bg="#E0F2F1"
             borderRadius="lg"
             m={{ sm: 4, md: 16, lg: 10 }}
-            p={{ sm: 5, md: 5, lg: 16 }}>
+            p={{ sm: 5, md: 5, lg: 16 }}
+          >
             <Box p={4}>
               <Wrap spacing={{ base: 20, sm: 3, md: 5, lg: 20 }}>
                 <WrapItem>
@@ -68,7 +70,8 @@ export default function ContactUsHome() {
                           variant="ghost"
                           color="#319795"
                           _hover={{ bg: '#4FD1C5', color: 'white' }}
-                          leftIcon={<MdPhone size="20px" />}>
+                          leftIcon={<MdPhone size="20px" />}
+                        >
                           0852531027
                         </Button>
                         <Button
@@ -77,8 +80,9 @@ export default function ContactUsHome() {
                           variant="ghost"
                           color="#319795"
                           _hover={{ bg: '#4FD1C5', color: 'white' }}
-                          leftIcon={<MdEmail size="20px" />}>
-                          edurpa.contact@gmail.com
+                          leftIcon={<MdEmail size="20px" />}
+                        >
+                          ErpRpa.contact@gmail.com
                         </Button>
                         <Button
                           size="md"
@@ -86,7 +90,8 @@ export default function ContactUsHome() {
                           variant="ghost"
                           color="#319795"
                           _hover={{ bg: '#4FD1C5', color: 'white' }}
-                          leftIcon={<MdLocationOn size="20px" />}>
+                          leftIcon={<MdLocationOn size="20px" />}
+                        >
                           268 Ly Thuong Kiet, HCMC, Viet Nam
                         </Button>
                       </VStack>
@@ -95,7 +100,8 @@ export default function ContactUsHome() {
                       mt={{ lg: 10, md: 10 }}
                       spacing={5}
                       px={5}
-                      alignItems="flex-start">
+                      alignItems="flex-start"
+                    >
                       <IconButton
                         aria-label="facebook"
                         variant="ghost"
@@ -178,7 +184,8 @@ export default function ContactUsHome() {
                             bg="#319795"
                             color="white"
                             _hover={{ bg: '#4FD1C5', color: 'white' }}
-                            borderRadius="md">
+                            borderRadius="md"
+                          >
                             Send Message
                           </Button>
                         </FormControl>

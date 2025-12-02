@@ -33,7 +33,8 @@ const Card = ({ heading, description, icon, href }: CardProps) => {
       borderWidth="1px"
       borderRadius="lg"
       overflow="hidden"
-      p={5}>
+      p={5}
+    >
       <Stack align={'start'} spacing={2}>
         <Flex
           w={16}
@@ -42,7 +43,8 @@ const Card = ({ heading, description, icon, href }: CardProps) => {
           justify={'center'}
           color={'white'}
           rounded={'full'}
-          bg={useColorModeValue('gray.100', 'gray.700')}>
+          bg={useColorModeValue('gray.100', 'gray.700')}
+        >
           {icon}
         </Flex>
         <Box mt={2}>
@@ -52,7 +54,8 @@ const Card = ({ heading, description, icon, href }: CardProps) => {
             fontSize={'sm'}
             noOfLines={3}
             overflow="hidden"
-            textOverflow="ellipsis">
+            textOverflow="ellipsis"
+          >
             {description}
           </Text>
         </Box>
@@ -72,11 +75,12 @@ export default function FeatureHome() {
           fontSize={{ base: '2xl', sm: '4xl' }}
           fontWeight={'bold'}
           mt={5}
-          color="teal.500">
+          color="teal.500"
+        >
           What We Offers
         </Heading>
         <Text color={'gray.600'} fontSize={{ base: 'sm', sm: 'lg' }}>
-          EduRPA introduces the power of RPA to the educational sector,
+          ErpRpa introduces the power of RPA to the educational sector,
           automates essential tasks, facilitating a digital transformation in
           e-learning.
         </Text>

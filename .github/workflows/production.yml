@@ -1,4 +1,4 @@
-name: EduRPA Platform Production Deployment
+name: ErpRpa Platform Production Deployment
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

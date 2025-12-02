@@ -11,6 +11,7 @@ import { FaHome, FaRobot, FaFileInvoice } from 'react-icons/fa';
 import { RiFlowChart } from 'react-icons/ri';
 import { IoIosRocket } from 'react-icons/io';
 import { FaFile } from 'react-icons/fa6';
+import { MdWorkspaces } from 'react-icons/md';
 import { usePathname } from 'next/navigation';
 import Navbar from '../Header/Navbar';
 import SidebarList from './SidebarList';
@@ -21,9 +22,18 @@ const sidebarItems = [
   { path: '/home', name: 'Home', icon: FaHome },
   { path: '/studio', name: 'Studio', icon: RiFlowChart },
   { path: '/robot', name: 'Robot', icon: FaRobot },
-  { path: '/integration-service', name: 'Integration Service', icon: IoIosRocket },
+  {
+    path: '/integration-service',
+    name: 'Integration Service',
+    icon: IoIosRocket,
+  },
   { path: '/storage', name: 'Storage', icon: FaFile },
-  { path: '/document-template', name: 'Document Template', icon: FaFileInvoice },
+  {
+    path: '/document-template',
+    name: 'Document Template',
+    icon: FaFileInvoice,
+  },
+  { path: '/workspace', name: 'Workspace', icon: MdWorkspaces },
 ];
 
 interface Props {
@@ -40,7 +50,8 @@ const Sidebar = ({ children }: Props) => {
     <Box
       minH="100vh"
       bg={useColorModeValue('gray.100', 'gray.900')}
-      display="flex">
+      display="flex"
+    >
       {/* Sidebar */}
       <SidebarList data={sidebarItems} path={pathName} onClose={onClose} />
       <Drawer
@@ -49,7 +60,8 @@ const Sidebar = ({ children }: Props) => {
         onClose={onClose}
         returnFocusOnClose={false}
         onOverlayClick={onClose}
-        size="full">
+        size="full"
+      >
         <DrawerContent>
           <SidebarList data={sidebarItems} path={pathName} onClose={onClose} />
         </DrawerContent>
@@ -62,7 +74,8 @@ const Sidebar = ({ children }: Props) => {
           className={
             'relative top-[130px] transition-left duration-500 ease-in-out ' +
             leftAlignStyle
-          }>
+          }
+        >
           {children}
         </Box>
       </Box>

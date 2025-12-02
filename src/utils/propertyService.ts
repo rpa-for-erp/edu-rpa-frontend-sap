@@ -43,15 +43,15 @@ const getLibrary = (packageName: string) => {
     case 'Google Sheet':
       return 'RPA.Cloud.Google';
     case 'Google Classroom':
-      return 'EduRPA.Google';
+      return 'ErpRpa.Google';
     case 'Google Form':
-      return 'EduRPA.Google';
+      return 'ErpRpa.Google';
     case 'Browser automation':
       return 'RPA.Browser.Playwright';
     case 'Document automation':
-      return 'EduRPA.Document';
+      return 'ErpRpa.Document';
     case 'File storage':
-      return 'EduRPA.Storage';
+      return 'ErpRpa.Storage';
     case 'SAP MOCK':
       return 'rpa_sap.SAPKeywords';
     case 'Data manipulation':

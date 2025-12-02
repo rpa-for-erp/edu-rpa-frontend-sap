@@ -24,6 +24,8 @@ import { FaShareSquare, FaPlay } from 'react-icons/fa';
 import { GrIntegration } from 'react-icons/gr';
 import { BsFillLightningFill } from 'react-icons/bs';
 import { useEffect, useState } from 'react';
+import { MdNotifications } from 'react-icons/md';
+
 import { useRouter } from 'next/router';
 import {
   fetchMoreNotifications,
@@ -92,19 +94,41 @@ const NotificationMenu = () => {
   return (
     <Box>
       <Menu>
-        <MenuButton>
-          <Avatar
-            size="sm"
-            src="https://img.icons8.com/ios/50/appointment-reminders--v1.png">
+        <MenuButton
+          position="relative"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Box position="relative" cursor="pointer">
+            {/* Icon chuông */}
+            <MdNotifications size={26} />
+
+            {/* Badge số lượng chưa đọc */}
             {countUnread > 0 && (
-              <AvatarBadge boxSize="1.75em" bg="red.500">
+              <Box
+                position="absolute"
+                top="-4px"
+                right="-4px"
+                bg="red.500"
+                color="white"
+                fontSize="10px"
+                minW="18px"
+                h="18px"
+                borderRadius="full"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
+                fontWeight="bold"
+              >
                 {countUnread}
-              </AvatarBadge>
+              </Box>
             )}
-          </Avatar>
+          </Box>
         </MenuButton>
         <MenuList
-          style={{ width: '300px', maxHeight: '300px', overflowY: 'scroll' }}>
+          style={{ width: '300px', maxHeight: '300px', overflowY: 'scroll' }}
+        >
           {notifications.length === 0 && (
             <Text className="mt-5 mb-5" textAlign="center">
               No notifications
@@ -113,7 +137,8 @@ const NotificationMenu = () => {
           {notifications.map((notification) => (
             <MenuItem
               key={notification.id}
-              onClick={() => readNotification(notification)}>
+              onClick={() => readNotification(notification)}
+            >
               <Icon
                 as={mapNotificationTypeToIcon(notification.type)}
                 color={notification.isRead ? 'gray.400' : 'blue.500'}
@@ -141,7 +166,8 @@ const NotificationMenu = () => {
               onClick={() =>
                 dispatch(fetchMoreNotifications(curPage + 1) as any)
               }
-              isLoading={isLoading}>
+              isLoading={isLoading}
+            >
               Load more
             </Button>
           )}
@@ -167,7 +193,8 @@ const NotificationMenu = () => {
             <Button
               colorScheme="teal"
               className="mr-3"
-              onClick={handleActionOfNoti}>
+              onClick={handleActionOfNoti}
+            >
               Go to{' '}
               {NotificationType[selectedNotification.type]
                 .split('_')[0]
