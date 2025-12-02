@@ -25,6 +25,7 @@ export default function Footer() {
   return (
     <Box
       bg={'white'}
+      className="border-t border-gray-200"
       color={useColorModeValue('gray.700', 'gray.200')}
       position="relative"
       zIndex="9999"
@@ -126,7 +127,7 @@ export default function Footer() {
             target="_blank"
             rel="noreferrer"
           >
-            ErpRpa Team
+            EduRPA Team
           </a>{' '}
           for a better education
         </Text>

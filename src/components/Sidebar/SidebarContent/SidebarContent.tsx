@@ -1,6 +1,6 @@
-import { homeSelector } from '@/redux/selector';
-import React from 'react';
-import { useSelector } from 'react-redux';
+import { homeSelector } from "@/redux/selector";
+import React from "react";
+import { useSelector } from "react-redux";
 
 interface SidebarContentProps {
   children: React.ReactNode;
@@ -12,16 +12,14 @@ export default function SidebarContent({
   className,
   ...props
 }: SidebarContentProps) {
-  const { isHiddenSidebar } = useSelector(homeSelector);
-  const extendSidebar = isHiddenSidebar ? 'w-[90vw]' : 'w-[75vw]';
-
   return (
     <div
-      className={`bg-white rounded-[15px] py-[30px] mb-[30px] relative ${className} ${extendSidebar}`}
+      className={`bg-white  py-[20px] mb-[30px] relative w-full ${className}`}
       style={{
-        transition: 'left 0.5s ease-in-out',
+        transition: "width 0.5s ease-in-out",
       }}
-      {...props}>
+      {...props}
+    >
       {children}
     </div>
   );
