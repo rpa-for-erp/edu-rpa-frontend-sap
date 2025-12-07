@@ -12,21 +12,21 @@ export interface CreateWorkspaceDto {
 
 export interface UpdateWorkspaceDto {
   name?: string;
-  contactEmail?: string;
-  visibility?: WorkspaceVisibility;
+  description?: string;
 }
 
 // Team DTOs
 export interface CreateTeamDto {
   name: string;
   description?: string;
-  visibility: TeamVisibility;
+  visibility?: TeamVisibility;
+  activityPackageIds?: string[];
 }
 
 export interface UpdateTeamDto {
   name?: string;
   description?: string;
-  visibility?: TeamVisibility;
+  activityPackageIds?: string[];
 }
 
 // Role DTOs
@@ -34,25 +34,27 @@ export interface CreateRoleDto {
   name: string;
   description?: string;
   permissionIds: string[];
+  templateIds?: string[];
 }
 
 export interface UpdateRoleDto {
   name?: string;
   description?: string;
   permissionIds?: string[];
+  templateIds?: string[];
 }
 
 // Member DTOs
 export interface InviteMemberDto {
   email: string;
-  roleId?: string;
+  roleId: string;
 }
 
 export interface UpdateMemberRoleDto {
   roleId: string;
 }
 
-export interface RespondInvitationDto {
-  invitationId: string;
-  status: InvitationStatus;
+// Activity Package DTOs
+export interface AddPackageToTeamDto {
+  packageId: string;
 }

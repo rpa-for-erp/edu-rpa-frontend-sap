@@ -11,10 +11,12 @@ import { useRouter } from 'next/router';
 import HeaderLayout from '@/components/Layouts/HeaderLayout';
 import SidebarLayout from '@/components/Layouts/SidebarLayout';
 import DefaultLayout from '@/components/Layouts/DefaultLayout';
+import NavbarOnlyLayout from '@/components/Layouts/NavbarOnlyLayout';
 import { PubNubProvider } from 'pubnub-react';
 import PubNub from 'pubnub';
 import GoogleAnalytics from '@/components/GoogleAnalytics/GoogleAnalytics';
 import { GA } from '@/constants/ga';
+import Head from 'next/head';
 
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (_page: React.ReactElement) => React.ReactElement;
@@ -33,7 +35,9 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
   const useGetLayout = () => {
     const router = useRouter();
     const path = router.pathname;
-    const sidebarRoutes = [
+
+    // Personal/default sidebar routes
+    const personalSidebarRoutes = [
       '/home',
       '/studio',
       '/robot',
@@ -41,13 +45,28 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
       '/integration-service',
       '/storage',
       '/document-template',
-      '/workspace',
+      '/invitation',
     ];
-    if (path.startsWith('/auth') || path == '/') {
+
+    // Auth routes use HeaderLayout
+    if (path.startsWith('/auth') || path === '/') {
       return HeaderLayout;
-    } else if (sidebarRoutes.includes(path) || path.startsWith('/workspace')) {
+    }
+    // Create pages use NavbarOnlyLayout
+    else if (path === '/workspace/create' || path.endsWith('/create')) {
+      return NavbarOnlyLayout;
+    }
+    // Workspace routes (except /workspace list page) don't use any layout
+    // because they use WorkspaceLayout internally
+    else if (path.startsWith('/workspace/') && path !== '/workspace') {
+      return DefaultLayout;
+    }
+    // Personal routes and workspace list page use SidebarLayout
+    else if (personalSidebarRoutes.includes(path) || path === '/workspace') {
       return SidebarLayout;
-    } else {
+    }
+    // Default for other routes
+    else {
       return DefaultLayout;
     }
   };
@@ -59,6 +78,9 @@ function App({ Component, pageProps }: AppPropsWithLayout) {
       <QueryClientProvider client={queryClient}>
         <ChakraProvider theme={theme}>
           <PubNubProvider client={pubnub}>
+            <Head>
+              <title>ERP_RPA</title>
+            </Head>
             <Layout>
               <Component {...pageProps} />
               <GoogleAnalytics gaID={GA.MEASUREMENT_ID} />

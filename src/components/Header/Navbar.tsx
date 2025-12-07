@@ -1,4 +1,10 @@
-import { toggleSidebar } from '@/redux/slice/homeSlice';
+import {
+  toggleSidebar,
+  setCurrentWorkspace,
+  clearCurrentWorkspace,
+  setWorkspaces,
+} from '@/redux/slice/homeSlice';
+import { homeSelector } from '@/redux/selector';
 import {
   Avatar,
   AvatarBadge,
@@ -17,10 +23,8 @@ import {
   useColorModeValue,
   useToast,
 } from '@chakra-ui/react';
-import Image from 'next/image';
-import { FiMenu, FiBell, FiChevronDown } from 'react-icons/fi';
-import { Md10K, MdArrowDropDown } from 'react-icons/md';
-import Logo from '@/assets/images/logo.png';
+import { FiMenu } from 'react-icons/fi';
+import { MdArrowDropDown, MdOutlinePerson } from 'react-icons/md';
 import { useRouter } from 'next/router';
 import { useDispatch, useSelector } from 'react-redux';
 import { setUser } from '@/redux/slice/userSlice';
@@ -41,7 +45,14 @@ import {
   MdGroups,
   MdAdd,
   MdWorkspaces,
+  MdMail,
 } from 'react-icons/md';
+import { GrAnalytics } from 'react-icons/gr';
+import { COLORS } from '@/constants/colors';
+import workspaceApi from '@/apis/workspaceApi';
+import { Workspace } from '@/interfaces/workspace';
+import { RiArrowGoBackFill } from 'react-icons/ri';
+
 const privateNotiChannelPrefix = 'notification.';
 
 const Navbar = () => {
@@ -50,6 +61,7 @@ const Navbar = () => {
   const pubnub = usePubNub();
   const toast = useToast();
   const user = useSelector(userSelector);
+  const { currentWorkspaceId, workspaces } = useSelector(homeSelector);
 
   const [userInfo, setUserInfo] = useState<any>(null);
 
@@ -71,6 +83,18 @@ const Navbar = () => {
         }
       };
       fetchUserData();
+
+      const fetchWorkspaces = async () => {
+        try {
+          const workspacesData = await workspaceApi.getAllWorkspaces();
+          dispatch(setWorkspaces(workspacesData));
+        } catch (error) {
+          console.error('Failed to fetch workspaces', error);
+          // Don't show toast error, just log it
+          dispatch(setWorkspaces([]));
+        }
+      };
+      fetchWorkspaces();
     }
   }, []);
 
@@ -108,145 +132,205 @@ const Navbar = () => {
       pos="fixed"
       top="0"
       left="0"
+      right="0"
       style={{ zIndex: 1000 }}
-      width="100vw"
       alignItems="center"
       bg={useColorModeValue('white', 'gray.900')}
       borderBottomWidth="1px"
       borderBottomColor={useColorModeValue('gray.200', 'gray.700')}
       justifyContent="space-between"
     >
-      <Menu>
-        {/* Button chính là toàn bộ Flex */}
-        <MenuButton as={Box} _hover={{ cursor: 'pointer' }} pr={10}>
-          <Flex align="center" position="relative">
-            <IconButton
-              aria-label="Toggle Sidebar"
-              icon={<FiMenu fontSize="20" color="#319795" />}
-              variant="outline"
-              onClick={(e) => {
-                e.stopPropagation(); // để menu không mở khi click vào menu icon
-                dispatch(toggleSidebar());
-              }}
-            />
+      <Flex align="center" gap={2}>
+        {/* Toggle Sidebar Button - Tách riêng */}
+        <IconButton
+          aria-label="Toggle Sidebar"
+          icon={<FiMenu fontSize="20" color={COLORS.primary} />}
+          variant="outline"
+          onClick={() => dispatch(toggleSidebar())}
+        />
 
-            <Avatar ml={4} size="xs" bg="gray.500" src={user.avatarUrl} />
+        {/* Workspace Switcher Menu */}
+        <Menu strategy="fixed">
+          {({ onClose }) => (
+            <>
+              <MenuButton as={Box} _hover={{ cursor: 'pointer' }}>
+                <Flex align="center" position="relative">
+                  <Avatar
+                    ml={2}
+                    size="xs"
+                    bg="gray.500"
+                    src={user.avatarUrl}
+                    icon={currentWorkspaceId ? <MdWorkspaces /> : <MdPerson />}
+                  />
 
-            <VStack
-              display={{ base: 'none', md: 'flex' }}
-              alignItems="flex-start"
-              spacing="1px"
-              ml="2"
-            >
-              <Text fontSize="sm">{user.email}</Text>
-            </VStack>
+                  <VStack
+                    display={{ base: 'none', md: 'flex' }}
+                    alignItems="flex-start"
+                    spacing="1px"
+                    ml="2"
+                  >
+                    <Text fontSize="sm">
+                      {currentWorkspaceId
+                        ? workspaces.find((w) => w.id === currentWorkspaceId)
+                            ?.name || 'Workspace'
+                        : user.name || user.email}
+                    </Text>
+                  </VStack>
 
-            {/* Arrow drop */}
-            <Box
-              display={{ base: 'none', md: 'flex' }}
-              position="absolute"
-              left="235px"
-              mt="0.5"
-            >
-              <MdArrowDropDown size={24} />
-            </Box>
-          </Flex>
-        </MenuButton>
+                  {/* Arrow drop */}
+                  <Box display={{ base: 'none', md: 'flex' }}>
+                    <MdArrowDropDown size={24} />
+                  </Box>
+                </Flex>
+              </MenuButton>
 
-        {/* MENU DROPDOWN */}
-        <MenuList
-          w="260px"
-          p="0"
-          border="1px solid #A8A8A8"
-          borderRadius="8px"
-          boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
-          overflow="hidden"
-        >
-          {/* HEADER */}
-          <Flex
-            justify="space-between"
-            align="center"
-            px="16px"
-            py="12px"
-            borderBottom="1px solid #E5E5E5"
-          >
-            <Text fontWeight="600" fontSize="15px">
-              Switch dashboard context
-            </Text>
-
-            <MdClose size={20} cursor="pointer" />
-          </Flex>
-
-          {/* USERS LIST */}
-          <Box py="6px">
-            {['username', 'username', 'username', 'username', 'username'].map(
-              (name, idx) => (
+              {/* MENU DROPDOWN */}
+              <MenuList
+                w="320px"
+                p={0}
+                pl={2}
+                border={`1px solid ${COLORS.borderDark}`}
+                borderRadius="8px"
+                boxShadow="0px 4px 4px rgba(0, 0, 0, 0.25)"
+                overflow="hidden"
+              >
+                {/* HEADER */}
                 <Flex
-                  key={idx}
+                  justify="space-between"
                   align="center"
                   px="16px"
-                  py="8px"
-                  cursor="pointer"
-                  _hover={{ bg: '#F7F7F7' }}
+                  py="12px"
+                  borderBottom={`1px solid ${COLORS.borderDivider}`}
                 >
-                  {idx === 0 ? (
-                    <Box color="teal.500" fontSize="18px" mr="8px">
-                      ✓
-                    </Box>
-                  ) : (
-                    <Box w="18px" mr="8px" />
-                  )}
-
-                  <MdPerson size={20} />
-                  <Text ml="10px" fontSize="15px">
-                    {name}
+                  <Text fontWeight="600" fontSize="15px">
+                    Switch dashboard context
                   </Text>
+                  <Box
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onClose();
+                    }}
+                    _hover={{
+                      cursor: 'pointer',
+                      backgroundColor: COLORS.bgGray,
+                    }}
+                  >
+                    <MdClose size={20} cursor="pointer" />
+                  </Box>
                 </Flex>
-              )
-            )}
-          </Box>
 
-          {/* WORKSPACE BUTTONS */}
-          <Box px="16px" pb="12px" mt="4px">
-            {/* Manage workspaces */}
-            <Flex
-              align="center"
-              border="1px solid #D0D0D0"
-              borderRadius="10px"
-              px="12px"
-              py="10px"
-              mb="10px"
-              cursor="pointer"
-              _hover={{ bg: '#F7F7F7' }}
-            >
-              <MdWorkspaces size={20} />
-              <Text ml="10px" fontSize="15px" fontWeight="500">
-                Manage workspaces
-              </Text>
-            </Flex>
+                {/* Workspace*/}
+                <Box py="6px">
+                  {/* Current User */}
+                  <Flex
+                    align="center"
+                    px="16px"
+                    py="8px"
+                    cursor="pointer"
+                    _hover={{ bg: COLORS.bgGray }}
+                    onClick={() => {
+                      dispatch(clearCurrentWorkspace());
+                      router.push('/home');
+                    }}
+                  >
+                    {currentWorkspaceId === null ? (
+                      <Box color="teal.500" fontSize="18px" mr="8px">
+                        ✓
+                      </Box>
+                    ) : (
+                      <Box color="rgba(0, 0, 0, 0.0)" fontSize="18px" mr="8px">
+                        ✓
+                      </Box>
+                    )}
+                    <MdPerson size={20} />
+                    <Text ml="10px" fontSize="15px">
+                      {user.name || user.email}
+                    </Text>
+                  </Flex>
 
-            {/* Create workspace */}
-            <Flex
-              align="center"
-              border="1px solid #D0D0D0"
-              borderRadius="10px"
-              px="12px"
-              py="10px"
-              cursor="pointer"
-              _hover={{ bg: '#F7F7F7' }}
-            >
-              <MdAdd size={20} />
-              <Text ml="10px" fontSize="15px" fontWeight="500">
-                Create workspace
-              </Text>
-            </Flex>
-          </Box>
-        </MenuList>
-      </Menu>
+                  {/* Workspaces List */}
+                  {Array.isArray(workspaces) &&
+                    workspaces.map((workspace) => (
+                      <Flex
+                        key={workspace.id}
+                        align="center"
+                        px="16px"
+                        py="8px"
+                        cursor="pointer"
+                        _hover={{ bg: COLORS.bgGray }}
+                        onClick={() => {
+                          dispatch(setCurrentWorkspace(workspace.id));
+                          router.push(`/workspace/${workspace.id}`);
+                        }}
+                      >
+                        {currentWorkspaceId === workspace.id ? (
+                          <Box color="teal.500" fontSize="18px" mr="8px">
+                            ✓
+                          </Box>
+                        ) : (
+                          <Box
+                            color="rgba(0, 0, 0, 0.0)"
+                            fontSize="18px"
+                            mr="8px"
+                          >
+                            ✓
+                          </Box>
+                        )}
+                        <MdWorkspaces size={20} />
+                        <Text ml="10px" fontSize="15px">
+                          {workspace.name}
+                        </Text>
+                      </Flex>
+                    ))}
+                </Box>
+
+                {/* WORKSPACE BUTTONS */}
+                <Box px="16px" pb="12px" mt="4px">
+                  {/* Manage workspaces */}
+                  <Flex
+                    justify="center"
+                    align="center"
+                    border={`1px solid ${COLORS.borderGray}`}
+                    borderRadius="10px"
+                    px="12px"
+                    py="4px"
+                    mb="10px"
+                    cursor="pointer"
+                    _hover={{ bg: COLORS.bgGray }}
+                    onClick={() => router.push('/workspace')}
+                  >
+                    <MdWorkspaces size={20} />
+                    <Text ml="10px" fontSize="14px" fontWeight="500">
+                      Manage workspaces
+                    </Text>
+                  </Flex>
+
+                  {/* Create workspace */}
+                  <Flex
+                    justify="center"
+                    align="center"
+                    border={`1px solid ${COLORS.borderGray}`}
+                    borderRadius="10px"
+                    px="12px"
+                    py="5px"
+                    cursor="pointer"
+                    _hover={{ bg: COLORS.bgGray }}
+                    onClick={() => router.push('/workspace/create')}
+                  >
+                    <MdAdd size={20} />
+                    <Text ml="10px" fontSize="14px" fontWeight="500">
+                      Create workspace
+                    </Text>
+                  </Flex>
+                </Box>
+              </MenuList>
+            </>
+          )}
+        </Menu>
+      </Flex>
 
       <HStack spacing={{ base: '0', md: '6' }}>
         <NotificationMenu />
-
         <Flex alignItems="center" mr={8}>
           <Menu>
             <MenuButton py={2} transition="all 0.3s">
@@ -258,10 +342,29 @@ const Navbar = () => {
               bg={useColorModeValue('white', 'gray.900')}
               borderColor={useColorModeValue('gray.200', 'gray.700')}
             >
+              <MenuDivider />
+
               <MenuItem onClick={() => router.push('/profile')}>
-                Profile
+                <Flex
+                  align="center"
+                  justify="center"
+                  onClick={() => router.push('/invitation')}
+                >
+                  <MdOutlinePerson size={20} />
+                  <Text ml="10px">Profile</Text>
+                </Flex>
               </MenuItem>
-              <MenuItem>Settings</MenuItem>
+              {/* Invitations */}
+              <MenuItem onClick={() => router.push('/invitation')}>
+                <Flex
+                  align="center"
+                  justify="center"
+                  onClick={() => router.push('/invitation')}
+                >
+                  <MdMail size={20} />
+                  <Text ml="10px">Invitations</Text>
+                </Flex>
+              </MenuItem>
               <MenuDivider />
               <MenuItem
                 onClick={() => {
@@ -269,11 +372,15 @@ const Navbar = () => {
                   removeAuthToken();
                 }}
               >
-                Sign out
+                <Flex align="center" justify="center">
+                  <MdMail size={20} />
+                  <Text ml="10px"> Sign out</Text>
+                </Flex>
               </MenuItem>
             </MenuList>
           </Menu>
-        </Flex>
+        </Flex>{' '}
+        sửa cho giống trong hình
       </HStack>
     </Flex>
   );

@@ -17,25 +17,46 @@ import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
+  Avatar,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
 } from '@chakra-ui/react';
 import { SearchIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
-import SidebarContent from '@/components/Sidebar/SidebarContent/SidebarContent';
+import WorkspaceLayout from '@/components/Layouts/WorkspaceLayout';
 import { Team } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
 import CreateTeamModal from '@/components/Workspace/CreateTeamModal';
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal';
 import { FaTrash } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import { homeSelector } from '@/redux/selector';
+import { COLORS } from '@/constants/colors';
+import { MdArrowDropDown } from 'react-icons/md';
 
 const TeamListPage: React.FC = () => {
   const router = useRouter();
   const toast = useToast();
   const { workspaceId } = router.query as { workspaceId: string };
+  const { workspaces } = useSelector(homeSelector);
   const [teams, setTeams] = useState<Team[]>([]);
   const [filteredTeams, setFilteredTeams] = useState<Team[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTeams, setSelectedTeams] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [filterMember, setFilterMember] = useState<string>('all');
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isDeleteOpen,
+    onOpen: onDeleteOpen,
+    onClose: onDeleteClose,
+  } = useDisclosure();
+  const [pendingTeamId, setPendingTeamId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const workspace = workspaces.find((w) => w.id === workspaceId);
 
   useEffect(() => {
     if (workspaceId) {
@@ -92,10 +113,16 @@ const TeamListPage: React.FC = () => {
 
   const handleDeleteTeam = async (teamId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this team?')) return;
+    setPendingTeamId(teamId);
+    onDeleteOpen();
+  };
+
+  const confirmDeleteTeam = async () => {
+    if (!pendingTeamId) return;
 
     try {
-      await workspaceApi.deleteTeam(workspaceId, teamId);
+      setIsSubmitting(true);
+      await workspaceApi.deleteTeam(pendingTeamId);
       toast({
         title: 'Success',
         description: 'Team deleted successfully',
@@ -104,6 +131,8 @@ const TeamListPage: React.FC = () => {
         isClosable: true,
       });
       fetchTeams();
+      onDeleteClose();
+      setPendingTeamId(null);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -112,11 +141,13 @@ const TeamListPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <SidebarContent>
+    <WorkspaceLayout>
       <Container maxW="container.xl" py={5}>
         <Breadcrumb
           spacing="8px"
@@ -128,14 +159,28 @@ const TeamListPage: React.FC = () => {
               Workspaces
             </BreadcrumbLink>
           </BreadcrumbItem>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              onClick={() => router.push(`/workspace/${workspaceId}`)}
+            >
+              {workspace?.name || 'Workspace'}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
           <BreadcrumbItem isCurrentPage>
             <BreadcrumbLink>Teams</BreadcrumbLink>
           </BreadcrumbItem>
         </Breadcrumb>
 
         <Flex justify="space-between" align="center" mb={6}>
-          <Heading size="lg">Teams</Heading>
-          <Button colorScheme="teal" onClick={onOpen}>
+          <Heading size="lg" color={COLORS.primary}>
+            Teams
+          </Heading>
+          <Button
+            colorScheme="teal"
+            onClick={() =>
+              router.push(`/workspace/${workspaceId}/teams/create`)
+            }
+          >
             New Team
           </Button>
         </Flex>
@@ -161,28 +206,17 @@ const TeamListPage: React.FC = () => {
               borderTopRadius="md"
               align="center"
               justify="space-between"
+              gap="auto"
             >
-              <Flex align="center" gap={4}>
+              <Flex align="center" gap={4} flex={1}>
                 <Checkbox
                   isChecked={
                     selectedTeams.length === filteredTeams.length &&
                     filteredTeams.length > 0
                   }
                   onChange={handleSelectAll}
-                >
-                  Select All
-                </Checkbox>
-              </Flex>
-              <Flex gap={8}>
-                <Text fontWeight="medium" minW="100px" textAlign="right">
-                  Visibility
-                </Text>
-                <Text fontWeight="medium" minW="120px" textAlign="right">
-                  Members
-                </Text>
-                <Text fontWeight="medium" minW="100px" textAlign="right">
-                  Teams
-                </Text>
+                />
+                <Text fontWeight="medium">Select All</Text>
               </Flex>
             </Flex>
 
@@ -194,9 +228,6 @@ const TeamListPage: React.FC = () => {
                 borderColor="gray.200"
                 align="center"
                 justify="space-between"
-                cursor="pointer"
-                _hover={{ bg: 'gray.50' }}
-                onClick={() => handleTeamClick(team.id)}
               >
                 <Flex align="center" gap={4} flex={1}>
                   <Checkbox
@@ -204,36 +235,38 @@ const TeamListPage: React.FC = () => {
                     onChange={() => handleSelectTeam(team.id)}
                     onClick={(e) => e.stopPropagation()}
                   />
+                  <Avatar size="sm" name={team.name} />
                   <Stack spacing={0}>
-                    <Text fontWeight="medium" color="teal.600">
+                    <Text
+                      fontWeight="medium"
+                      color="teal.600"
+                      cursor="pointer"
+                      onClick={() => handleTeamClick(team.id)}
+                    >
                       {team.name}
-                    </Text>
-                    <Text fontSize="sm" color="gray.500">
-                      {team.description || 'No description'}
                     </Text>
                   </Stack>
                 </Flex>
 
-                <Flex gap={8} align="center">
-                  <Text minW="100px" textAlign="right" fontSize="sm">
-                    {team.visibility === 'VISIBLE' ? 'Visible' : 'Secret'}
+                <Flex gap={4} align="center">
+                  <Text fontSize="sm" color="gray.500" textAlign="right">
+                    {team.members?.length || 1} member
+                    {team.members?.length !== 1 ? 's' : ''}
                   </Text>
-                  <Text minW="120px" textAlign="right" fontSize="sm">
-                    {team.memberCount} member{team.memberCount !== 1 ? 's' : ''}
+                  <Text fontSize="sm" color="gray.500" textAlign="right">
+                    0 roles
                   </Text>
-                  <Flex minW="100px" justify="flex-end" gap={2}>
-                    <Text fontSize="sm">
-                      {team.roleCount} role{team.roleCount !== 1 ? 's' : ''}
-                    </Text>
-                    <IconButton
-                      aria-label="Delete"
-                      icon={<FaTrash />}
-                      size="sm"
-                      variant="ghost"
-                      colorScheme="red"
-                      onClick={(e) => handleDeleteTeam(team.id, e)}
-                    />
-                  </Flex>
+                  <Text fontSize="sm" color="gray.500" textAlign="right">
+                    0 teams
+                  </Text>
+                  <IconButton
+                    aria-label="Delete"
+                    icon={<FaTrash />}
+                    size="sm"
+                    variant="ghost"
+                    colorScheme="red"
+                    onClick={(e) => handleDeleteTeam(team.id, e)}
+                  />
                 </Flex>
               </Flex>
             ))}
@@ -253,7 +286,16 @@ const TeamListPage: React.FC = () => {
         workspaceId={workspaceId}
         onSuccess={fetchTeams}
       />
-    </SidebarContent>
+
+      <ConfirmModal
+        title="Delete Team"
+        content="delete this team"
+        isOpen={isDeleteOpen}
+        isLoading={isSubmitting}
+        onClose={onDeleteClose}
+        onConfirm={confirmDeleteTeam}
+      />
+    </WorkspaceLayout>
   );
 };
 

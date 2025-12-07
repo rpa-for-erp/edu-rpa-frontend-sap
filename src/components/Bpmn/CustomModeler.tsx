@@ -1,48 +1,48 @@
-import { useBpmn } from "@/hooks/useBpmn";
-import { BpmnJsReactHandle } from "@/interfaces/bpmnJsReact.interface";
-import { useEffect, useRef, useState } from "react";
-import BpmnJsReact from "./BpmnJsReact";
+import { useBpmn } from '@/hooks/useBpmn';
+import { BpmnJsReactHandle } from '@/interfaces/bpmnJsReact.interface';
+import { useEffect, useRef, useState } from 'react';
+import BpmnJsReact from './BpmnJsReact';
 import {
   Box,
   Button,
   IconButton,
   useDisclosure,
   useToast,
-} from "@chakra-ui/react";
-import ModelerSideBar from "./ModelerSidebar";
-import { BpmnParser } from "@/utils/bpmn-parser/bpmn-parser.util";
+} from '@chakra-ui/react';
+import ModelerSideBar from './ModelerSidebar';
+import { BpmnParser } from '@/utils/bpmn-parser/bpmn-parser.util';
 import {
   getLocalStorageObject,
   setLocalStorageObject,
-} from "@/utils/localStorageService";
+} from '@/utils/localStorageService';
 import {
   getProcessFromLocalStorage,
   updateProcessInProcessList,
-} from "@/utils/processService";
-import { useRouter } from "next/router";
-import VariablesSideBar from "./VariablesSideBar/VariablesSideBar";
-import { LocalStorage } from "@/constants/localStorage";
-import { ChevronLeftIcon } from "@chakra-ui/icons";
-import { exportFile, stringifyCyclicObject } from "@/utils/common";
+} from '@/utils/processService';
+import { useRouter } from 'next/router';
+import VariablesSideBar from './VariablesSideBar/VariablesSideBar';
+import { LocalStorage } from '@/constants/localStorage';
+import { ChevronLeftIcon } from '@chakra-ui/icons';
+import { exportFile, stringifyCyclicObject } from '@/utils/common';
 
 import {
   convertToRefactoredObject,
   getIndexVariableStorage,
   getVariableItemFromLocalStorage,
-} from "@/utils/variableService";
+} from '@/utils/variableService';
 
-import { useParams } from "next/navigation";
-import { QUERY_KEY } from "@/constants/queryKey";
-import processApi from "@/apis/processApi";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
-import { SaveProcessDto } from "@/dtos/processDto";
-import { useDispatch, useSelector } from "react-redux";
-import { bpmnSelector } from "@/redux/selector";
-import { isSavedChange } from "@/redux/slice/bpmnSlice";
-import FunctionalTabBar from "./FunctionalTabBar/FunctionalTabBar";
-import DisplayRobotCode from "./DisplayRobotCode/DisplayRobotCode";
-import { BpmnParseError } from "@/utils/bpmn-parser/error";
+import { useParams } from 'next/navigation';
+import { QUERY_KEY } from '@/constants/queryKey';
+import processApi from '@/apis/processApi';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
+import { SaveProcessDto } from '@/dtos/processDto';
+import { useDispatch, useSelector } from 'react-redux';
+import { bpmnSelector } from '@/redux/selector';
+import { isSavedChange } from '@/redux/slice/bpmnSlice';
+import FunctionalTabBar from './FunctionalTabBar/FunctionalTabBar';
+import DisplayRobotCode from './DisplayRobotCode/DisplayRobotCode';
+import { BpmnParseError } from '@/utils/bpmn-parser/error';
 
 interface OriginalObject {
   [key: string]: {
@@ -61,7 +61,7 @@ function CustomModeler() {
   const dispatch = useDispatch();
   const processID = params.id;
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [errorTrace, setErrorTrace] = useState<string>("");
+  const [errorTrace, setErrorTrace] = useState<string>('');
   const isSavedChanges = useSelector(bpmnSelector);
 
   const processName = router?.query?.name as string;
@@ -133,9 +133,9 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: "Save all changes sucessfully!",
-        status: "success",
-        position: "top-right",
+        title: 'Save all changes sucessfully!',
+        status: 'success',
+        position: 'top-right',
         duration: 1000,
         isClosable: true,
       });
@@ -143,9 +143,9 @@ function CustomModeler() {
     },
     onError: () => {
       toast({
-        title: "There are some errors, try again !",
-        status: "error",
-        position: "top-right",
+        title: 'There are some errors, try again !',
+        status: 'error',
+        position: 'top-right',
         duration: 1000,
         isClosable: true,
       });
@@ -156,9 +156,9 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties) {
       toast({
-        title: "There are some errors, please refresh the page!",
-        status: "error",
-        position: "top-right",
+        title: 'There are some errors, please refresh the page!',
+        status: 'error',
+        position: 'top-right',
         duration: 1000,
         isClosable: true,
       });
@@ -194,7 +194,7 @@ function CustomModeler() {
       //   duration: 1000,
       //   isClosable: true,
       // });
-      console.log("Robot Code:", robotCode);
+      console.log('Robot Code:', robotCode);
       return robotCode;
     } catch (error) {
       setErrorTrace(error.stack.toString());
@@ -204,17 +204,17 @@ function CustomModeler() {
 
       if (error instanceof BpmnParseError) {
         toast({
-          title: error.message + ": " + error.bpmnId,
-          status: "error",
-          position: "bottom-right",
+          title: error.message + ': ' + error.bpmnId,
+          status: 'error',
+          position: 'bottom-right',
           duration: 1000,
           isClosable: true,
         });
       }
       toast({
         title: (error as Error).message,
-        status: "error",
-        position: "bottom-right",
+        status: 'error',
+        position: 'bottom-right',
         duration: 1000,
         isClosable: true,
       });
@@ -235,19 +235,19 @@ function CustomModeler() {
             variant="outline"
             isRound={true}
             size="lg"
-            onClick={() => router.push("/studio")}
+            onClick={() => router.push('/studio')}
             icon={<ChevronLeftIcon />}
           />
           <Box>
             <h1 className="text-primary font-bold text-2xl mx-[20px]">
-              {processID}{" "}
+              {processID}{' '}
               {!isSavedChanges.isSaved && (
-                <span className="text-red-500">{"*"}</span>
+                <span className="text-red-500">{'*'}</span>
               )}
             </h1>
             <Box className="flex justify-between items-center">
               <h1 className="text-gray-500 text-xl mx-[20px]">
-                Name: {processName || ""}
+                Name: {processName || ''}
               </h1>
             </Box>
           </Box>

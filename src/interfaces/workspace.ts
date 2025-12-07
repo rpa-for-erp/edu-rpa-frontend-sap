@@ -1,77 +1,143 @@
+// User interface
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  avatarUrl?: string;
+}
+
+// Workspace interfaces
 export interface Workspace {
   id: string;
   name: string;
-  contactEmail: string;
-  visibility: WorkspaceVisibility;
+  description?: string;
   ownerId: number;
-  createdAt: Date;
-  updatedAt: Date;
-  memberCount: number;
-  teamCount: number;
+  owner: User;
+  members: WorkspaceMember[];
+  teams: Team[];
+  createdAt: string;
+  updatedAt: string;
 }
 
+export interface SimpleWorkspace {
+  id: string;
+  name: string;
+  description?: string;
+  ownerId: number;
+  owner: User;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Team interfaces
 export interface Team {
   id: string;
   name: string;
   description?: string;
   workspaceId: string;
-  visibility: TeamVisibility;
-  createdAt: Date;
-  updatedAt: Date;
-  memberCount: number;
-  roleCount: number;
+  roles: Role[];
+  members: TeamMember[];
+  createdAt: string;
+  updatedAt: string;
 }
 
+export interface SimpleTeam {
+  id: string;
+  name: string;
+  description?: string;
+  workspaceId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Role interfaces
 export interface Role {
   id: string;
   name: string;
   description?: string;
   teamId: string;
+  isDefault: boolean;
   permissions: Permission[];
-  createdAt: Date;
-  updatedAt: Date;
+  activityTemplates?: ActivityTemplate[];
+  createdAt: string;
+  updatedAt: string;
 }
 
+// Permission interface
 export interface Permission {
   id: string;
   name: string;
-  description: string;
-  category: PermissionCategory;
+  resource: string;
+  action: string;
+  description?: string;
 }
 
+// Activity Template interface
+export interface ActivityTemplate {
+  id: string;
+  keyword: string;
+  displayName: string;
+  description?: string;
+  packageId: string;
+}
+
+// Member interfaces
 export interface WorkspaceMember {
   id: string;
   workspaceId: string;
   userId: number;
-  userEmail: string;
-  userName: string;
-  userAvatar?: string;
-  role: MemberRole;
-  joinedAt: Date;
+  user: User;
+  role: WorkspaceMemberRole;
+  joinedAt: string;
 }
 
 export interface TeamMember {
   id: string;
   teamId: string;
   userId: number;
-  userEmail: string;
-  userName: string;
-  userAvatar?: string;
-  roleId?: string;
-  roleName?: string;
-  joinedAt: Date;
+  user: User;
+  roleId: string;
+  role: Role;
+  joinedAt: string;
 }
 
+// Invitation interfaces
 export interface TeamInvitation {
   id: string;
   teamId: string;
-  teamName: string;
-  inviterName: string;
+  team: SimpleTeam & {
+    workspace: SimpleWorkspace;
+  };
   invitedEmail: string;
+  invitedUserId?: number;
+  roleId: string;
+  role: Role;
+  invitedById: number;
+  invitedBy: User;
   status: InvitationStatus;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
+export interface WorkspaceInvitation {
+  id: string;
+  workspaceId: string;
+  workspace: SimpleWorkspace;
+  invitedEmail: string;
+  invitedUserId?: number;
+  role: WorkspaceMemberRole;
+  invitedById: number;
+  invitedBy: User;
+  status: InvitationStatus;
+  createdAt: string;
+}
+
+export interface InvitationResponse {
+  teamInvitations: TeamInvitation[];
+  workspaceInvitations: WorkspaceInvitation[];
+}
+
+// Enums
 export enum WorkspaceVisibility {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
@@ -82,15 +148,15 @@ export enum TeamVisibility {
   SECRET = 'SECRET',
 }
 
-export enum MemberRole {
-  OWNER = 'Owner',
-  MEMBER = 'Member',
+export enum WorkspaceMemberRole {
+  OWNER = 'owner',
+  MEMBER = 'member',
 }
 
 export enum InvitationStatus {
   PENDING = 'PENDING',
   ACCEPTED = 'ACCEPTED',
-  REJECTED = 'REJECTED',
+  DECLINED = 'DECLINED',
 }
 
 export enum PermissionCategory {
