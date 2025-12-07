@@ -26,12 +26,16 @@ import {
 } from '@chakra-ui/react';
 import { SearchIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
-import SidebarContent from '@/components/Sidebar/SidebarContent/SidebarContent';
+import WorkspaceLayout from '@/components/Layouts/WorkspaceLayout';
 import { Team, TeamMember, Role } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
+import activityPackageApi from '@/apis/activityPackageApi';
+import { ActivityPackage } from '@/interfaces/activity-package';
 import InviteMemberModal from '@/components/Workspace/InviteMemberModal';
 import CreateRoleModal from '@/components/Workspace/CreateRoleModal';
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal';
 import { FaTrash, FaEdit, FaEllipsisV } from 'react-icons/fa';
+import { COLORS } from '@/constants/colors';
 
 const TeamDetailPage: React.FC = () => {
   const router = useRouter();
@@ -43,10 +47,16 @@ const TeamDetailPage: React.FC = () => {
   const [team, setTeam] = useState<Team | null>(null);
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
+  const [activityPackages, setActivityPackages] = useState<ActivityPackage[]>(
+    []
+  );
   const [filteredMembers, setFilteredMembers] = useState<TeamMember[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchPackageQuery, setSearchPackageQuery] = useState('');
+  const [searchRoleQuery, setSearchRoleQuery] = useState('');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterPackageRole, setFilterPackageRole] = useState<string>('all');
   const {
     isOpen: isInviteOpen,
     onOpen: onInviteOpen,
@@ -57,20 +67,34 @@ const TeamDetailPage: React.FC = () => {
     onOpen: onRoleOpen,
     onClose: onRoleClose,
   } = useDisclosure();
+  const {
+    isOpen: isDeleteMemberOpen,
+    onOpen: onDeleteMemberOpen,
+    onClose: onDeleteMemberClose,
+  } = useDisclosure();
+  const {
+    isOpen: isDeleteRoleOpen,
+    onOpen: onDeleteRoleOpen,
+    onClose: onDeleteRoleClose,
+  } = useDisclosure();
+  const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
+  const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (workspaceId && teamId) {
       fetchTeamData();
       fetchMembers();
       fetchRoles();
+      fetchActivityPackages();
     }
   }, [workspaceId, teamId]);
 
   useEffect(() => {
     let filtered = members.filter(
       (member) =>
-        member.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        member.userEmail.toLowerCase().includes(searchQuery.toLowerCase())
+        member.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.user.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     if (filterRole !== 'all') {
@@ -82,7 +106,7 @@ const TeamDetailPage: React.FC = () => {
 
   const fetchTeamData = async () => {
     try {
-      const data = await workspaceApi.getTeamById(workspaceId, teamId);
+      const data = await workspaceApi.getTeamById(teamId);
       setTeam(data);
     } catch (error) {
       console.error('Failed to fetch team:', error);
@@ -91,7 +115,7 @@ const TeamDetailPage: React.FC = () => {
 
   const fetchMembers = async () => {
     try {
-      const data = await workspaceApi.getTeamMembers(workspaceId, teamId);
+      const data = await workspaceApi.getTeamMembers(teamId);
       setMembers(data);
       setFilteredMembers(data);
     } catch (error) {
@@ -108,10 +132,26 @@ const TeamDetailPage: React.FC = () => {
 
   const fetchRoles = async () => {
     try {
-      const data = await workspaceApi.getRolesByTeam(workspaceId, teamId);
+      const data = await workspaceApi.getRolesByTeam(teamId);
       setRoles(data);
     } catch (error) {
       console.error('Failed to fetch roles:', error);
+    }
+  };
+
+  const fetchActivityPackages = async () => {
+    try {
+      const data = await activityPackageApi.getPackagesByTeam(teamId);
+      setActivityPackages(data);
+    } catch (error) {
+      console.error('Failed to fetch activity packages:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch activity packages',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -133,10 +173,16 @@ const TeamDetailPage: React.FC = () => {
 
   const handleRemoveMember = async (memberId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to remove this member?')) return;
+    setPendingMemberId(memberId);
+    onDeleteMemberOpen();
+  };
+
+  const confirmRemoveMember = async () => {
+    if (!pendingMemberId) return;
 
     try {
-      await workspaceApi.removeTeamMember(workspaceId, teamId, memberId);
+      setIsSubmitting(true);
+      await workspaceApi.removeTeamMember(teamId, pendingMemberId);
       toast({
         title: 'Success',
         description: 'Member removed successfully',
@@ -145,6 +191,8 @@ const TeamDetailPage: React.FC = () => {
         isClosable: true,
       });
       fetchMembers();
+      onDeleteMemberClose();
+      setPendingMemberId(null);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -154,12 +202,14 @@ const TeamDetailPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleUpdateMemberRole = async (memberId: string, roleId: string) => {
     try {
-      await workspaceApi.updateTeamMemberRole(workspaceId, teamId, memberId, {
+      await workspaceApi.updateTeamMemberRole(teamId, memberId, {
         roleId,
       });
       toast({
@@ -183,10 +233,16 @@ const TeamDetailPage: React.FC = () => {
   };
 
   const handleDeleteRole = async (roleId: string) => {
-    if (!confirm('Are you sure you want to delete this role?')) return;
+    setPendingRoleId(roleId);
+    onDeleteRoleOpen();
+  };
+
+  const confirmDeleteRole = async () => {
+    if (!pendingRoleId) return;
 
     try {
-      await workspaceApi.deleteRole(workspaceId, teamId, roleId);
+      setIsSubmitting(true);
+      await workspaceApi.deleteRole(teamId, pendingRoleId);
       toast({
         title: 'Success',
         description: 'Role deleted successfully',
@@ -195,6 +251,8 @@ const TeamDetailPage: React.FC = () => {
         isClosable: true,
       });
       fetchRoles();
+      onDeleteRoleClose();
+      setPendingRoleId(null);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -203,11 +261,13 @@ const TeamDetailPage: React.FC = () => {
         duration: 3000,
         isClosable: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <SidebarContent>
+    <WorkspaceLayout>
       <Container maxW="container.xl" py={5}>
         <Breadcrumb
           spacing="8px"
@@ -232,27 +292,26 @@ const TeamDetailPage: React.FC = () => {
         </Breadcrumb>
 
         {/* Team Header */}
-        <Box bg="white" borderRadius="lg" shadow="sm" p={6} mb={6}>
-          <Flex justify="space-between" align="center">
-            <Stack spacing={1}>
-              <Heading size="lg">{team?.name}</Heading>
-              <Text color="gray.500">
-                {team?.description || 'This team has no description'}
-              </Text>
-            </Stack>
-            <Button
-              colorScheme="gray"
-              variant="outline"
-              onClick={() => router.back()}
-            >
-              BACK
-            </Button>
-          </Flex>
+        <Box
+          bg="white"
+          borderRadius="lg"
+          shadow="sm"
+          color={COLORS.primary}
+          mb={6}
+        >
+          <Stack spacing={1}>
+            <Heading size="lg">{team?.name}</Heading>
+            <Text color="gray.500">
+              {team?.description || 'This team has no description'}
+            </Text>
+          </Stack>
         </Box>
 
         {/* Members Section */}
         <Flex justify="space-between" align="center" mb={4}>
-          <Heading size="md">Members</Heading>
+          <Heading size="md" color={COLORS.primary}>
+            Members
+          </Heading>
           <Button colorScheme="teal" onClick={onInviteOpen}>
             Add a member
           </Button>
@@ -324,13 +383,13 @@ const TeamDetailPage: React.FC = () => {
                   />
                   <Avatar
                     size="sm"
-                    name={member.userName}
-                    src={member.userAvatar}
+                    name={member.user.name}
+                    src={member.user.avatarUrl || undefined}
                   />
                   <Stack spacing={0}>
-                    <Text fontWeight="medium">{member.userName}</Text>
+                    <Text fontWeight="medium">{member.user.name}</Text>
                     <Text fontSize="sm" color="gray.500">
-                      {member.userEmail}
+                      {member.user.email}
                     </Text>
                   </Stack>
                 </Flex>
@@ -371,15 +430,115 @@ const TeamDetailPage: React.FC = () => {
           </Stack>
         </Box>
 
+        {/* Activity Packages Section */}
+        <Flex justify="space-between" align="center" mb={4}>
+          <Heading size="md" color={COLORS.primary}>
+            Activity Package
+          </Heading>
+        </Flex>
+
+        <Box bg="white" borderRadius="lg" shadow="sm" p={4} mb={8}>
+          <InputGroup mb={4} maxW={400}>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.300" />
+            </InputLeftElement>
+            <Input
+              placeholder="Find a package..."
+              value={searchPackageQuery}
+              onChange={(e) => setSearchPackageQuery(e.target.value)}
+            />
+          </InputGroup>
+
+          <Stack spacing={0}>
+            <Flex
+              bg="gray.100"
+              p={3}
+              borderTopRadius="md"
+              align="center"
+              justify="space-between"
+            >
+              <Text fontWeight="medium">Package Name</Text>
+              <Text fontWeight="medium" minW="100px" textAlign="right">
+                Actions
+              </Text>
+            </Flex>
+
+            {activityPackages
+              .filter((pkg) =>
+                pkg.displayName
+                  .toLowerCase()
+                  .includes(searchPackageQuery.toLowerCase())
+              )
+              .map((pkg) => (
+                <Flex
+                  key={pkg.id}
+                  p={3}
+                  borderBottom="1px"
+                  borderColor="gray.200"
+                  align="center"
+                  justify="space-between"
+                >
+                  <Flex align="center" gap={4} flex={1}>
+                    <Avatar size="sm" name={pkg.displayName} />
+                    <Stack spacing={0}>
+                      <Text fontWeight="medium">{pkg.displayName}</Text>
+                      <Text fontSize="sm" color="gray.500">
+                        {pkg.description || 'No description'}
+                      </Text>
+                    </Stack>
+                  </Flex>
+
+                  <IconButton
+                    aria-label="Delete package"
+                    icon={<FaTrash />}
+                    size="sm"
+                    variant="ghost"
+                    colorScheme="red"
+                  />
+                </Flex>
+              ))}
+
+            {activityPackages.filter((pkg) =>
+              pkg.displayName
+                .toLowerCase()
+                .includes(searchPackageQuery.toLowerCase())
+            ).length === 0 && (
+              <Box p={8} textAlign="center">
+                <Text color="gray.500">No activity packages found</Text>
+              </Box>
+            )}
+          </Stack>
+        </Box>
+
         {/* Roles Section */}
         <Flex justify="space-between" align="center" mb={4}>
-          <Heading size="md">Roles</Heading>
-          <Button colorScheme="teal" onClick={onRoleOpen}>
+          <Heading size="md" color={COLORS.primary}>
+            Team Roles
+          </Heading>
+          <Button
+            colorScheme="teal"
+            onClick={() =>
+              router.push(
+                `/workspace/${workspaceId}/teams/roles/create?teamId=${teamId}`
+              )
+            }
+          >
             Create new role
           </Button>
         </Flex>
 
-        <Box bg="white" borderRadius="lg" shadow="sm" p={4}>
+        <Box bg="white" borderRadius="lg" shadow="sm" p={4} mb={6}>
+          <InputGroup mb={4} maxW={400}>
+            <InputLeftElement pointerEvents="none">
+              <SearchIcon color="gray.300" />
+            </InputLeftElement>
+            <Input
+              placeholder="Find a role..."
+              value={searchRoleQuery}
+              onChange={(e) => setSearchRoleQuery(e.target.value)}
+            />
+          </InputGroup>
+
           <Stack spacing={0}>
             <Flex
               bg="gray.100"
@@ -389,55 +548,77 @@ const TeamDetailPage: React.FC = () => {
               justify="space-between"
             >
               <Text fontWeight="medium">Role Name</Text>
-              <Text fontWeight="medium">Roles</Text>
+              <Text fontWeight="medium" minW="100px" textAlign="right">
+                Actions
+              </Text>
             </Flex>
 
-            {roles.map((role) => (
-              <Flex
-                key={role.id}
-                p={3}
-                borderBottom="1px"
-                borderColor="gray.200"
-                align="center"
-                justify="space-between"
-              >
-                <Stack spacing={0} flex={1}>
-                  <Text fontWeight="medium">{role.name}</Text>
-                  <Text fontSize="sm" color="gray.500">
-                    {role.description || 'No description'}
-                  </Text>
-                </Stack>
+            {roles
+              .filter((role) =>
+                role.name.toLowerCase().includes(searchRoleQuery.toLowerCase())
+              )
+              .map((role) => (
+                <Flex
+                  key={role.id}
+                  p={3}
+                  borderBottom="1px"
+                  borderColor="gray.200"
+                  align="center"
+                  justify="space-between"
+                >
+                  <Stack spacing={0} flex={1}>
+                    <Text fontWeight="medium">{role.name}</Text>
+                    <Text fontSize="sm" color="gray.500">
+                      {role.description || 'No description'}
+                    </Text>
+                  </Stack>
 
-                <Flex gap={2}>
-                  <Menu>
-                    <MenuButton
-                      as={IconButton}
-                      icon={<FaEllipsisV />}
-                      variant="ghost"
+                  <Flex gap={2}>
+                    <IconButton
+                      aria-label="Edit role"
+                      icon={<FaEdit />}
                       size="sm"
+                      variant="ghost"
+                      colorScheme="blue"
+                      onClick={() =>
+                        router.push(
+                          `/workspace/${workspaceId}/teams/roles/${role.id}/edit?teamId=${teamId}`
+                        )
+                      }
                     />
-                    <MenuList>
-                      <MenuItem icon={<FaEdit />}>Edit</MenuItem>
-                      <MenuItem
-                        icon={<FaTrash />}
-                        color="red.500"
-                        onClick={() => handleDeleteRole(role.id)}
-                      >
-                        Delete
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
+                    <IconButton
+                      aria-label="Delete role"
+                      icon={<FaTrash />}
+                      size="sm"
+                      variant="ghost"
+                      colorScheme="red"
+                      onClick={() => handleDeleteRole(role.id)}
+                    />
+                  </Flex>
                 </Flex>
-              </Flex>
-            ))}
+              ))}
 
-            {roles.length === 0 && (
+            {roles.filter((role) =>
+              role.name.toLowerCase().includes(searchRoleQuery.toLowerCase())
+            ).length === 0 && (
               <Box p={8} textAlign="center">
                 <Text color="gray.500">No roles found</Text>
               </Box>
             )}
           </Stack>
         </Box>
+
+        {/* Back Button */}
+        <Flex justify="flex-end" mt={6}>
+          <Button
+            colorScheme="teal"
+            size="lg"
+            w={130}
+            onClick={() => router.back()}
+          >
+            BACK
+          </Button>
+        </Flex>
       </Container>
 
       <InviteMemberModal
@@ -445,6 +626,7 @@ const TeamDetailPage: React.FC = () => {
         onClose={onInviteClose}
         workspaceId={workspaceId}
         teamId={teamId}
+        defaultRoleId={roles.length > 0 ? roles[0].id : undefined}
         onSuccess={fetchMembers}
       />
 
@@ -455,7 +637,25 @@ const TeamDetailPage: React.FC = () => {
         teamId={teamId}
         onSuccess={fetchRoles}
       />
-    </SidebarContent>
+
+      <ConfirmModal
+        title="Remove Member"
+        content="remove this member from the team"
+        isOpen={isDeleteMemberOpen}
+        isLoading={isSubmitting}
+        onClose={onDeleteMemberClose}
+        onConfirm={confirmRemoveMember}
+      />
+
+      <ConfirmModal
+        title="Delete Role"
+        content="delete this role"
+        isOpen={isDeleteRoleOpen}
+        isLoading={isSubmitting}
+        onClose={onDeleteRoleClose}
+        onConfirm={confirmDeleteRole}
+      />
+    </WorkspaceLayout>
   );
 };
 

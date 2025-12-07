@@ -24,6 +24,7 @@ interface InviteMemberModalProps {
   onClose: () => void;
   workspaceId: string;
   teamId: string;
+  defaultRoleId?: string;
   onSuccess: () => void;
 }
 
@@ -32,6 +33,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   onClose,
   workspaceId,
   teamId,
+  defaultRoleId,
   onSuccess,
 }) => {
   const toast = useToast();
@@ -50,10 +52,21 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       return;
     }
 
+    if (!defaultRoleId) {
+      toast({
+        title: 'Error',
+        description: 'Role is required. Please select a default role.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const payload: InviteMemberDto = { email };
-      await workspaceApi.inviteTeamMember(workspaceId, teamId, payload);
+      const payload: InviteMemberDto = { email, roleId: defaultRoleId };
+      await workspaceApi.inviteTeamMember(teamId, payload);
       toast({
         title: 'Success',
         description: 'Invitation sent successfully',

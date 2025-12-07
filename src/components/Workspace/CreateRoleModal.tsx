@@ -20,7 +20,7 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import { CreateRoleDto } from '@/dtos/workspaceDto';
-import { Permission, PermissionCategory } from '@/interfaces/workspace';
+import { Permission } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
 
 interface CreateRoleModalProps {
@@ -92,7 +92,7 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
 
     setIsLoading(true);
     try {
-      await workspaceApi.createRole(workspaceId, teamId, formData);
+      await workspaceApi.createRole(teamId, formData);
       toast({
         title: 'Success',
         description: 'Role created successfully',
@@ -116,14 +116,14 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
     }
   };
 
-  // Group permissions by category
+  // Group permissions by resource
   const groupedPermissions = permissions.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
+    if (!acc[permission.resource]) {
+      acc[permission.resource] = [];
     }
-    acc[permission.category].push(permission);
+    acc[permission.resource].push(permission);
     return acc;
-  }, {} as Record<PermissionCategory, Permission[]>);
+  }, {} as Record<string, Permission[]>);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
@@ -157,24 +157,28 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
           </FormControl>
 
           <FormControl>
-            <FormLabel>Select template</FormLabel>
+            <FormLabel>Select Permissions</FormLabel>
             <CheckboxGroup
               value={formData.permissionIds}
               onChange={handlePermissionChange}
             >
               <Stack spacing={4}>
-                {Object.entries(groupedPermissions).map(([category, perms]) => (
-                  <Stack key={category} spacing={2}>
+                {Object.entries(groupedPermissions).map(([resource, perms]) => (
+                  <Stack key={resource} spacing={2}>
                     <Text fontWeight="bold" color="teal.500">
-                      {category}
+                      {resource.charAt(0).toUpperCase() + resource.slice(1)}
                     </Text>
                     {perms.map((permission) => (
                       <Checkbox key={permission.id} value={permission.id}>
                         <Stack spacing={0}>
-                          <Text fontWeight="medium">{permission.name}</Text>
-                          <Text fontSize="sm" color="gray.500">
-                            {permission.description}
+                          <Text fontWeight="medium">
+                            {permission.name} ({permission.action})
                           </Text>
+                          {permission.description && (
+                            <Text fontSize="sm" color="gray.500">
+                              {permission.description}
+                            </Text>
+                          )}
                         </Stack>
                       </Checkbox>
                     ))}

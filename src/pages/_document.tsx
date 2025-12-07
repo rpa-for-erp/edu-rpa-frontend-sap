@@ -33,7 +33,6 @@ class MyDocument extends Document {
           />
           <meta name="msapplication-TileColor" content="#da532c" />
           <meta name="theme-color" content="#ffffff"></meta>
-          <title>ERP_RPA</title>
         </Head>
         <body>
           <Main />

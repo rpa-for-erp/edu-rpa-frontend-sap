@@ -4,9 +4,12 @@ import {
   Team,
   Role,
   WorkspaceMember,
+  WorkspaceMemberRole,
   TeamMember,
   Permission,
   TeamInvitation,
+  WorkspaceInvitation,
+  InvitationResponse,
 } from '@/interfaces/workspace';
 import {
   CreateWorkspaceDto,
@@ -17,20 +20,19 @@ import {
   UpdateRoleDto,
   InviteMemberDto,
   UpdateMemberRoleDto,
-  RespondInvitationDto,
 } from '@/dtos/workspaceDto';
 
 // ==================== Workspace APIs ====================
 const getAllWorkspaces = async (): Promise<Workspace[]> => {
   return await apiBase
     .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace`)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const getWorkspaceById = async (workspaceId: string): Promise<Workspace> => {
   return await apiBase
     .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}`)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const createWorkspace = async (
@@ -38,7 +40,7 @@ const createWorkspace = async (
 ): Promise<Workspace> => {
   return await apiBase
     .post(`${process.env.NEXT_PUBLIC_DEV_API}/workspace`, payload)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const updateWorkspace = async (
@@ -50,37 +52,32 @@ const updateWorkspace = async (
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const deleteWorkspace = async (workspaceId: string): Promise<void> => {
   return await apiBase
     .delete(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}`)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const leaveWorkspace = async (workspaceId: string): Promise<void> => {
   return await apiBase
     .post(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/leave`)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 // ==================== Team APIs ====================
 const getTeamsByWorkspace = async (workspaceId: string): Promise<Team[]> => {
   return await apiBase
     .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team`)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
-const getTeamById = async (
-  workspaceId: string,
-  teamId: string
-): Promise<Team> => {
+const getTeamById = async (teamId: string): Promise<Team> => {
   return await apiBase
-    .get(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}`
-    )
-    .then((res: any) => res.data);
+    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}`)
+    .then((res: any) => res.data.data);
 };
 
 const createTeam = async (
@@ -92,89 +89,95 @@ const createTeam = async (
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const updateTeam = async (
-  workspaceId: string,
   teamId: string,
   payload: UpdateTeamDto
 ): Promise<Team> => {
   return await apiBase
     .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}`,
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
-const deleteTeam = async (
-  workspaceId: string,
-  teamId: string
+const deleteTeam = async (teamId: string): Promise<void> => {
+  return await apiBase
+    .delete(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}`)
+    .then((res: any) => res.data.data);
+};
+
+const addPackageToTeam = async (
+  teamId: string,
+  packageId: string
+): Promise<void> => {
+  return await apiBase
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/package`,
+      { packageId }
+    )
+    .then((res: any) => res.data.data);
+};
+
+const removePackageFromTeam = async (
+  teamId: string,
+  packageId: string
 ): Promise<void> => {
   return await apiBase
     .delete(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}`
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/package/${packageId}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 // ==================== Role APIs ====================
-const getRolesByTeam = async (
-  workspaceId: string,
-  teamId: string
-): Promise<Role[]> => {
+const getRolesByTeam = async (teamId: string): Promise<Role[]> => {
   return await apiBase
-    .get(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/role`
-    )
-    .then((res: any) => res.data);
+    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/role`)
+    .then((res: any) => res.data.data);
 };
 
 const createRole = async (
-  workspaceId: string,
   teamId: string,
   payload: CreateRoleDto
 ): Promise<Role> => {
   return await apiBase
     .post(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/role`,
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/role`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const updateRole = async (
-  workspaceId: string,
   teamId: string,
   roleId: string,
   payload: UpdateRoleDto
 ): Promise<Role> => {
   return await apiBase
     .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/role/${roleId}`,
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/role/${roleId}`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
-const deleteRole = async (
-  workspaceId: string,
-  teamId: string,
-  roleId: string
-): Promise<void> => {
+const deleteRole = async (teamId: string, roleId: string): Promise<void> => {
   return await apiBase
     .delete(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/role/${roleId}`
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/role/${roleId}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 // ==================== Permission APIs ====================
 const getAllPermissions = async (): Promise<Permission[]> => {
   return await apiBase
-    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/permission`)
-    .then((res: any) => res.data);
+    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/permissions`)
+    .then((res: any) => res.data.data);
 };
 
 // ==================== Member APIs ====================
@@ -183,75 +186,134 @@ const getWorkspaceMembers = async (
 ): Promise<WorkspaceMember[]> => {
   return await apiBase
     .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/member`)
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
-const getTeamMembers = async (
-  workspaceId: string,
-  teamId: string
-): Promise<TeamMember[]> => {
+const getTeamMembers = async (teamId: string): Promise<TeamMember[]> => {
   return await apiBase
-    .get(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/member`
-    )
-    .then((res: any) => res.data);
+    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member`)
+    .then((res: any) => res.data.data);
 };
 
 const inviteTeamMember = async (
-  workspaceId: string,
   teamId: string,
   payload: InviteMemberDto
-): Promise<void> => {
+): Promise<TeamInvitation> => {
   return await apiBase
     .post(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/invite`,
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/invitation`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const updateTeamMemberRole = async (
-  workspaceId: string,
   teamId: string,
   memberId: string,
   payload: UpdateMemberRoleDto
-): Promise<void> => {
+): Promise<TeamMember> => {
   return await apiBase
     .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/member/${memberId}`,
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/${memberId}`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const removeTeamMember = async (
-  workspaceId: string,
   teamId: string,
   memberId: string
 ): Promise<void> => {
   return await apiBase
     .delete(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/team/${teamId}/member/${memberId}`
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/${memberId}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
+};
+
+const inviteWorkspaceMember = async (
+  workspaceId: string,
+  payload: { email: string }
+): Promise<WorkspaceInvitation> => {
+  return await apiBase
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/member/invitation`,
+      payload
+    )
+    .then((res: any) => res.data.data);
+};
+
+const updateWorkspaceMemberRole = async (
+  workspaceId: string,
+  memberId: number,
+  payload: { role: WorkspaceMemberRole }
+): Promise<WorkspaceMember> => {
+  return await apiBase
+    .patch(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/member/${memberId}/role`,
+      payload
+    )
+    .then((res: any) => res.data.data);
+};
+
+const removeWorkspaceMember = async (
+  workspaceId: string,
+  memberId: number
+): Promise<void> => {
+  return await apiBase
+    .delete(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/member/${memberId}`
+    )
+    .then((res: any) => res.data.data);
 };
 
 // ==================== Invitation APIs ====================
-const getMyInvitations = async (): Promise<TeamInvitation[]> => {
+const getMyInvitations = async (): Promise<InvitationResponse> => {
   return await apiBase
-    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/invitation`)
-    .then((res: any) => res.data);
+    .get(`${process.env.NEXT_PUBLIC_DEV_API}/workspace/invitation/me`)
+    .then((res: any) => res.data.data);
 };
 
-const respondToInvitation = async (
-  payload: RespondInvitationDto
+const acceptTeamInvitation = async (
+  teamId: string,
+  invitationId: string
+): Promise<TeamMember> => {
+  return await apiBase
+    .patch(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/invitation/${invitationId}/accept`
+    )
+    .then((res: any) => res.data.data);
+};
+
+const declineTeamInvitation = async (
+  teamId: string,
+  invitationId: string
 ): Promise<void> => {
   return await apiBase
-    .post(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/invitation/respond`,
-      payload
+    .patch(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/invitation/${invitationId}/decline`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
+};
+
+const acceptWorkspaceInvitation = async (
+  invitationId: string
+): Promise<WorkspaceMember> => {
+  return await apiBase
+    .patch(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/member/invitation/${invitationId}/accept`
+    )
+    .then((res: any) => res.data.data);
+};
+
+const declineWorkspaceInvitation = async (
+  invitationId: string
+): Promise<void> => {
+  return await apiBase
+    .patch(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/member/invitation/${invitationId}/decline`
+    )
+    .then((res: any) => res.data.data);
 };
 
 const workspaceApi = {
@@ -269,6 +331,8 @@ const workspaceApi = {
   createTeam,
   updateTeam,
   deleteTeam,
+  addPackageToTeam,
+  removePackageFromTeam,
 
   // Role
   getRolesByTeam,
@@ -282,13 +346,19 @@ const workspaceApi = {
   // Member
   getWorkspaceMembers,
   getTeamMembers,
+  inviteWorkspaceMember,
   inviteTeamMember,
+  updateWorkspaceMemberRole,
   updateTeamMemberRole,
+  removeWorkspaceMember,
   removeTeamMember,
 
   // Invitation
   getMyInvitations,
-  respondToInvitation,
+  acceptTeamInvitation,
+  declineTeamInvitation,
+  acceptWorkspaceInvitation,
+  declineWorkspaceInvitation,
 };
 
 export default workspaceApi;
