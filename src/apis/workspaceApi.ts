@@ -20,6 +20,7 @@ import {
   UpdateRoleDto,
   InviteMemberDto,
   UpdateMemberRoleDto,
+  RespondInvitationDto,
 } from '@/dtos/workspaceDto';
 
 // ==================== Workspace APIs ====================
@@ -214,7 +215,7 @@ const updateTeamMemberRole = async (
 ): Promise<TeamMember> => {
   return await apiBase
     .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/${memberId}`,
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/${memberId}/role`,
       payload
     )
     .then((res: any) => res.data.data);
@@ -233,7 +234,7 @@ const removeTeamMember = async (
 
 const inviteWorkspaceMember = async (
   workspaceId: string,
-  payload: { email: string }
+  payload: { email: string; role: WorkspaceMemberRole }
 ): Promise<WorkspaceInvitation> => {
   return await apiBase
     .post(
@@ -274,44 +275,13 @@ const getMyInvitations = async (): Promise<InvitationResponse> => {
     .then((res: any) => res.data.data);
 };
 
-const acceptTeamInvitation = async (
-  teamId: string,
-  invitationId: string
-): Promise<TeamMember> => {
-  return await apiBase
-    .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/invitation/${invitationId}/accept`
-    )
-    .then((res: any) => res.data.data);
-};
-
-const declineTeamInvitation = async (
-  teamId: string,
-  invitationId: string
+const respondToInvitation = async (
+  payload: RespondInvitationDto
 ): Promise<void> => {
   return await apiBase
-    .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/team/${teamId}/member/invitation/${invitationId}/decline`
-    )
-    .then((res: any) => res.data.data);
-};
-
-const acceptWorkspaceInvitation = async (
-  invitationId: string
-): Promise<WorkspaceMember> => {
-  return await apiBase
-    .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/member/invitation/${invitationId}/accept`
-    )
-    .then((res: any) => res.data.data);
-};
-
-const declineWorkspaceInvitation = async (
-  invitationId: string
-): Promise<void> => {
-  return await apiBase
-    .patch(
-      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/member/invitation/${invitationId}/decline`
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/invitation/response`,
+      payload
     )
     .then((res: any) => res.data.data);
 };
@@ -355,10 +325,7 @@ const workspaceApi = {
 
   // Invitation
   getMyInvitations,
-  acceptTeamInvitation,
-  declineTeamInvitation,
-  acceptWorkspaceInvitation,
-  declineWorkspaceInvitation,
+  respondToInvitation,
 };
 
 export default workspaceApi;

@@ -86,6 +86,7 @@ const InvitationPage: React.FC = () => {
     try {
       const data = await workspaceApi.getMyInvitations();
       setInvitations(data);
+      console.log(data);
     } catch (error) {
       console.error('Failed to fetch invitations:', error);
       toast({
@@ -122,16 +123,10 @@ const InvitationPage: React.FC = () => {
     invitation: TeamInvitation | WorkspaceInvitation
   ) => {
     try {
-      if ('team' in invitation) {
-        // Team invitation
-        await workspaceApi.acceptTeamInvitation(
-          invitation.teamId,
-          invitation.id
-        );
-      } else {
-        // Workspace invitation
-        await workspaceApi.acceptWorkspaceInvitation(invitation.id);
-      }
+      await workspaceApi.respondToInvitation({
+        invitationId: invitation.id,
+        status: InvitationStatus.ACCEPTED,
+      });
       toast({
         title: 'Success',
         description: 'Invitation accepted successfully',
@@ -156,16 +151,10 @@ const InvitationPage: React.FC = () => {
     invitation: TeamInvitation | WorkspaceInvitation
   ) => {
     try {
-      if ('team' in invitation) {
-        // Team invitation
-        await workspaceApi.declineTeamInvitation(
-          invitation.teamId,
-          invitation.id
-        );
-      } else {
-        // Workspace invitation
-        await workspaceApi.declineWorkspaceInvitation(invitation.id);
-      }
+      await workspaceApi.respondToInvitation({
+        invitationId: invitation.id,
+        status: InvitationStatus.REJECTED,
+      });
       toast({
         title: 'Success',
         description: 'Invitation declined',
@@ -192,7 +181,7 @@ const InvitationPage: React.FC = () => {
         return 'yellow';
       case InvitationStatus.ACCEPTED:
         return 'green';
-      case InvitationStatus.DECLINED:
+      case InvitationStatus.REJECTED:
         return 'red';
       default:
         return 'gray';

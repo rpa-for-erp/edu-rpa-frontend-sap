@@ -56,6 +56,9 @@ const InviteWorkspaceMemberModal: React.FC<InviteWorkspaceMemberModalProps> = ({
   onSuccess,
 }) => {
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState<WorkspaceMemberRole>(
+    WorkspaceMemberRole.MEMBER
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const toast = useToast();
 
@@ -65,7 +68,7 @@ const InviteWorkspaceMemberModal: React.FC<InviteWorkspaceMemberModalProps> = ({
 
     try {
       setIsSubmitting(true);
-      await workspaceApi.inviteWorkspaceMember(workspaceId, { email });
+      await workspaceApi.inviteWorkspaceMember(workspaceId, { email, role });
       toast({
         title: 'Success',
         description: 'Member invited successfully',
@@ -76,6 +79,7 @@ const InviteWorkspaceMemberModal: React.FC<InviteWorkspaceMemberModalProps> = ({
       onClose();
       onSuccess();
       setEmail('');
+      setRole(WorkspaceMemberRole.MEMBER);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -165,8 +169,21 @@ const InviteWorkspaceMemberModal: React.FC<InviteWorkspaceMemberModalProps> = ({
                 h="50px"
               />
             </InputGroup>
-            <Text fontSize="xs" color="gray.400" mt={2}>
+            <Text fontSize="xs" color="gray.400" mt={2} mb={4}>
               Enter your team member email address
+            </Text>
+            <Select
+              value={role}
+              onChange={(e) => setRole(e.target.value as WorkspaceMemberRole)}
+              py={2}
+              required
+              color={COLORS.primary}
+            >
+              <option value={WorkspaceMemberRole.MEMBER}>Member</option>
+              <option value={WorkspaceMemberRole.OWNER}>Owner</option>
+            </Select>
+            <Text fontSize="xs" color="gray.400" mt={0} mb={2}>
+              Choose the role for the invited member
             </Text>
           </ModalBody>
           <ModalFooter justifyContent="center" alignItems="center">

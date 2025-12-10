@@ -32,9 +32,11 @@ import workspaceApi from '@/apis/workspaceApi';
 import activityPackageApi from '@/apis/activityPackageApi';
 import { ActivityPackage } from '@/interfaces/activity-package';
 import InviteMemberModal from '@/components/Workspace/InviteMemberModal';
+import AddPackageModal from '@/components/Workspace/AddPackageModal';
 import CreateRoleModal from '@/components/Workspace/CreateRoleModal';
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal';
 import { FaTrash, FaEdit, FaEllipsisV } from 'react-icons/fa';
+import { MdArrowDropDown } from 'react-icons/md';
 import { COLORS } from '@/constants/colors';
 
 const TeamDetailPage: React.FC = () => {
@@ -77,8 +79,19 @@ const TeamDetailPage: React.FC = () => {
     onOpen: onDeleteRoleOpen,
     onClose: onDeleteRoleClose,
   } = useDisclosure();
+  const {
+    isOpen: isAddPackageOpen,
+    onOpen: onAddPackageOpen,
+    onClose: onAddPackageClose,
+  } = useDisclosure();
+  const {
+    isOpen: isDeletePackageOpen,
+    onOpen: onDeletePackageOpen,
+    onClose: onDeletePackageClose,
+  } = useDisclosure();
   const [pendingMemberId, setPendingMemberId] = useState<string | null>(null);
   const [pendingRoleId, setPendingRoleId] = useState<string | null>(null);
+  const [pendingPackageId, setPendingPackageId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -209,6 +222,7 @@ const TeamDetailPage: React.FC = () => {
 
   const handleUpdateMemberRole = async (memberId: string, roleId: string) => {
     try {
+      console.log('Updating member role:', roleId);
       await workspaceApi.updateTeamMemberRole(teamId, memberId, {
         roleId,
       });
@@ -266,6 +280,41 @@ const TeamDetailPage: React.FC = () => {
     }
   };
 
+  const handleDeletePackage = (packageId: string) => {
+    setPendingPackageId(packageId);
+    onDeletePackageOpen();
+  };
+
+  const confirmDeletePackage = async () => {
+    if (!pendingPackageId) return;
+
+    try {
+      setIsSubmitting(true);
+      await workspaceApi.removePackageFromTeam(teamId, pendingPackageId);
+      toast({
+        title: 'Success',
+        description: 'Package removed successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      fetchActivityPackages();
+      onDeletePackageClose();
+      setPendingPackageId(null);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description:
+          error?.response?.data?.message || 'Failed to remove package',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <WorkspaceLayout>
       <Container maxW="container.xl" py={5}>
@@ -308,13 +357,10 @@ const TeamDetailPage: React.FC = () => {
         </Box>
 
         {/* Members Section */}
-        <Flex justify="space-between" align="center" mb={4}>
+        <Flex justify="space-between" align="center">
           <Heading size="md" color={COLORS.primary}>
             Members
           </Heading>
-          <Button colorScheme="teal" onClick={onInviteOpen}>
-            Add a member
-          </Button>
         </Flex>
 
         <Box bg="white" borderRadius="lg" shadow="sm" p={4} mb={8}>
@@ -329,18 +375,10 @@ const TeamDetailPage: React.FC = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </InputGroup>
-            <Select
-              maxW="200px"
-              value={filterRole}
-              onChange={(e) => setFilterRole(e.target.value)}
-            >
-              <option value="all">All Roles</option>
-              {roles.map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                </option>
-              ))}
-            </Select>
+
+            <Button colorScheme="teal" onClick={onInviteOpen}>
+              Add a member
+            </Button>
           </Flex>
 
           <Stack spacing={0}>
@@ -362,9 +400,38 @@ const TeamDetailPage: React.FC = () => {
                   Select All
                 </Checkbox>
               </Flex>
-              <Text fontWeight="medium" minW="150px" textAlign="right">
-                Roles
-              </Text>
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  rightIcon={<MdArrowDropDown />}
+                  maxW="200px"
+                  bg={COLORS.bgWhite}
+                  border="1px"
+                  borderColor="gray.200"
+                  _hover={{ bg: 'gray.50' }}
+                  _active={{ bg: 'gray.100' }}
+                  textAlign="left"
+                  fontWeight="normal"
+                >
+                  {filterRole === 'all'
+                    ? 'All Roles'
+                    : roles.find((r) => r.id === filterRole)?.name ||
+                      'All Roles'}
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={() => setFilterRole('all')}>
+                    All Roles
+                  </MenuItem>
+                  {roles.map((role) => (
+                    <MenuItem
+                      key={role.id}
+                      onClick={() => setFilterRole(role.id)}
+                    >
+                      {role.name}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
             </Flex>
 
             {filteredMembers.map((member) => (
@@ -396,12 +463,28 @@ const TeamDetailPage: React.FC = () => {
 
                 <Flex gap={4} align="center">
                   <Select
+                    key={`${member.id}-${member.roleId}`}
                     size="sm"
                     minW="150px"
-                    value={member.roleId || ''}
-                    onChange={(e) =>
-                      handleUpdateMemberRole(member.id, e.target.value)
-                    }
+                    defaultValue={member.roleId || ''}
+                    onChange={(e) => {
+                      const newRoleId = e.target.value;
+                      console.log('Event target:', e.target);
+                      console.log('Current member.roleId:', member.roleId);
+                      console.log('Selected newRoleId:', newRoleId);
+                      console.log(
+                        'All options:',
+                        Array.from(e.target.options).map((o) => ({
+                          value: o.value,
+                          text: o.text,
+                          selected: o.selected,
+                        }))
+                      );
+
+                      if (newRoleId && newRoleId !== member.roleId) {
+                        handleUpdateMemberRole(member.id, newRoleId);
+                      }
+                    }}
                   >
                     <option value="">No Role</option>
                     {roles.map((role) => (
@@ -431,23 +514,28 @@ const TeamDetailPage: React.FC = () => {
         </Box>
 
         {/* Activity Packages Section */}
-        <Flex justify="space-between" align="center" mb={4}>
+        <Flex justify="space-between" align="center" mt={4}>
           <Heading size="md" color={COLORS.primary}>
             Activity Package
           </Heading>
         </Flex>
 
         <Box bg="white" borderRadius="lg" shadow="sm" p={4} mb={8}>
-          <InputGroup mb={4} maxW={400}>
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.300" />
-            </InputLeftElement>
-            <Input
-              placeholder="Find a package..."
-              value={searchPackageQuery}
-              onChange={(e) => setSearchPackageQuery(e.target.value)}
-            />
-          </InputGroup>
+          <Flex mb={4} justify="space-between" align="center">
+            <InputGroup maxW={400}>
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.300" />
+              </InputLeftElement>
+              <Input
+                placeholder="Find a package..."
+                value={searchPackageQuery}
+                onChange={(e) => setSearchPackageQuery(e.target.value)}
+              />
+            </InputGroup>
+            <Button colorScheme="teal" onClick={onAddPackageOpen}>
+              Add new package
+            </Button>
+          </Flex>
 
           <Stack spacing={0}>
             <Flex
@@ -458,9 +546,6 @@ const TeamDetailPage: React.FC = () => {
               justify="space-between"
             >
               <Text fontWeight="medium">Package Name</Text>
-              <Text fontWeight="medium" minW="100px" textAlign="right">
-                Actions
-              </Text>
             </Flex>
 
             {activityPackages
@@ -494,6 +579,7 @@ const TeamDetailPage: React.FC = () => {
                     size="sm"
                     variant="ghost"
                     colorScheme="red"
+                    onClick={() => handleDeletePackage(pkg.id)}
                   />
                 </Flex>
               ))}
@@ -511,33 +597,35 @@ const TeamDetailPage: React.FC = () => {
         </Box>
 
         {/* Roles Section */}
-        <Flex justify="space-between" align="center" mb={4}>
+        <Flex justify="space-between" align="center" mt={4}>
           <Heading size="md" color={COLORS.primary}>
             Team Roles
           </Heading>
-          <Button
-            colorScheme="teal"
-            onClick={() =>
-              router.push(
-                `/workspace/${workspaceId}/teams/roles/create?teamId=${teamId}`
-              )
-            }
-          >
-            Create new role
-          </Button>
         </Flex>
 
         <Box bg="white" borderRadius="lg" shadow="sm" p={4} mb={6}>
-          <InputGroup mb={4} maxW={400}>
-            <InputLeftElement pointerEvents="none">
-              <SearchIcon color="gray.300" />
-            </InputLeftElement>
-            <Input
-              placeholder="Find a role..."
-              value={searchRoleQuery}
-              onChange={(e) => setSearchRoleQuery(e.target.value)}
-            />
-          </InputGroup>
+          <Flex mb={4} justify="space-between" align="center">
+            <InputGroup maxW={400}>
+              <InputLeftElement pointerEvents="none">
+                <SearchIcon color="gray.300" />
+              </InputLeftElement>
+              <Input
+                placeholder="Find a role..."
+                value={searchRoleQuery}
+                onChange={(e) => setSearchRoleQuery(e.target.value)}
+              />
+            </InputGroup>
+            <Button
+              colorScheme="teal"
+              onClick={() =>
+                router.push(
+                  `/workspace/${workspaceId}/teams/roles/create?teamId=${teamId}`
+                )
+              }
+            >
+              Create new role
+            </Button>
+          </Flex>
 
           <Stack spacing={0}>
             <Flex
@@ -548,9 +636,6 @@ const TeamDetailPage: React.FC = () => {
               justify="space-between"
             >
               <Text fontWeight="medium">Role Name</Text>
-              <Text fontWeight="medium" minW="100px" textAlign="right">
-                Actions
-              </Text>
             </Flex>
 
             {roles
@@ -654,6 +739,23 @@ const TeamDetailPage: React.FC = () => {
         isLoading={isSubmitting}
         onClose={onDeleteRoleClose}
         onConfirm={confirmDeleteRole}
+      />
+
+      <AddPackageModal
+        isOpen={isAddPackageOpen}
+        onClose={onAddPackageClose}
+        teamId={teamId}
+        existingPackageIds={activityPackages.map((pkg) => pkg.id)}
+        onSuccess={fetchActivityPackages}
+      />
+
+      <ConfirmModal
+        title="Remove Package"
+        content="remove this package from the team"
+        isOpen={isDeletePackageOpen}
+        isLoading={isSubmitting}
+        onClose={onDeletePackageClose}
+        onConfirm={confirmDeletePackage}
       />
     </WorkspaceLayout>
   );

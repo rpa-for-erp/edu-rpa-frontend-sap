@@ -300,6 +300,7 @@ const WorkspaceListPage: React.FC = () => {
                 borderColor="gray.200"
                 align="center"
                 justify="space-between"
+                py={5}
                 // cursor="pointer"
                 // onClick={() => handleWorkspaceClick(workspace.id)}
               >
@@ -325,10 +326,6 @@ const WorkspaceListPage: React.FC = () => {
                         </Badge>
                       )}
                     </Flex>
-                    <Text fontSize="sm" color="gray.500">
-                      {workspace.members?.length || 0} member
-                      {workspace.members?.length !== 1 ? 's' : ''}
-                    </Text>
                   </Stack>
                 </Flex>
 

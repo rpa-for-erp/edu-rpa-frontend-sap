@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -15,9 +15,11 @@ import {
   VStack,
   Text,
   useToast,
+  Select,
 } from '@chakra-ui/react';
 import { InviteMemberDto } from '@/dtos/workspaceDto';
 import workspaceApi from '@/apis/workspaceApi';
+import { Role } from '@/interfaces/workspace';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -38,7 +40,33 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 }) => {
   const toast = useToast();
   const [email, setEmail] = useState('');
+  const [roleId, setRoleId] = useState('');
+  const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && teamId) {
+      fetchRoles();
+    }
+  }, [isOpen, teamId]);
+
+  useEffect(() => {
+    if (defaultRoleId) {
+      setRoleId(defaultRoleId);
+    }
+  }, [defaultRoleId]);
+
+  const fetchRoles = async () => {
+    try {
+      const data = await workspaceApi.getRolesByTeam(teamId);
+      setRoles(data);
+      if (data.length > 0 && !roleId) {
+        setRoleId(data[0].id);
+      }
+    } catch (error) {
+      console.error('Failed to fetch roles:', error);
+    }
+  };
 
   const handleInvite = async () => {
     if (!email) {
@@ -52,10 +80,10 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       return;
     }
 
-    if (!defaultRoleId) {
+    if (!roleId) {
       toast({
         title: 'Error',
-        description: 'Role is required. Please select a default role.',
+        description: 'Please select a role',
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -65,7 +93,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
     setIsLoading(true);
     try {
-      const payload: InviteMemberDto = { email, roleId: defaultRoleId };
+      const payload: InviteMemberDto = { email, roleId };
       await workspaceApi.inviteTeamMember(teamId, payload);
       toast({
         title: 'Success',
@@ -75,6 +103,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
         isClosable: true,
       });
       setEmail('');
+      setRoleId(defaultRoleId || '');
       onSuccess();
       onClose();
     } catch (error: any) {
@@ -92,7 +121,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
@@ -112,7 +141,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
-          <FormControl>
+          <FormControl mb={4}>
             <FormLabel>Team Email Address</FormLabel>
             <Input
               type="email"
@@ -122,10 +151,24 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             />
           </FormControl>
 
+          <FormControl mb={4}>
+            <FormLabel>Role</FormLabel>
+            <Select
+              placeholder="Select role"
+              value={roleId}
+              onChange={(e) => setRoleId(e.target.value)}
+            >
+              {roles.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </Select>
+          </FormControl>
+
           <Button
             colorScheme="teal"
             width="full"
-            mt={6}
             onClick={handleInvite}
             isLoading={isLoading}
           >

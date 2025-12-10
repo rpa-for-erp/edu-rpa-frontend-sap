@@ -58,3 +58,9 @@ export interface UpdateMemberRoleDto {
 export interface AddPackageToTeamDto {
   packageId: string;
 }
+
+// Invitation DTOs
+export interface RespondInvitationDto {
+  invitationId: string;
+  status: InvitationStatus.ACCEPTED | InvitationStatus.REJECTED;
+}
