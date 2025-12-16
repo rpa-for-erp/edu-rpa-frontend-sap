@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Flex,
@@ -13,9 +13,9 @@ import {
   Tabs,
   TabList,
   Tab,
-} from '@chakra-ui/react';
-import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons';
-import { FaSave } from 'react-icons/fa';
+} from "@chakra-ui/react";
+import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
+import { FaSave } from "react-icons/fa";
 
 interface BpmnSubHeaderProps {
   isSaved: boolean;
@@ -23,6 +23,8 @@ interface BpmnSubHeaderProps {
   onSaveAll: () => void;
   onPublish: () => void;
   onRobotCode: () => void;
+  onCreateVersion?: () => void;
+  onShowVersions?: () => void;
 }
 
 export default function BpmnSubHeader({
@@ -31,6 +33,8 @@ export default function BpmnSubHeader({
   onSaveAll,
   onPublish,
   onRobotCode,
+  onCreateVersion,
+  onShowVersions,
 }: BpmnSubHeaderProps) {
   const [activeTab, setActiveTab] = useState(0);
   const [tokenSimulation, setTokenSimulation] = useState(false);
@@ -46,8 +50,8 @@ export default function BpmnSubHeader({
       <Flex justify="space-between" align="center">
         {/* Left Section: Tabs */}
         <Flex align="center" gap={6}>
-          <Tabs 
-            index={activeTab} 
+          <Tabs
+            index={activeTab}
             onChange={setActiveTab}
             variant="unstyled"
             size="sm"
@@ -55,9 +59,9 @@ export default function BpmnSubHeader({
             <TabList>
               <Tab
                 _selected={{
-                  color: 'teal.600',
-                  borderBottom: '2px solid',
-                  borderColor: 'teal.600',
+                  color: "teal.600",
+                  borderBottom: "2px solid",
+                  borderColor: "teal.600",
                 }}
                 fontWeight="medium"
                 pb={2}
@@ -66,9 +70,9 @@ export default function BpmnSubHeader({
               </Tab>
               <Tab
                 _selected={{
-                  color: 'teal.600',
-                  borderBottom: '2px solid',
-                  borderColor: 'teal.600',
+                  color: "teal.600",
+                  borderBottom: "2px solid",
+                  borderColor: "teal.600",
                 }}
                 fontWeight="medium"
                 pb={2}
@@ -115,14 +119,34 @@ export default function BpmnSubHeader({
               variant="outline"
               borderColor="blue.500"
               color="blue.600"
-              _hover={{ bg: 'blue.50' }}
+              _hover={{ bg: "blue.50" }}
               fontWeight="medium"
             >
               Version
             </MenuButton>
             <MenuList minW="200px">
-              <MenuItem>Create version</MenuItem>
-              <MenuItem>Show versions</MenuItem>
+              <MenuItem
+                _hover={{
+                  bg: "transparent",
+                  outline: "2px solid",
+                  outlineColor: "#5B5DD9",
+                  outlineOffset: "-2px",
+                }}
+                onClick={onCreateVersion}
+              >
+                Create version
+              </MenuItem>
+              <MenuItem
+                _hover={{
+                  bg: "transparent",
+                  outline: "2px solid",
+                  outlineColor: "#5B5DD9",
+                  outlineOffset: "-2px",
+                }}
+                onClick={onShowVersions}
+              >
+                Show versions
+              </MenuItem>
             </MenuList>
           </Menu>
 
@@ -131,7 +155,7 @@ export default function BpmnSubHeader({
             size="sm"
             bg="pink.500"
             color="white"
-            _hover={{ bg: 'pink.600' }}
+            _hover={{ bg: "pink.600" }}
             onClick={onPublish}
             fontWeight="medium"
             px={6}
@@ -173,4 +197,3 @@ export default function BpmnSubHeader({
     </Box>
   );
 }
-

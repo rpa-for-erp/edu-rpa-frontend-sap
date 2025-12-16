@@ -1,20 +1,20 @@
-import { useBpmn } from '@/hooks/useBpmn';
-import { BpmnJsReactHandle } from '@/interfaces/bpmnJsReact.interface';
-import { useEffect, useRef, useState } from 'react';
-import BpmnJsReact from './BpmnJsReact';
+import { useBpmn } from "@/hooks/useBpmn";
+import { BpmnJsReactHandle } from "@/interfaces/bpmnJsReact.interface";
+import { useEffect, useRef, useState } from "react";
+import BpmnJsReact from "./BpmnJsReact";
 import {
   Box,
   Button,
   IconButton,
   useDisclosure,
   useToast,
-} from '@chakra-ui/react';
-import ModelerSideBar from './ModelerSidebar';
-import { BpmnParser } from '@/utils/bpmn-parser/bpmn-parser.util';
+} from "@chakra-ui/react";
+import ModelerSideBar from "./ModelerSidebar";
+import { BpmnParser } from "@/utils/bpmn-parser/bpmn-parser.util";
 import {
   getLocalStorageObject,
   setLocalStorageObject,
-} from '@/utils/localStorageService';
+} from "@/utils/localStorageService";
 import {
   getProcessFromLocalStorage,
   updateProcessInProcessList,
@@ -28,7 +28,7 @@ import {
   convertToRefactoredObject,
   getIndexVariableStorage,
   getVariableItemFromLocalStorage,
-} from '@/utils/variableService';
+} from "@/utils/variableService";
 
 import { useParams } from "next/navigation";
 import { QUERY_KEY } from "@/constants/queryKey";
@@ -44,6 +44,8 @@ import BpmnModelerLayout from "./BpmnModelerLayout";
 import BpmnRightSidebar from "./BpmnRightSidebar";
 import BpmnBottomPanel from "./BpmnBottomPanel";
 import { BpmnParseError } from "@/utils/bpmn-parser/error";
+import { CreateVersionModal } from "./VersionsPanel";
+import versionApi from "@/apis/versionApi";
 
 interface OriginalObject {
   [key: string]: {
@@ -62,6 +64,11 @@ function CustomModeler() {
   const dispatch = useDispatch();
   const processID = params.id;
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isCreateVersionOpen,
+    onOpen: onOpenCreateVersion,
+    onClose: onCloseCreateVersion,
+  } = useDisclosure();
   const [errorTrace, setErrorTrace] = useState<string>("");
   const [showRobotCode, setShowRobotCode] = useState(false);
   const [activityItem, setActivityItem] = useState({
@@ -148,9 +155,9 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: 'Save all changes sucessfully!',
-        status: 'success',
-        position: 'top-right',
+        title: "Save all changes sucessfully!",
+        status: "success",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
@@ -158,10 +165,57 @@ function CustomModeler() {
     },
     onError: () => {
       toast({
-        title: 'There are some errors, try again !',
-        status: 'error',
-        position: 'top-right',
+        title: "There are some errors, try again !",
+        status: "error",
+        position: "top-right",
         duration: 1000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const mutateCreateVersion = useMutation({
+    mutationFn: async (data: { tag: string; description: string }) => {
+      // Get current data from localStorage (the edited data on UI)
+      const processProperties = getProcessFromLocalStorage(processID as string);
+      const variableListByID = getVariableItemFromLocalStorage(
+        processID as string
+      );
+      const refactoredVariables = convertToRefactoredObject(variableListByID);
+
+      if (!processProperties) {
+        throw new Error("Process data not found in localStorage");
+      }
+
+      // Build full payload for create version
+      const payload = {
+        processId: processID as string,
+        xml: processProperties.xml || "",
+        variables: refactoredVariables || {},
+        activities: processProperties.activities || [],
+        tag: data.tag,
+        description: data.description,
+      };
+
+      return await versionApi.createVersion(processID as string, payload);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Version created successfully!",
+        status: "success",
+        position: "top-right",
+        duration: 2000,
+        isClosable: true,
+      });
+      onCloseCreateVersion();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to create version",
+        description: error?.message || "An error occurred",
+        status: "error",
+        position: "top-right",
+        duration: 2000,
         isClosable: true,
       });
     },
@@ -171,9 +225,9 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties) {
       toast({
-        title: 'There are some errors, please refresh the page!',
-        status: 'error',
-        position: 'top-right',
+        title: "There are some errors, please refresh the page!",
+        status: "error",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
@@ -210,17 +264,17 @@ function CustomModeler() {
 
       if (error instanceof BpmnParseError) {
         toast({
-          title: error.message + ': ' + error.bpmnId,
-          status: 'error',
-          position: 'bottom-right',
+          title: error.message + ": " + error.bpmnId,
+          status: "error",
+          position: "bottom-right",
           duration: 1000,
           isClosable: true,
         });
       }
       toast({
         title: (error as Error).message,
-        status: 'error',
-        position: 'bottom-right',
+        status: "error",
+        position: "bottom-right",
         duration: 1000,
         isClosable: true,
       });
@@ -234,6 +288,17 @@ function CustomModeler() {
       status: "info",
       position: "top-right",
       duration: 2000,
+    });
+  };
+
+  const handleCreateVersion = () => {
+    onOpenCreateVersion();
+  };
+
+  const handleShowVersions = () => {
+    router.push({
+      pathname: `/studio/modeler/${processID}/versions`,
+      query: { name: processName },
     });
   };
 
@@ -368,6 +433,8 @@ function CustomModeler() {
       onSaveAll={handleSaveAll}
       onPublish={handlePublish}
       onRobotCode={handleRobotCode}
+      onCreateVersion={handleCreateVersion}
+      onShowVersions={handleShowVersions}
       modelerRef={bpmnReactJs}
       rightSidebar={
         <BpmnRightSidebar
@@ -404,6 +471,15 @@ function CustomModeler() {
           }}
         />
       )}
+
+      {/* Create Version Modal */}
+      <CreateVersionModal
+        isOpen={isCreateVersionOpen}
+        onClose={onCloseCreateVersion}
+        onCreateVersion={(data) => mutateCreateVersion.mutate(data)}
+        lastVersionTag="Autosaved"
+        isLoading={mutateCreateVersion.isPending}
+      />
     </BpmnModelerLayout>
   );
 }

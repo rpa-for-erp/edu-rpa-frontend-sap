@@ -12,6 +12,8 @@ interface BpmnModelerLayoutProps {
   onSaveAll: () => void;
   onPublish: () => void;
   onRobotCode: () => void;
+  onCreateVersion?: () => void;
+  onShowVersions?: () => void;
   children: ReactNode;
   rightSidebar: ReactNode;
   bottomPanel: ReactNode;
@@ -26,6 +28,8 @@ export default function BpmnModelerLayout({
   onSaveAll,
   onPublish,
   onRobotCode,
+  onCreateVersion,
+  onShowVersions,
   children,
   rightSidebar,
   bottomPanel,
@@ -43,6 +47,8 @@ export default function BpmnModelerLayout({
         onSaveAll={onSaveAll}
         onPublish={onPublish}
         onRobotCode={onRobotCode}
+        onCreateVersion={onCreateVersion}
+        onShowVersions={onShowVersions}
       />
 
       {/* Main Content Area */}
