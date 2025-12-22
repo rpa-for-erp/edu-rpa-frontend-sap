@@ -1,7 +1,9 @@
 import connectionApi from '@/apis/connectionApi';
+import moodleConnectionApi from '@/apis/moodleConnectionApi';
 import { providerData } from '@/constants/providerData';
 import { Connection } from '@/interfaces/connection';
 import { userSelector } from '@/redux/selector';
+import { AuthorizationProvider } from '@/interfaces/enums/provider.enum';
 import {
   Box,
   Button,
@@ -19,6 +21,7 @@ import {
   Text,
   Tr,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
 import { useEffect, useState } from 'react';
 import { IoDocumentText } from 'react-icons/io5';
@@ -41,13 +44,21 @@ const ConnectionRow = (props: ConnectionRowProps) => {
   const [isLoadingRefresh, setIsLoadingRefresh] = useState(false);
   const [status, setStatus] = useState('Connected');
   const user = useSelector(userSelector);
+  const toast = useToast();
   const { connectionKey, userId, isActivate, ...data } = props.data;
 
   const handleRefreshConnection = async () => {
     setIsLoadingRefresh(true);
     try {
-      await connectionApi.refreshConnection(data.provider, data.name);
-      setStatus('Connected');
+      // For Moodle connections, use the test endpoint
+      if (data.provider === AuthorizationProvider.MOODLE) {
+        await moodleConnectionApi.testMoodleConnection(data.name);
+        setStatus('Connected');
+      } else {
+        // For OAuth connections, use the existing refresh endpoint
+        await connectionApi.refreshConnection(data.provider, data.name);
+        setStatus('Connected');
+      }
     } catch (error) {
       setStatus('Disconnected');
     }
@@ -59,6 +70,19 @@ const ConnectionRow = (props: ConnectionRowProps) => {
       (provider) => provider.name === data.provider
     );
     if (provider) {
+      // Moodle doesn't use OAuth, so we can't reconnect this way
+      if (provider.name === AuthorizationProvider.MOODLE) {
+        toast({
+          title: 'Cannot Reconnect',
+          description: 'Please delete this connection and create a new one with updated credentials.',
+          status: 'warning',
+          position: 'top-right',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+      
       window.open(
         `${process.env.NEXT_PUBLIC_DEV_API}/auth/${provider.slug}?fromUser=${user.id}&reconnect=true`,
         '_blank'
@@ -98,8 +122,6 @@ const ConnectionRow = (props: ConnectionRowProps) => {
         );
       case 'provider':
         const provider = providerData.find((provider) => {
-          console.log(provider.name, value);
-          console.log(provider.name === value);
           return provider.name === value;
         });
         return (
@@ -125,7 +147,7 @@ const ConnectionRow = (props: ConnectionRowProps) => {
       router.reload();
     },
     onError: (error) => {
-      console.log(error);
+      // Error handled silently
     },
   });
 

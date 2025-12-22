@@ -278,6 +278,7 @@ export default function PropertiesSideBar({
                   'connection.Gmail': '',
                   'connection.Google Sheets': '',
                   'connection.SAP Mock': '',
+                  'connection.Moodle': '',
                   'enum.shareType': 'user',
                   'enum.permission': 'reader',
                   label_ids: 'inbox',
@@ -431,6 +432,11 @@ export default function PropertiesSideBar({
                     return renderConnectionSelect(
                       paramKey,
                       AuthorizationProvider.ERP_NEXT
+                    );
+                  case 'connection.Moodle':
+                    return renderConnectionSelect(
+                      paramKey,
+                      AuthorizationProvider.MOODLE
                     );
                   case 'enum.shareType':
                     return renderSelect(paramKey, [

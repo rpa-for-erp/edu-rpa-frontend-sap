@@ -15,6 +15,7 @@ import TextExtractionIcon from '@/assets/images/services/icons8-image-100.png';
 import VariableIcon from '@/assets/images/services/icons8-variable-96.png';
 import FileStorageIcon from '@/assets/images/services/icons8-file-storage-96.png';
 import SapMockIcon from '@/assets/images/services/sap.png';
+import MoodleIcon from '@/assets/images/services/moodle-icon.jpeg';
 const getDistinctService = (data: any) => {
   const services = data
     .map((template: any) => template.service)
@@ -56,6 +57,8 @@ const getLibrary = (packageName: string) => {
       return 'rpa_sap.SAPKeywords';
     case 'Data manipulation':
       return 'Collections';
+    case 'Moodle':
+      return 'MoodleLibrary';
     default:
       return null;
   }
@@ -87,6 +90,8 @@ const getPackageIcon = (displayName: string) => {
       return SapMockIcon;
     case 'ERPNext':
       return ERPNextIcon;
+    case 'Moodle':
+      return MoodleIcon;
     default:
       return null;
   }

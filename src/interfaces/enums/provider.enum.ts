@@ -6,6 +6,7 @@ export enum AuthorizationProvider {
   G_FORMS = 'Google Forms',
   SAP_MOCK = 'SAP Mock',
   ERP_NEXT = 'ERP_Next',
+  MOODLE = 'Moodle',
 }
 
 export const AuthorizationProviderByActivityPackage = new Map<
@@ -19,4 +20,5 @@ export const AuthorizationProviderByActivityPackage = new Map<
   ['Gmail', AuthorizationProvider.G_GMAIL],
   ['SAP Mock', AuthorizationProvider.SAP_MOCK],
   ['ERP_Next', AuthorizationProvider.ERP_NEXT],
+  ['Moodle', AuthorizationProvider.MOODLE],
 ]);

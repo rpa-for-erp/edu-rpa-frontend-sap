@@ -140,7 +140,28 @@ export default function Service() {
             </Button>
           </div>
 
-          <CreateNewConnectionModal isOpen={isOpen} onClose={onClose} />
+          <CreateNewConnectionModal 
+            isOpen={isOpen} 
+            onClose={onClose}
+            onSuccess={async () => {
+              // Refresh connection list after creating a new connection
+              setIsLoading(true);
+              try {
+                const data = await connectionApi.queryConnections();
+                setConnectionData(data);
+                toast({
+                  title: 'Connection list refreshed',
+                  status: 'success',
+                  position: 'top-right',
+                  duration: 2000,
+                  isClosable: true,
+                });
+              } catch (error) {
+                console.log(error);
+              }
+              setIsLoading(false);
+            }}
+          />
         </div>
 
         {tableProps.data.length > 0 ? (

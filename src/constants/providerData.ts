@@ -6,6 +6,7 @@ import GoogleClassroomIcon from '@/assets/images/services/icons8-google-classroo
 import GoogleFormsIcon from '@/assets/images/services/icons8-google-forms-96.png';
 import SAPMockIcon from '@/assets/images/services/sap.png';
 import ERPNextIcon from '@/assets/images/packages/erpnext-icon.png';
+import MoodleIcon from '@/assets/images/services/moodle-icon.jpeg';
 import { StaticImageData } from 'next/image';
 
 export const providerData: {
@@ -48,5 +49,10 @@ export const providerData: {
     name: AuthorizationProvider.ERP_NEXT,
     slug: 'erpnext',
     icon: ERPNextIcon,
+  },
+  {
+    name: AuthorizationProvider.MOODLE,
+    slug: 'moodle',
+    icon: MoodleIcon,
   },
 ];
