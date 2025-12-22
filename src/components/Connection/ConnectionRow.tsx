@@ -104,7 +104,7 @@ const ConnectionRow = (props: ConnectionRowProps) => {
         });
         return (
           <Box className="flex justify-between items-center">
-            <IconImage icon={provider!.icon} label={provider!.name} />
+            {provider && <IconImage icon={provider.icon} label={provider.name} />}
           </Box>
         );
       case 'createdAt':
