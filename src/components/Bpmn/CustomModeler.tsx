@@ -46,6 +46,9 @@ import BpmnBottomPanel from "./BpmnBottomPanel";
 import { BpmnParseError } from "@/utils/bpmn-parser/error";
 import { CreateVersionModal } from "./VersionsPanel";
 import versionApi from "@/apis/versionApi";
+import { convertJsonToProcess } from "@/utils/bpmn-parser/json-to-bpmn-xml.util";
+import { PublishRobotModal } from "./FunctionalTabBar/PublishRobotModal";
+import { Modal, ModalOverlay } from "@chakra-ui/react";
 
 interface OriginalObject {
   [key: string]: {
@@ -69,6 +72,11 @@ function CustomModeler() {
     onOpen: onOpenCreateVersion,
     onClose: onCloseCreateVersion,
   } = useDisclosure();
+  const {
+    isOpen: isPublishModalOpen,
+    onOpen: onOpenPublishModal,
+    onClose: onClosePublishModal,
+  } = useDisclosure();
   const [errorTrace, setErrorTrace] = useState<string>("");
   const [showRobotCode, setShowRobotCode] = useState(false);
   const [activityItem, setActivityItem] = useState({
@@ -77,6 +85,7 @@ function CustomModeler() {
     activityType: "",
     properties: {},
   });
+  const [isChatbotOpen, setIsChatbotOpen] = useState(false);
   const isSavedChanges = useSelector(bpmnSelector);
 
   const processName = router?.query?.name as string;
@@ -281,14 +290,72 @@ function CustomModeler() {
     }
   };
 
+  // genRobotCode function for Publish modal - NO error handling, throws to caller
+  const compileRobotCodePublish = (processID: string) => {
+    const bpmnParser = new BpmnParser();
+    const processProperties = getProcessFromLocalStorage(processID as string);
+    const variableList = getVariableItemFromLocalStorage(processID as string);
+
+    const robotCode = bpmnParser.parse(
+      processProperties.xml,
+      processProperties.activities,
+      variableList ? variableList.variables : []
+    );
+
+    return robotCode;
+  };
+
   const handlePublish = () => {
-    // Will be implemented - open publish modal
-    toast({
-      title: "Publish feature coming soon",
-      status: "info",
-      position: "top-right",
-      duration: 2000,
-    });
+    try {
+      console.log("🚀 [Publish] Validating BPMN before opening modal...");
+
+      // Validate by trying to compile robot code (DON'T save yet)
+      const result = compileRobotCodePublish(processID as string);
+
+      // Check if result is valid
+      if (!result || !result.code || !result.credentials) {
+        throw new Error("Invalid robot code: Missing code or credentials");
+      }
+
+      console.log("✅ [Publish] Validation successful");
+
+      // Only save if validation passed
+      handleSaveAll();
+
+      console.log("✅ [Publish] Opening PublishRobotModal...");
+      // Open publish modal
+      onOpenPublishModal();
+    } catch (error) {
+      console.error("❌ [Publish] Validation failed:", error);
+      console.log("❌ [Publish] NOT opening modal due to error");
+
+      // Show specific error message (ONLY toast, no modal)
+      if (error instanceof BpmnParseError) {
+        toast({
+          title: "BPMN Parse Error",
+          description: `${error.message}: ${error.bpmnId}`,
+          status: "error",
+          position: "top-right",
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: "Cannot Publish Robot",
+          description:
+            (error as Error).message || "Failed to validate robot code",
+          status: "error",
+          position: "top-right",
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+
+      // IMPORTANT: Do NOT open any modals
+      // Do NOT call: onOpenPublishModal()
+      // Do NOT call: setShowRobotCode(true)
+      return; // Exit early
+    }
   };
 
   const handleCreateVersion = () => {
@@ -300,6 +367,87 @@ function CustomModeler() {
       pathname: `/studio/modeler/${processID}/versions`,
       query: { name: processName },
     });
+  };
+
+  const handleToggleChatbot = () => {
+    setIsChatbotOpen(!isChatbotOpen);
+  };
+
+  const handleApplyXml = async (
+    xml: string,
+    activities?: any[],
+    automaticNodeIds?: string[]
+  ) => {
+    try {
+      if (!bpmnReactJs.bpmnModeler) {
+        throw new Error("Modeler not initialized");
+      }
+
+      await bpmnReactJs.bpmnModeler.importXML(xml);
+      console.log("✅ [AI Chatbot] XML imported to modeler");
+
+      // Highlight automatic nodes (is_automatic === true) in green
+      if (automaticNodeIds && automaticNodeIds.length > 0) {
+        try {
+          const modeling = bpmnReactJs.bpmnModeler.get("modeling");
+          const elementRegistry =
+            bpmnReactJs.bpmnModeler.get("elementRegistry");
+
+          automaticNodeIds.forEach((nodeId) => {
+            const element = elementRegistry.get(nodeId);
+            if (element) {
+              modeling.setColor(element, {
+                fill: "#C6F6D5", // teal.100
+                stroke: "#2F855A", // green.700
+              });
+            }
+          });
+
+          console.log(
+            "✅ [AI Chatbot] Highlighted automatic nodes:",
+            automaticNodeIds
+          );
+        } catch (e) {
+          console.error(
+            "❌ [AI Chatbot] Failed to highlight automatic nodes:",
+            e
+          );
+        }
+      }
+
+      const currentProcess = getProcessFromLocalStorage(processID as string);
+      const updatedProcess = {
+        ...currentProcess,
+        xml,
+        activities: activities ?? currentProcess?.activities ?? [],
+      };
+
+      const newLocalStorage = updateLocalStorage(updatedProcess);
+      setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
+
+      dispatch(isSavedChange(false));
+
+      toast({
+        title: "BPMN Applied Successfully",
+        description:
+          "The process has been applied to the canvas. Don't forget to save!",
+        status: "success",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error: any) {
+      console.error("❌ [AI Chatbot] Error applying XML:", error);
+      toast({
+        title: "Failed to apply BPMN",
+        description: error?.message || "An unexpected error occurred",
+        status: "error",
+        position: "top-right",
+        duration: 5000,
+        isClosable: true,
+      });
+      throw error;
+    }
   };
 
   const handleRobotCode = async () => {
@@ -436,6 +584,9 @@ function CustomModeler() {
       onCreateVersion={handleCreateVersion}
       onShowVersions={handleShowVersions}
       modelerRef={bpmnReactJs}
+      isChatbotOpen={isChatbotOpen}
+      onToggleChatbot={handleToggleChatbot}
+      onApplyXml={handleApplyXml}
       rightSidebar={
         <BpmnRightSidebar
           processID={processID as string}
@@ -480,6 +631,21 @@ function CustomModeler() {
         lastVersionTag="Autosaved"
         isLoading={mutateCreateVersion.isPending}
       />
+
+      {/* Publish Robot Modal */}
+      <Modal
+        isOpen={isPublishModalOpen}
+        onClose={onClosePublishModal}
+        size="lg"
+      >
+        <ModalOverlay />
+        <PublishRobotModal
+          processID={processID as string}
+          genRobotCode={compileRobotCodePublish}
+          onSaveAll={handleSaveAll}
+          onClose={onClosePublishModal}
+        />
+      </Modal>
     </BpmnModelerLayout>
   );
 }

@@ -281,7 +281,7 @@ export default function Studio() {
       description: initialProcess.processDesc,
       xml: initialProcess.xml,
     };
-    // console.log('Import payload', createProcessPayloadAPI);
+    // console.log("Import payload", createProcessPayloadAPI);
     handleCreateProcessWithApi.mutate(createProcessPayloadAPI as any);
   };
 
@@ -343,6 +343,7 @@ export default function Studio() {
 
     reader.onload = async (e) => {
       try {
+        // console.log("Import BPMN", e.target?.result);
         const xml = e.target?.result as string;
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xml, "text/xml");
