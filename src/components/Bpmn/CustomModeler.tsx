@@ -1,48 +1,51 @@
-import { useBpmn } from '@/hooks/useBpmn';
-import { BpmnJsReactHandle } from '@/interfaces/bpmnJsReact.interface';
-import { useEffect, useRef, useState } from 'react';
-import BpmnJsReact from './BpmnJsReact';
+import { useBpmn } from "@/hooks/useBpmn";
+import { BpmnJsReactHandle } from "@/interfaces/bpmnJsReact.interface";
+import { useEffect, useRef, useState } from "react";
+import BpmnJsReact from "./BpmnJsReact";
 import {
   Box,
   Button,
   IconButton,
   useDisclosure,
   useToast,
-} from '@chakra-ui/react';
-import ModelerSideBar from './ModelerSidebar';
-import { BpmnParser } from '@/utils/bpmn-parser/bpmn-parser.util';
+} from "@chakra-ui/react";
+import ModelerSideBar from "./ModelerSidebar";
+import { BpmnParser } from "@/utils/bpmn-parser/bpmn-parser.util";
 import {
   getLocalStorageObject,
   setLocalStorageObject,
-} from '@/utils/localStorageService';
+} from "@/utils/localStorageService";
 import {
   getProcessFromLocalStorage,
   updateProcessInProcessList,
-} from '@/utils/processService';
-import { useRouter } from 'next/router';
-import VariablesSideBar from './VariablesSideBar/VariablesSideBar';
-import { LocalStorage } from '@/constants/localStorage';
-import { ChevronLeftIcon } from '@chakra-ui/icons';
-import { exportFile, stringifyCyclicObject } from '@/utils/common';
+  updateLocalStorage,
+} from "@/utils/processService";
+import { useRouter } from "next/router";
+import { LocalStorage } from "@/constants/localStorage";
+import { exportFile, stringifyCyclicObject } from "@/utils/common";
 
 import {
   convertToRefactoredObject,
   getIndexVariableStorage,
   getVariableItemFromLocalStorage,
-} from '@/utils/variableService';
+} from "@/utils/variableService";
 
-import { useParams } from 'next/navigation';
-import { QUERY_KEY } from '@/constants/queryKey';
-import processApi from '@/apis/processApi';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
-import { SaveProcessDto } from '@/dtos/processDto';
-import { useDispatch, useSelector } from 'react-redux';
-import { bpmnSelector } from '@/redux/selector';
-import { isSavedChange } from '@/redux/slice/bpmnSlice';
-import FunctionalTabBar from './FunctionalTabBar/FunctionalTabBar';
-import DisplayRobotCode from './DisplayRobotCode/DisplayRobotCode';
-import { BpmnParseError } from '@/utils/bpmn-parser/error';
+import { useParams } from "next/navigation";
+import { QUERY_KEY } from "@/constants/queryKey";
+import processApi from "@/apis/processApi";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
+import { SaveProcessDto } from "@/dtos/processDto";
+import { useDispatch, useSelector } from "react-redux";
+import { bpmnSelector } from "@/redux/selector";
+import { isSavedChange } from "@/redux/slice/bpmnSlice";
+import DisplayRobotCode from "./DisplayRobotCode/DisplayRobotCode";
+import BpmnModelerLayout from "./BpmnModelerLayout";
+import BpmnRightSidebar from "./BpmnRightSidebar";
+import BpmnBottomPanel from "./BpmnBottomPanel";
+import { BpmnParseError } from "@/utils/bpmn-parser/error";
+import { CreateVersionModal } from "./VersionsPanel";
+import versionApi from "@/apis/versionApi";
 
 interface OriginalObject {
   [key: string]: {
@@ -61,7 +64,19 @@ function CustomModeler() {
   const dispatch = useDispatch();
   const processID = params.id;
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [errorTrace, setErrorTrace] = useState<string>('');
+  const {
+    isOpen: isCreateVersionOpen,
+    onOpen: onOpenCreateVersion,
+    onClose: onCloseCreateVersion,
+  } = useDisclosure();
+  const [errorTrace, setErrorTrace] = useState<string>("");
+  const [showRobotCode, setShowRobotCode] = useState(false);
+  const [activityItem, setActivityItem] = useState({
+    activityID: "",
+    activityName: "",
+    activityType: "",
+    properties: {},
+  });
   const isSavedChanges = useSelector(bpmnSelector);
 
   const processName = router?.query?.name as string;
@@ -87,13 +102,20 @@ function CustomModeler() {
   // sync data from api to localStorage
   useEffect(() => {
     if (!processDetailByID) return;
+    console.log("Process Detail By ID", processDetailByID);
+    console.log("Process Detail  XML", processDetailByID.xml);
+    console.log("Process Detail Variables", processDetailByID.variables);
+    console.log("Process Detail Activities", processDetailByID.activities);
+
     const currentprocessID = getProcessFromLocalStorage(processID as string);
+    console.log("Current Process ID", currentprocessID);
     const updateStorageByID = {
       ...currentprocessID,
       xml: processDetailByID.xml,
       variables: processDetailByID.variables,
       activities: processDetailByID.activities,
     };
+    console.log("Update Storage By ID", updateStorageByID);
     const replaceStorageSnapshot = updateProcessInProcessList(
       processID as string,
       updateStorageByID
@@ -133,9 +155,9 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: 'Save all changes sucessfully!',
-        status: 'success',
-        position: 'top-right',
+        title: "Save all changes sucessfully!",
+        status: "success",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
@@ -143,10 +165,57 @@ function CustomModeler() {
     },
     onError: () => {
       toast({
-        title: 'There are some errors, try again !',
-        status: 'error',
-        position: 'top-right',
+        title: "There are some errors, try again !",
+        status: "error",
+        position: "top-right",
         duration: 1000,
+        isClosable: true,
+      });
+    },
+  });
+
+  const mutateCreateVersion = useMutation({
+    mutationFn: async (data: { tag: string; description: string }) => {
+      // Get current data from localStorage (the edited data on UI)
+      const processProperties = getProcessFromLocalStorage(processID as string);
+      const variableListByID = getVariableItemFromLocalStorage(
+        processID as string
+      );
+      const refactoredVariables = convertToRefactoredObject(variableListByID);
+
+      if (!processProperties) {
+        throw new Error("Process data not found in localStorage");
+      }
+
+      // Build full payload for create version
+      const payload = {
+        processId: processID as string,
+        xml: processProperties.xml || "",
+        variables: refactoredVariables || {},
+        activities: processProperties.activities || [],
+        tag: data.tag,
+        description: data.description,
+      };
+
+      return await versionApi.createVersion(processID as string, payload);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Version created successfully!",
+        status: "success",
+        position: "top-right",
+        duration: 2000,
+        isClosable: true,
+      });
+      onCloseCreateVersion();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Failed to create version",
+        description: error?.message || "An error occurred",
+        status: "error",
+        position: "top-right",
+        duration: 2000,
         isClosable: true,
       });
     },
@@ -156,9 +225,9 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties) {
       toast({
-        title: 'There are some errors, please refresh the page!',
-        status: 'error',
-        position: 'top-right',
+        title: "There are some errors, please refresh the page!",
+        status: "error",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
@@ -181,151 +250,237 @@ function CustomModeler() {
       const bpmnParser = new BpmnParser();
       const processProperties = getProcessFromLocalStorage(processID as string);
       const variableList = getVariableItemFromLocalStorage(processID as string);
+      console.log("Process Properties", processProperties.xml);
       const robotCode = bpmnParser.parse(
         processProperties.xml,
         processProperties.activities,
         variableList ? variableList.variables : []
       );
 
-      // toast({
-      //   title: 'Compile Successfully!',
-      //   status: 'success',
-      //   position: 'bottom-right',
-      //   duration: 1000,
-      //   isClosable: true,
-      // });
-      console.log('Robot Code:', robotCode);
+      setShowRobotCode(true);
       return robotCode;
     } catch (error) {
       setErrorTrace(error.stack.toString());
-      // let _bpmnId = error.bpmnId.split(",")[0]
-      // console.log(_bpmnId)
-      // bpmnReactJs.addMarker(_bpmnId, "djs-search-overlay");
 
       if (error instanceof BpmnParseError) {
         toast({
-          title: error.message + ': ' + error.bpmnId,
-          status: 'error',
-          position: 'bottom-right',
+          title: error.message + ": " + error.bpmnId,
+          status: "error",
+          position: "bottom-right",
           duration: 1000,
           isClosable: true,
         });
       }
       toast({
         title: (error as Error).message,
-        status: 'error',
-        position: 'bottom-right',
+        status: "error",
+        position: "bottom-right",
         duration: 1000,
         isClosable: true,
       });
     }
   };
 
+  const handlePublish = () => {
+    // Will be implemented - open publish modal
+    toast({
+      title: "Publish feature coming soon",
+      status: "info",
+      position: "top-right",
+      duration: 2000,
+    });
+  };
+
+  const handleCreateVersion = () => {
+    onOpenCreateVersion();
+  };
+
+  const handleShowVersions = () => {
+    router.push({
+      pathname: `/studio/modeler/${processID}/versions`,
+      query: { name: processName },
+    });
+  };
+
+  const handleRobotCode = async () => {
+    // Sync XML and activities from modeler to localStorage before compiling
+    // This ensures we're parsing the latest state, not stale data
+    if (bpmnReactJs.bpmnModeler) {
+      try {
+        const xmlResult = await bpmnReactJs.saveXML();
+        const activityList = bpmnReactJs
+          .getElementList(processID as string)
+          .slice(1);
+
+        // Log for debugging
+        console.log("📦 [Sync] Current XML from modeler:", xmlResult.xml);
+        console.log(
+          "📦 [Sync] Current activities from modeler:",
+          activityList.map((a: any) => a.activityID)
+        );
+
+        const currentProcess = getProcessFromLocalStorage(processID as string);
+        const updatedProcess = {
+          ...currentProcess,
+          xml: xmlResult.xml,
+          activities: activityList,
+        };
+        const newLocalStorage = updateLocalStorage(updatedProcess);
+        setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
+
+        console.log("📦 Synced modeler state to localStorage before compiling");
+      } catch (syncError) {
+        console.error("Failed to sync modeler state:", syncError);
+        toast({
+          title: "Failed to sync workflow state. Please try again.",
+          status: "warning",
+          position: "top-right",
+          duration: 3000,
+          isClosable: true,
+        });
+        return; // Don't compile if sync failed
+      }
+    }
+
+    compileRobotCode(processID as string);
+  };
+
+  // Listen to element click events
+  useEffect(() => {
+    console.log("=== 🔍 CUSTOM MODELER useEffect ===");
+    console.log("bpmnReactJs", bpmnReactJs.bpmnModeler);
+    if (!bpmnReactJs.bpmnModeler) return;
+
+    const handleElementClick = (event: any) => {
+      console.log("=== 🎯 ELEMENT CLICK ===");
+      console.log("Event:", event);
+
+      // Get element from event
+      const element = event.element;
+      if (!element || !element.businessObject) {
+        console.log("❌ No valid element - ignoring");
+        return;
+      }
+
+      const eventInfo = element.businessObject;
+      console.log("✅ Clicked element:", {
+        id: eventInfo.id,
+        name: eventInfo.name,
+        type: eventInfo.$type,
+      });
+
+      // Ignore sequence flows and labels
+      // const ignoredTypes = ["bpmn:SequenceFlow", "label"];
+      // if (ignoredTypes.some((type) => eventInfo.$type?.includes(type))) {
+      //   console.log("⏭️ Ignoring element type:", eventInfo.$type);
+      //   return;
+      // }
+
+      const currentActivity = {
+        activityID: eventInfo.id,
+        activityName: eventInfo.name || "",
+        activityType: eventInfo.$type,
+        keyword: "",
+        properties: {},
+      };
+
+      console.log("📝 Setting activityItem:", currentActivity);
+      setActivityItem(currentActivity);
+      console.log("✅ activityItem state updated");
+
+      if (!isOpen) {
+        console.log("🔓 Opening sidebar (was closed)");
+        onOpen();
+      } else {
+        console.log("ℹ️ Sidebar already open");
+      }
+
+      console.log("=== END ELEMENT CLICK ===\n");
+    };
+
+    const handleDoubleClick = (event: any) => {
+      if (!isOpen) {
+        onOpen();
+      }
+    };
+
+    const eventBus = bpmnReactJs.bpmnModeler.get("eventBus");
+    console.log("✅ EventBus obtained:", eventBus);
+
+    // Listen to element.click instead of selection.changed
+    eventBus.on("element.click", handleElementClick);
+    eventBus.on("element.dblclick", handleDoubleClick);
+
+    console.log("✅ Events registered: element.click, element.dblclick");
+
+    return () => {
+      console.log("🧹 Cleaning up event listeners");
+      eventBus.off("element.click", handleElementClick);
+      eventBus.off("element.dblclick", handleDoubleClick);
+    };
+  }, [bpmnReactJs.bpmnModeler]);
+
   if (isLoading) {
     return <LoadingIndicator />;
   }
 
   return (
-    <div className="mt-[20px]">
-      <Box className="flex justify-between items-center mx-[25px]">
-        <Box className="flex justify-between items-center">
-          <IconButton
-            colorScheme="teal"
-            aria-label="Prev to home"
-            variant="outline"
-            isRound={true}
-            size="lg"
-            onClick={() => router.push('/studio')}
-            icon={<ChevronLeftIcon />}
-          />
-          <Box>
-            <h1 className="text-primary font-bold text-2xl mx-[20px]">
-              {processID}{' '}
-              {!isSavedChanges.isSaved && (
-                <span className="text-red-500">{'*'}</span>
-              )}
-            </h1>
-            <Box className="flex justify-between items-center">
-              <h1 className="text-gray-500 text-xl mx-[20px]">
-                Name: {processName || ''}
-              </h1>
-            </Box>
-          </Box>
-        </Box>
-
-        <FunctionalTabBar
+    <BpmnModelerLayout
+      processID={processID as string}
+      processName={processName}
+      isSaved={isSavedChanges.isSaved}
+      version={version}
+      onSaveAll={handleSaveAll}
+      onPublish={handlePublish}
+      onRobotCode={handleRobotCode}
+      onCreateVersion={handleCreateVersion}
+      onShowVersions={handleShowVersions}
+      modelerRef={bpmnReactJs}
+      rightSidebar={
+        <BpmnRightSidebar
           processID={processID as string}
-          genRobotCode={compileRobotCode}
-          onSaveAll={handleSaveAll}
+          activityItem={activityItem}
+          isOpen={isOpen}
+          onClose={onClose}
+          modelerRef={bpmnReactJs}
         />
-      </Box>
-
+      }
+      bottomPanel={<BpmnBottomPanel processID={processID as string} />}
+    >
       <BpmnJsReact mode="edit" useBpmnJsReact={bpmnReactJs} ref={ref} />
+
+      {/* Hidden components for legacy functionality */}
       {bpmnReactJs.bpmnModeler && (
         <ModelerSideBar
-          isOpen={isOpen}
+          isOpen={false}
           onClose={onClose}
           onOpen={onOpen}
           modeler={bpmnReactJs}
         />
       )}
 
-      <Button
-        colorScheme="teal"
-        size="md"
-        className="mx-[5px]"
-        onClick={async () => {
-          const res = await bpmnReactJs.saveXML();
-          exportFile(res.xml as string, `${processID}.xml`);
-          // console.log(res.xml);
-        }}
-      >
-        Save XML
-      </Button>
+      {showRobotCode && (
+        <DisplayRobotCode
+          compileRobotCode={() => compileRobotCode(processID as string)}
+          errorTrace={errorTrace}
+          setErrorTrace={setErrorTrace}
+          isOpen={showRobotCode}
+          onClose={() => {
+            setShowRobotCode(false);
+            setErrorTrace("");
+          }}
+        />
+      )}
 
-      {/* <Button
-        colorScheme="blue"
-        size="md"
-        className="mx-[5px]"
-        onClick={async () => {
-          const res = await bpmnReactJs.saveXML();
-          const bpmnParser = new BpmnParser();
-          const jsonProcess = stringifyCyclicObject(
-            bpmnParser.parseXML(res.xml as string)
-          );
-          exportFile(jsonProcess, `${processID}.json`);
-          console.log(bpmnParser.parseXML(res.xml as string));
-        }}>
-        Save JSON
-      </Button> */}
-
-      {/* <Button
-        colorScheme="orange"
-        size="md"
-        className="mx-[5px]"
-        onClick={() => {
-          const processProperties = getProcessFromLocalStorage(
-            processID as string
-          );
-          console.log(processProperties);
-          delete processProperties['xml'];
-          exportFile(
-            JSON.stringify(processProperties),
-            `${processID}_properties.json`
-          );
-        }}>
-        Save Properties
-      </Button> */}
-
-      <DisplayRobotCode
-        compileRobotCode={() => compileRobotCode(processID as string)}
-        errorTrace={errorTrace}
-        setErrorTrace={setErrorTrace}
+      {/* Create Version Modal */}
+      <CreateVersionModal
+        isOpen={isCreateVersionOpen}
+        onClose={onCloseCreateVersion}
+        onCreateVersion={(data) => mutateCreateVersion.mutate(data)}
+        lastVersionTag="Autosaved"
+        isLoading={mutateCreateVersion.isPending}
       />
-
-      <VariablesSideBar processID={processID as string} />
-      <br />
-    </div>
+    </BpmnModelerLayout>
   );
 }
 

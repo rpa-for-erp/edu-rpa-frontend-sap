@@ -159,7 +159,8 @@ export default function Studio() {
   const preProcessingVariableList = () => {
     const processStorage = getLocalStorageObject(LocalStorage.PROCESS_LIST);
     const variableStorage = getLocalStorageObject(LocalStorage.VARIABLE_LIST);
-    const processList = processStorage.map((item: Process) => item.processID);
+    const processList =
+      processStorage?.map((item: Process) => item.processID) ?? [];
     const filteredVariableStorage = variableStorage.filter(
       (variable: VariableItem) => processList.includes(variable.processID)
     );

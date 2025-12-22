@@ -1,12 +1,7 @@
 import { Variable, VariableType } from "@/types/variable";
-import {
-  BpmnParseError,
-  BpmnParseErrorCode,
-} from "../error";
+import { BpmnParseError, BpmnParseErrorCode } from "../error";
 import { BpmnTask } from "../model/bpmn";
-import {
-  Properties,
-} from "../model/properties.model";
+import { Properties } from "../model/properties.model";
 import {
   BlankBlock,
   Branch,
@@ -59,9 +54,9 @@ export class SequenceVisitor {
 }
 
 export class ConcreteSequenceVisitor extends SequenceVisitor {
-  private credentials : {
-    provider?: AuthorizationProvider,
-    connectionKey: string
+  private credentials: {
+    provider?: AuthorizationProvider;
+    connectionKey: string;
   }[] = [];
 
   parse() {
@@ -69,17 +64,16 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
     let body: BodyItem[] = this.visit(this.sequence, []);
     let tests = [new Test("Main", body)];
     let variables: ProcessVariable[] = this.parseVariables();
-    let librabries =  Array.from(this.imports).map((libName) => new Lib(libName, LibrabryConfigurations[libName]));
-    let resource = new Resource(
-      librabries,
-      variables
+    let librabries = Array.from(this.imports).map(
+      (libName) => new Lib(libName, LibrabryConfigurations[libName])
     );
+    let resource = new Resource(librabries, variables);
     let robot = new Robot(name, tests, resource);
     return robot;
   }
 
   getCredentials() {
-    return this.credentials
+    return this.credentials;
   }
 
   parseVariables() {
@@ -89,42 +83,49 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
   }
 
   private _handleParseDictionary(value: string) {
-    if(value.length)
-      return  `\${{ ${value} }}`
-    else
-      return value
+    if (value.length) return `\${{ ${value} }}`;
+    else return value;
     // let escapeValue = JSON.stringify(value);
     // return `\${{ ${escapeValue.slice(1, escapeValue.length-1)} }}`
-  } 
+  }
 
-  private _handleParseValue(variable : Variable) {
-    const {name, value, type} = variable
+  private _handleParseValue(variable: Variable) {
+    const { name, value, type } = variable;
     let returnedValue = "";
-    switch(type) {
+    switch (type) {
       case VariableType.Dictionary:
       case VariableType.DocumentTemplate:
         // Parse to robotframework python inline expression logic
-        returnedValue =  this._handleParseDictionary(value);
+        returnedValue = this._handleParseDictionary(value);
         break;
       case VariableType.List:
-        if(value.length)
-          returnedValue =  `\${{ ${value} }}`
+        if (value.length) returnedValue = `\${{ ${value} }}`;
         break;
       default:
-        returnedValue = value
+        returnedValue = value;
     }
 
     // relace true => True, false => False
-    returnedValue = returnedValue.replace(/\btrue\b/g, "True").replace(/\bfalse\b/g, "False");
+    returnedValue = returnedValue
+      .replace(/\btrue\b/g, "True")
+      .replace(/\bfalse\b/g, "False");
 
-    return returnedValue
+    return returnedValue;
   }
 
   visitBpmnTask(node: BpmnTask, params: any[]) {
     let activityID = node.id;
-    let configuration = this.properties.get(activityID)
-    let property = configuration?.properties;
-    const keyword = configuration.keyword; 
+    let configuration = this.properties.get(activityID);
+
+    if (!configuration) {
+      throw new BpmnParseError(
+        BpmnParseErrorCode["Missing Property"],
+        activityID
+      );
+    }
+
+    let property = configuration.properties;
+    const keyword = configuration.keyword;
 
     if (!property)
       throw new BpmnParseError(
@@ -153,13 +154,17 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
         // Which may include special 'Connection' Argument that does not have keywordArg
         let arg = args[argName];
 
-        if(arg.overrideType && arg.value && arg.value.match(/^[^\w]{(.*)}$/)) {
-          arg.value = arg.overrideType + arg.value.slice(1)
+        if (arg.overrideType && arg.value && arg.value.match(/^[^\w]{(.*)}$/)) {
+          arg.value = arg.overrideType + arg.value.slice(1);
         }
 
         if (arg.keywordArg && arg.value) {
           keywordArg.push(new Argument(arg.keywordArg, arg.value));
-        }else if(argName !== "Librabry" && arg.keywordArg === null && arg.value) {
+        } else if (
+          argName !== "Librabry" &&
+          arg.keywordArg === null &&
+          arg.value
+        ) {
           // Ignore Librabry override hidden attributes
           // keywordArg empty ==> pass by value
           keywordArg.push(new Argument("", arg.value));
@@ -171,7 +176,11 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
       const assignVarName = assignVariable.replace(/^[^\w]{(.*)}$/, "$1");
       const variableInStorage = this._checkVariableValid(assignVarName);
       keywordAssigns.push(
-        new ProcessVariable(assignVarName, variableInStorage.value, variableInStorage.type)
+        new ProcessVariable(
+          assignVarName,
+          variableInStorage.value,
+          variableInStorage.type
+        )
       );
     }
 
@@ -179,19 +188,25 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
     if (Lib) {
       this.imports.add(Lib);
     }
-    if(args.Librabry) {
+    if (args.Librabry) {
       const library = args.Librabry?.value;
       if (library) {
         this.imports.add(library);
       }
     }
 
-    if(args.Connection) {
+    if (args.Connection) {
       // Add connectionKey for robot
-      const connectionArgs = args.Connection
+      const connectionArgs = args.Connection;
       this.credentials.push({
-        connectionKey: connectionArgs?.value.split('/').pop().split('.').slice(0, -1).join('.') ?? ""
-      })
+        connectionKey:
+          connectionArgs?.value
+            .split("/")
+            .pop()
+            .split(".")
+            .slice(0, -1)
+            .join(".") ?? "",
+      });
     }
 
     let keywords = [new Keyword(keyword, keywordArg, keywordAssigns)];
@@ -212,33 +227,56 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
       let branchCode: IfBranch = this.visit(branch, params);
       ifBranch.push(branchCode);
     }
-    
-    // Check branch with empty condition
-    let emptyFlow = []
-    ifBranch.forEach((branch, index) => {
-      if(_.isEmpty(branch.condition)) {
-        emptyFlow.push(node.branches[index].conditionId)
-      }
-    })
 
-    if(emptyFlow.length >= 2) {
+    // For Parallel Gateway, all branches execute without conditions
+    if (node.gatewayType === "parallel") {
+      // Mark all branches to execute sequentially (Robot Framework limitation)
+      // First branch will be IF with empty condition (always true)
+      // Other branches will also execute
+      for (let i = 0; i < ifBranch.length; i++) {
+        ifBranch[i].condition = ""; // No condition needed for parallel
+        if (i === 0) {
+          ifBranch[i].type = "IF";
+        } else {
+          // For subsequent branches, we can use ELSE IF with True condition
+          // Or just execute them sequentially
+          ifBranch[i].type = "ELSE IF";
+          ifBranch[i].condition = "True"; // Always execute
+        }
+      }
+      return [new If(ifBranch)];
+    }
+
+    // For Exclusive and Inclusive Gateways, validate conditions
+    // Check branch with empty condition
+    let emptyFlow = [];
+    ifBranch.forEach((branch, index) => {
+      if (_.isEmpty(branch.condition)) {
+        emptyFlow.push(node.branches[index].conditionId);
+      }
+    });
+
+    if (emptyFlow.length >= 2) {
       // If there are 2 empty condition branch then it is missing configuration
-      throw new BpmnParseError(BpmnParseErrorCode["Missing condition"], emptyFlow.join(","))
+      throw new BpmnParseError(
+        BpmnParseErrorCode["Missing condition"],
+        emptyFlow.join(",")
+      );
     }
 
     for (let i = 0; i < ifBranch.length; i++) {
-      let branch = ifBranch[i]
-      if(branch.condition.length == 0) {
-        branch.type = "ELSE"
-        continue
+      let branch = ifBranch[i];
+      if (branch.condition.length == 0) {
+        branch.type = "ELSE";
+        continue;
       }
-      branch.type = "ELSE IF"
+      branch.type = "ELSE IF";
     }
 
-    if(ifBranch[0].type == "ELSE") {
-      ifBranch[1].type = "IF"
-    }else {
-      ifBranch[0].type = "IF"
+    if (ifBranch[0].type == "ELSE") {
+      ifBranch[1].type = "IF";
+    } else {
+      ifBranch[0].type = "IF";
     }
 
     return [new If(ifBranch)];
@@ -248,40 +286,47 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
     let body: BodyItem[] = this.visit(node.sequence, params);
     let flowID = node.conditionId;
     let flowProperty = this.properties.get(flowID)?.properties;
-    
-    if(_.isEmpty(flowProperty)) {
+
+    if (_.isEmpty(flowProperty)) {
       return new IfBranch("IF", "", body);
     }
-    const flowArgument = flowProperty.arguments["Condition"];
+
+    const flowArgument = flowProperty.arguments?.["Condition"];
+    if (!flowArgument || !flowArgument.value) {
+      return new IfBranch("IF", "", body);
+    }
     const flowValue = flowArgument.value;
 
     const oLogicConditionList = JSON.parse(flowValue);
     let conditionList = []; // Get condition from properties
 
-    for(let oCondition of oLogicConditionList) {
-      const left = oCondition["left"]
-      const right = oCondition["right"]
-      let logicalOperator = oCondition['logicalOperator']
-      const conditionOperator = oCondition["operator"]
+    for (let oCondition of oLogicConditionList) {
+      const left = oCondition["left"];
+      const right = oCondition["right"];
+      let logicalOperator = oCondition["logicalOperator"];
+      const conditionOperator = oCondition["operator"];
 
-      if(logicalOperator.length) {
-          switch(logicalOperator) {
-            case "&&":
-                logicalOperator ="and"
-                break
-            case "||":
-                logicalOperator = "or"
-                break
-            default: 
-          }
-          conditionList.push(logicalOperator)
+      if (logicalOperator.length) {
+        switch (logicalOperator) {
+          case "&&":
+            logicalOperator = "and";
+            break;
+          case "||":
+            logicalOperator = "or";
+            break;
+          default:
+        }
+        conditionList.push(logicalOperator);
       }
 
       if (_.isEmpty(left) || _.isEmpty(right) || _.isEmpty(conditionOperator)) {
-        throw new BpmnParseError(BpmnParseErrorCode["Missing Property"], node.conditionId)
+        throw new BpmnParseError(
+          BpmnParseErrorCode["Missing Property"],
+          node.conditionId
+        );
       }
 
-      conditionList.push(`${left} ${conditionOperator} ${right}`)
+      conditionList.push(`${left} ${conditionOperator} ${right}`);
     }
 
     return new IfBranch("IF", conditionList.join(" "), body);
@@ -304,61 +349,79 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
         );
       }
       let args = property.arguments;
-      switch(args.LoopType.value) {
-        case 'for_each':
+      switch (args.LoopType.value) {
+        case "for_each":
           let List = args.List;
           let Item = args.Item;
-      
+
           let bodyForEach = [] as BodyItem[];
           for (let itemForEach of node.block) {
             bodyForEach = bodyForEach.concat(this.visit(itemForEach, params));
           }
-      
+
           if (!Item.value || !List.value) {
             throw new BpmnParseError(
               BpmnParseErrorCode["Missing Property"],
               activityID
             );
           }
-          let ListName = List.value.match(/{\s*(.*?)\s*}/)[1]
-          let ItemName = Item.value.match(/{\s*(.*?)\s*}/)[1]
-      
+          let ListName = List.value.match(/{\s*(.*?)\s*}/)[1];
+          let ItemName = Item.value.match(/{\s*(.*?)\s*}/)[1];
+
           let ListInStorage = this._checkVariableValid(ListName);
           let ItemInStorage = this._checkVariableValid(ItemName);
-      
+
           return new For(
-            [new ProcessVariable(ItemName, ItemInStorage.value, ItemInStorage.type)],
+            [
+              new ProcessVariable(
+                ItemName,
+                ItemInStorage.value,
+                ItemInStorage.type
+              ),
+            ],
             "IN",
-            [new ProcessVariable(ListName, ListInStorage.value, ListInStorage.type)],
+            [
+              new ProcessVariable(
+                ListName,
+                ListInStorage.value,
+                ListInStorage.type
+              ),
+            ],
             bodyForEach
           );
-        case 'for_range':
+        case "for_range":
           let bodyForRange = [] as BodyItem[];
           for (let itemForRange of node.block) {
-            bodyForRange = bodyForRange.concat(this.visit(itemForRange, params));
+            bodyForRange = bodyForRange.concat(
+              this.visit(itemForRange, params)
+            );
           }
-      
+
           let ItemForRange = args.Item;
           let Start = args.Start;
           let End = args.End;
-      
+
           if (!ItemForRange.value || !Start.value || !End.value) {
             throw new BpmnParseError(
               BpmnParseErrorCode["Missing Property"],
               activityID
             );
           }
-      
-          let ItemNameForRange = ItemForRange.value.match(/{\s*(.*?)\s*}/)[1]
-          let ItemInStorageForRange = this._checkVariableValid(ItemNameForRange);
-      
+
+          let ItemNameForRange = ItemForRange.value.match(/{\s*(.*?)\s*}/)[1];
+          let ItemInStorageForRange =
+            this._checkVariableValid(ItemNameForRange);
+
           return new For(
-            [new ProcessVariable(ItemNameForRange, ItemNameForRange, ItemInStorageForRange.type)],
-            "IN RANGE",
             [
-              Start.value,
-              End.value,
+              new ProcessVariable(
+                ItemNameForRange,
+                ItemNameForRange,
+                ItemInStorageForRange.type
+              ),
             ],
+            "IN RANGE",
+            [Start.value, End.value],
             bodyForRange
           );
       }

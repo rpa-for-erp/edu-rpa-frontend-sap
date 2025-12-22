@@ -1,7 +1,7 @@
 import { log } from "console";
 import { BpmnNode } from "../model/bpmn";
 
-export type SequenceItem = BpmnNode | Branch | Sequence | IfBranchBlock ;
+export type SequenceItem = BpmnNode | Branch | Sequence | IfBranchBlock;
 export class Block {
   accept(visitor: any, param: any) {
     // visitor: Visitor
@@ -28,15 +28,18 @@ export class BlankBlock extends Sequence {
     super(sequence.block, sequence.scope);
   }
   public toString(indent: number): string {
-    return `BlankBlock: ${this.bpmnId}\n` + this.block
-      .map((b) => {
-        return b.toString(indent + 1);
-      })
-      .join("\n");
+    return (
+      `BlankBlock: ${this.bpmnId}\n` +
+      this.block
+        .map((b) => {
+          return b.toString(indent + 1);
+        })
+        .join("\n")
+    );
   }
 }
 
-export class IfBranchBlock extends Block{
+export class IfBranchBlock extends Block {
   constructor(public sequence: Sequence, public conditionId: string) {
     super();
   }
@@ -49,12 +52,14 @@ export class IfBranchBlock extends Block{
   }
 }
 
+export type GatewayType = "exclusive" | "parallel" | "inclusive";
 
 export class Branch extends Block {
   constructor(
     public split: string,
     public join: string | null,
-    public branches: IfBranchBlock[] = []
+    public branches: IfBranchBlock[] = [],
+    public gatewayType: GatewayType = "exclusive"
   ) {
     super();
   }

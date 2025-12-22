@@ -7,6 +7,8 @@ import {
   BpmnEndEvent,
   BpmnTask,
   BpmnExclusiveGateway,
+  BpmnParallelGateway,
+  BpmnInclusiveGateway,
   BpmnSubProcess,
 } from "../model/bpmn";
 import { Sequence, Branch, BlankBlock, IfBranchBlock } from "./BasicBlock";
@@ -20,6 +22,8 @@ export class GraphVisitor {
 
   visitBpmnTask(node: BpmnNode, sequence: Sequence) {}
   visitBpmnExclusiveGateway(node: BpmnNode, sequence: Sequence) {}
+  visitBpmnParallelGateway(node: BpmnNode, sequence: Sequence) {}
+  visitBpmnInclusiveGateway(node: BpmnNode, sequence: Sequence) {}
   visitBpmnEndEvent(node: BpmnNode, sequence: Sequence) {}
   visitBpmnStartEvent(node: BpmnNode, sequence: Sequence) {}
 }
@@ -55,13 +59,24 @@ export class ConcreteGraphVisitor extends GraphVisitor {
       Object.values(nodes).find((node) => node instanceof BpmnEndEvent)?.id ||
       "";
 
-    // Build Graph
+    // Build Graph - insert all nodes first
+    const nodeIds = new Set(Object.keys(nodes));
     Object.keys(nodes).forEach((nodeId: string) =>
       this.graph.insert(nodes[nodeId])
     );
-    Object.values(edges).forEach((edge) =>
-      this.graph.addEdge(edge.source, edge.target)
-    );
+
+    // Add edges only if both source and target nodes exist in the graph
+    // This prevents errors when XML contains stale references to deleted elements
+    Object.values(edges).forEach((edge) => {
+      if (nodeIds.has(edge.source) && nodeIds.has(edge.target)) {
+        this.graph.addEdge(edge.source, edge.target);
+      } else {
+        console.warn(
+          `Skipping edge ${edge.id}: source="${edge.source}" or target="${edge.target}" not found in graph. ` +
+            `Available nodes: [${Array.from(nodeIds).join(", ")}]`
+        );
+      }
+    });
 
     this.haveCycle = !this.graph.isAcyclic();
 
@@ -90,6 +105,17 @@ export class ConcreteGraphVisitor extends GraphVisitor {
 
     // Source and Sink must connect
     if (!this.graph.canReachFrom(this.source, this.sink)) {
+      const nodeIds = this.graph.getNodes().map((n) => n.id);
+      const flowInfo = Object.values(this.process.flows).map(
+        (f) => `${f.source} -> ${f.target}`
+      );
+      console.error(
+        `[BPMN Parser] Workflow validation failed:\n` +
+          `  - Available nodes: [${nodeIds.join(", ")}]\n` +
+          `  - Flows in XML: [${flowInfo.join(", ")}]\n` +
+          `  - Some flows may reference nodes that were deleted or not properly synced.\n` +
+          `  - Try refreshing the page or re-saving the workflow.`
+      );
       throw new BpmnParseError(
         BpmnParseErrorCode[
           "Invalid Workflow - start and end event not connect"
@@ -146,18 +172,96 @@ export class ConcreteGraphVisitor extends GraphVisitor {
     this.visited.push(nodeId);
 
     if (this.splitNode.includes(nodeId)) {
-      let curBlock = new Branch(nodeId, null);
+      let curBlock = new Branch(nodeId, null, [], "exclusive");
       let joinNodeId: string = "";
 
       // Visit all branch except join node
       for (let n of adjacent) {
         let { sequence: branchSequence, joinNodeId: branchJoinNodeId } =
           this.visit(this.graph.getNode(n), new Sequence([], curBlock));
-        let conditionFlow = this.findEdgeId(nodeId, n)
-        if(!conditionFlow) {
-          throw new BpmnParseError("Unknow Error", nodeId)
+        let conditionFlow = this.findEdgeId(nodeId, n);
+        if (!conditionFlow) {
+          throw new BpmnParseError("Unknow Error", nodeId);
         }
-        let ifBranch = new IfBranchBlock(branchSequence, conditionFlow)
+        let ifBranch = new IfBranchBlock(branchSequence, conditionFlow);
+        curBlock.branches.push(ifBranch);
+        joinNodeId = branchJoinNodeId;
+      }
+      curBlock.join = joinNodeId; // Set join node of branching
+      // Visit Join Node
+      this.visited = this.visited.filter((e) => e != joinNodeId);
+      sequence.block.push(curBlock);
+      return this.visit(this.graph.getNode(joinNodeId), sequence);
+    } else if (this.joinNode.includes(nodeId)) {
+      let curBlock = sequence.block.at(-1);
+      if (curBlock instanceof Branch && curBlock.join == nodeId) {
+        return this.visit(this.graph.getNode(adjacent[0]), sequence);
+      }
+      return { sequence, joinNodeId: nodeId };
+    }
+  }
+
+  visitBpmnParallelGateway(node: BpmnParallelGateway, sequence: Sequence) {
+    let nodeId = node.id;
+    let adjacent = this.graph.getAdjacent(nodeId);
+    if (this.visited.includes(nodeId)) return { sequence, joinNodeId: nodeId };
+    this.visited.push(nodeId);
+
+    if (this.splitNode.includes(nodeId)) {
+      // Parallel Gateway: Execute all branches in parallel
+      // For now, we'll treat it sequentially as Robot Framework doesn't support true parallelism
+      // All branches will execute without conditions
+      let curBlock = new Branch(nodeId, null, [], "parallel");
+      let joinNodeId: string = "";
+
+      // Visit all branch except join node
+      for (let n of adjacent) {
+        let { sequence: branchSequence, joinNodeId: branchJoinNodeId } =
+          this.visit(this.graph.getNode(n), new Sequence([], curBlock));
+        let conditionFlow = this.findEdgeId(nodeId, n);
+        if (!conditionFlow) {
+          throw new BpmnParseError("Unknow Error", nodeId);
+        }
+        // Parallel branches don't need conditions
+        let ifBranch = new IfBranchBlock(branchSequence, conditionFlow);
+        curBlock.branches.push(ifBranch);
+        joinNodeId = branchJoinNodeId;
+      }
+      curBlock.join = joinNodeId; // Set join node of branching
+      // Visit Join Node
+      this.visited = this.visited.filter((e) => e != joinNodeId);
+      sequence.block.push(curBlock);
+      return this.visit(this.graph.getNode(joinNodeId), sequence);
+    } else if (this.joinNode.includes(nodeId)) {
+      let curBlock = sequence.block.at(-1);
+      if (curBlock instanceof Branch && curBlock.join == nodeId) {
+        return this.visit(this.graph.getNode(adjacent[0]), sequence);
+      }
+      return { sequence, joinNodeId: nodeId };
+    }
+  }
+
+  visitBpmnInclusiveGateway(node: BpmnInclusiveGateway, sequence: Sequence) {
+    let nodeId = node.id;
+    let adjacent = this.graph.getAdjacent(nodeId);
+    if (this.visited.includes(nodeId)) return { sequence, joinNodeId: nodeId };
+    this.visited.push(nodeId);
+
+    if (this.splitNode.includes(nodeId)) {
+      // Inclusive Gateway: Similar to Exclusive Gateway but can execute multiple branches
+      // Treat it the same as Exclusive Gateway for now
+      let curBlock = new Branch(nodeId, null, [], "inclusive");
+      let joinNodeId: string = "";
+
+      // Visit all branch except join node
+      for (let n of adjacent) {
+        let { sequence: branchSequence, joinNodeId: branchJoinNodeId } =
+          this.visit(this.graph.getNode(n), new Sequence([], curBlock));
+        let conditionFlow = this.findEdgeId(nodeId, n);
+        if (!conditionFlow) {
+          throw new BpmnParseError("Unknow Error", nodeId);
+        }
+        let ifBranch = new IfBranchBlock(branchSequence, conditionFlow);
         curBlock.branches.push(ifBranch);
         joinNodeId = branchJoinNodeId;
       }
@@ -228,8 +332,8 @@ export class ConcreteGraphVisitor extends GraphVisitor {
     let edges = this.process.flows;
     for (let flowId of Object.keys(edges)) {
       let edge = edges[flowId];
-      if(gateWayId == edge.source && firstNodeId == edge.target) {
-        return flowId
+      if (gateWayId == edge.source && firstNodeId == edge.target) {
+        return flowId;
       }
     }
     return null;

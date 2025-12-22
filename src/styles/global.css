@@ -1,6 +1,6 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 * {
   padding: 0;
   margin: 0;
@@ -21,4 +21,85 @@
 .animate-slideIn {
   animation: slideIn 0.3s ease-in-out;
   transform-origin: left;
+}
+
+/* BPMN Modeler Styles */
+.bpmn-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#bpmnview {
+  width: 100%;
+  height: 100%;
+}
+
+/* Custom BPMN Canvas styles */
+.djs-container {
+  background-color: #fafafa !important;
+}
+
+/* Style default BPMN.js palette to float on canvas */
+.djs-palette {
+  position: absolute !important;
+  left: 20px !important;
+  top: 20px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+  background: white !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.djs-palette .entry {
+  transition: background-color 0.2s ease !important;
+}
+
+.djs-palette .entry:hover {
+  background-color: #f7fafc !important;
+}
+
+/* Smooth transitions for sidebar collapse */
+.chakra-collapse {
+  transition: all 0.3s ease-in-out !important;
+}
+
+/* Custom scrollbar for panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e0;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a0aec0;
+}
+
+/* Resizable sidebar cursor */
+.resize-handle {
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.resize-handle:active {
+  cursor: ew-resize !important;
+}
+
+/* Prevent text selection during resize */
+body.is-resizing {
+  user-select: none;
+  cursor: ew-resize !important;
+}
+
+body.is-resizing * {
+  cursor: ew-resize !important;
 }

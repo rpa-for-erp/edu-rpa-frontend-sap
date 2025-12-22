@@ -1,18 +1,18 @@
-import { Process } from '@/types/process';
-import { getLocalStorageObject } from './localStorageService';
-import { Activity } from '@/types/activity';
-import { LocalStorage } from '@/constants/localStorage';
-import connectionApi from '@/apis/connectionApi';
-import { AuthorizationProvider } from '@/interfaces/enums/provider.enum';
+import { Process } from "@/types/process";
+import { getLocalStorageObject } from "./localStorageService";
+import { Activity } from "@/types/activity";
+import { LocalStorage } from "@/constants/localStorage";
+import connectionApi from "@/apis/connectionApi";
+import { AuthorizationProvider } from "@/interfaces/enums/provider.enum";
 
 const generateProcessID = () => {
   return (
-    'Process_' +
+    "Process_" +
     Array.from({ length: 7 }, () =>
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'.charAt(
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".charAt(
         Math.floor(Math.random() * 62)
       )
-    ).join('')
+    ).join("")
   );
 };
 
@@ -47,8 +47,8 @@ const initProcess = (
     processDesc: processDesc,
     activities: [
       {
-        activityID: 'StartEvent_0vr9as6',
-        activityType: 'bpmn:StartEvent',
+        activityID: "StartEvent_0vr9as6",
+        activityType: "bpmn:StartEvent",
         properties: {},
       },
     ],
@@ -99,7 +99,7 @@ const updateProcessInProcessList = (processID: string, newObj: Process) => {
 };
 
 const getActivityInProcess = (processID: string, activityID: string) => {
-  return getProcessFromLocalStorage(processID)?.activities.find(
+  return getProcessFromLocalStorage(processID)?.activities?.find(
     (activity: Activity) => activity.activityID === activityID
   );
 };
