@@ -193,12 +193,14 @@ export default function PropertiesPanel({
   // Update activity keyword when activity changes
   useEffect(() => {
     if (activityItem && sideBarState.activityName) {
+      console.log('🔍 Looking for keyword for activity:', sideBarState.activityName);
       ActivityPackages.forEach((activityPackage) => {
         const activityInfo = getArgumentsByActivity(
           activityPackage.activityTemplates,
           sideBarState.activityName
         );
         if (activityInfo?.[0]?.keyword) {
+          console.log('✅ Found keyword:', activityInfo[0].keyword);
           setActivityKeyword(activityInfo[0].keyword);
         }
       });
@@ -403,6 +405,7 @@ export default function PropertiesPanel({
                 "connection.Gmail": "",
                 "connection.Google Sheets": "",
                 "connection.SAP Mock": "",
+                "connection.Moodle": "",
                 "enum.shareType": "user",
                 "enum.permission": "reader",
                 label_ids: "inbox",
@@ -555,6 +558,11 @@ export default function PropertiesPanel({
                   return renderConnectionSelect(
                     paramKey,
                     AuthorizationProvider.ERP_NEXT
+                  );
+                case "connection.Moodle":
+                  return renderConnectionSelect(
+                    paramKey,
+                    AuthorizationProvider.MOODLE
                   );
                 case "enum.shareType":
                   return renderSelect(paramKey, [

@@ -58,7 +58,7 @@ const getLibrary = (packageName: string) => {
     case 'Data manipulation':
       return 'Collections';
     case 'Moodle':
-      return 'MoodleLibrary';
+      return 'RPA.Moodle';
     default:
       return null;
   }

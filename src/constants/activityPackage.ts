@@ -1847,7 +1847,7 @@ export const ActivityPackages = [
     _id: 'moodle',
     displayName: 'Moodle',
     description: 'Integrate with Moodle LMS for course and quiz management',
-    library: 'MoodleLibrary',
+    library: 'RPA.Moodle',
     activityTemplates: [
       // Connection Setup
       {
@@ -1875,8 +1875,8 @@ export const ActivityPackages = [
         type: 'activity',
         keyword: 'Setup Google Connection',
         arguments: {
-          'Token File Path': {
-            type: 'string',
+          Connection: {
+            type: 'connection.Google Drive',
             keywordArg: 'token_file_path',
             description: 'Path to Google API token JSON file',
             value: '',
@@ -2260,24 +2260,24 @@ export const ActivityPackages = [
       },
       // Google Docs Integration
       {
-        templateId: 'moodle.get_doc_id_from_url',
-        displayName: 'Get Google Doc ID From URL',
-        description: 'Extract Google Doc ID from URL',
+        templateId: 'moodle.get_drive_file_id_from_url',
+        displayName: 'Get Google Drive File ID From URL',
+        description: 'Extract file ID from Google Drive/Sheets/Docs URL',
         iconCode: 'FaLink',
         type: 'activity',
-        keyword: 'Get Google Doc ID From URL',
+        keyword: 'Get Google Drive File ID From URL',
         arguments: {
           URL: {
             type: 'string',
             keywordArg: 'url',
-            description: 'Google Docs URL',
+            description: 'Google Drive/Sheets/Docs URL',
             value: '',
           },
         },
         return: {
-          displayName: 'Doc ID',
+          displayName: 'File ID',
           type: 'string',
-          description: 'Google Doc ID',
+          description: 'Google Drive file ID',
         },
       },
       {

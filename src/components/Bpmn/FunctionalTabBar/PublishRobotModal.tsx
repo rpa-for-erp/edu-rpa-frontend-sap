@@ -99,17 +99,33 @@ export const PublishRobotModal = (props: Props) => {
     try {
       switch (activeStep) {
         case 0:
+          // Check if code uses RPA.Moodle
+          const codeString = JSON.stringify(result?.code);
+          const usesMoodle = codeString.includes('RPA.Moodle');
+          
+          if (usesMoodle) {
+            // Skip validation for Moodle - library not yet installed on validation server
+            console.log('⚠️ Skipping validation for Moodle robot');
+            break;
+          }
+          
           const response = await dryrun(result?.code);
           const isErrorReponse = handleCheckDryrunError(response);
           if (isErrorReponse) {
             throw new ValidationError("Validation Error", response);
           }
+          break;
         case 1:
           let connections = await connectionApi.getConnectionsByConnectionKey(
             result.credentials.map((k: any) => k.connectionKey)
           );
 
-          let refreshConnectionPromises = connections.map(async (conn) => {
+          // Filter out Moodle connections - they don't need refresh check
+          let nonMoodleConnections = connections.filter(
+            (conn) => conn.provider !== 'Moodle'
+          );
+
+          let refreshConnectionPromises = nonMoodleConnections.map(async (conn) => {
             try {
               await connectionApi.refreshConnection(conn.provider, conn.name);
               return true;
@@ -122,7 +138,7 @@ export const PublishRobotModal = (props: Props) => {
             refreshConnectionPromises
           );
 
-          let expiredConnections = connections.filter(
+          let expiredConnections = nonMoodleConnections.filter(
             (conn, index) => !connectionExpiredMask[index]
           );
 
@@ -143,6 +159,9 @@ export const PublishRobotModal = (props: Props) => {
               triggerType: triggerType,
             };
 
+            console.log('🔍 Robot credentials:', result.credentials);
+            console.log('📤 Publishing robot with payload:', publishPayload);
+            
             await robotApi.createRobot(publishPayload);
 
             toastSuccess(toast, "Create robot successfully!");
