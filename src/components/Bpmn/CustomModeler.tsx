@@ -185,7 +185,38 @@ function CustomModeler() {
 
   const mutateCreateVersion = useMutation({
     mutationFn: async (data: { tag: string; description: string }) => {
-      // Get current data from localStorage (the edited data on UI)
+      // First, sync XML and activities from modeler to localStorage
+      // This ensures we create version with the latest canvas state
+      if (bpmnReactJs.bpmnModeler) {
+        try {
+          const xmlResult = await bpmnReactJs.saveXML();
+          const activityList = bpmnReactJs
+            .getElementList(processID as string)
+            .slice(1);
+
+          const currentProcess = getProcessFromLocalStorage(
+            processID as string
+          );
+          const updatedProcess = {
+            ...currentProcess,
+            xml: xmlResult.xml,
+            activities: activityList,
+          };
+          const newLocalStorage = updateLocalStorage(updatedProcess);
+          setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
+
+          console.log(
+            "📦 [CreateVersion] Synced modeler state to localStorage"
+          );
+        } catch (syncError) {
+          console.error("Failed to sync modeler state:", syncError);
+          throw new Error(
+            "Failed to sync canvas state before creating version"
+          );
+        }
+      }
+
+      // Get current data from localStorage (now updated with latest canvas state)
       const processProperties = getProcessFromLocalStorage(processID as string);
       const variableListByID = getVariableItemFromLocalStorage(
         processID as string
@@ -230,7 +261,39 @@ function CustomModeler() {
     },
   });
 
-  const handleSaveAll = () => {
+  const handleSaveAll = async () => {
+    // First, sync XML and activities from modeler to localStorage
+    // This ensures we save the latest canvas state including node names
+    if (bpmnReactJs.bpmnModeler) {
+      try {
+        const xmlResult = await bpmnReactJs.saveXML();
+        const activityList = bpmnReactJs
+          .getElementList(processID as string)
+          .slice(1);
+
+        const currentProcess = getProcessFromLocalStorage(processID as string);
+        const updatedProcess = {
+          ...currentProcess,
+          xml: xmlResult.xml,
+          activities: activityList,
+        };
+        const newLocalStorage = updateLocalStorage(updatedProcess);
+        setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
+
+        console.log("📦 [Save] Synced modeler state to localStorage");
+      } catch (syncError) {
+        console.error("Failed to sync modeler state:", syncError);
+        toast({
+          title: "Failed to sync canvas state",
+          status: "warning",
+          position: "top-right",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+    }
+
+    // Now get the updated data from localStorage
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties) {
       toast({
@@ -307,8 +370,6 @@ function CustomModeler() {
 
   const handlePublish = () => {
     try {
-      console.log("🚀 [Publish] Validating BPMN before opening modal...");
-
       // Validate by trying to compile robot code (DON'T save yet)
       const result = compileRobotCodePublish(processID as string);
 
@@ -317,18 +378,11 @@ function CustomModeler() {
         throw new Error("Invalid robot code: Missing code or credentials");
       }
 
-      console.log("✅ [Publish] Validation successful");
-
       // Only save if validation passed
       handleSaveAll();
 
-      console.log("✅ [Publish] Opening PublishRobotModal...");
-      // Open publish modal
       onOpenPublishModal();
     } catch (error) {
-      console.error("❌ [Publish] Validation failed:", error);
-      console.log("❌ [Publish] NOT opening modal due to error");
-
       // Show specific error message (ONLY toast, no modal)
       if (error instanceof BpmnParseError) {
         toast({

@@ -96,11 +96,10 @@ I will model this process, ignoring the previous AI agent context and any code.`
         {
           id: "welcome",
           role: "assistant",
-          content: `Certainly! I usually take around 50 seconds to handle your request.
-
-I don't always get it right, so please review the process and feel free to try again with a different prompt. To learn more, visit the Chatbot RPA Documentation.
-
-I will model this process, ignoring the previous AI agent context and any code.`,
+          content: `Chat with the Chatbot RPA 
+for assistance creating a new BPMN process and assign existing activity package properly. For the best results:
+- Please provide your goal, the actors involved, the step-by-step actions, conditions/branches, and any systems or data used.
+- You can also mention existing activity packages so the assistant can map tasks correctly into your RPA library. `,
           timestamp: Date.now(),
         },
       ]);
@@ -183,24 +182,27 @@ I will model this process, ignoring the previous AI agent context and any code.`
   const extractAutomaticNodeIds = (mapping: any, bpmn?: any): string[] => {
     if (!mapping) return [];
 
-    // Mapping may be an object keyed by node id or an array
+    // Normalize mapping entries
     const entries: any[] = Array.isArray(mapping)
-      ? mapping
+      ? mapping.flatMap((item) => Object.values(item))
       : Object.values(mapping);
 
-    // First, collect all node_ids with is_automatic === true
+    // Collect automatic node ids
     const baseIds = entries
-      .filter((m: any) => m && m.is_automatic && m.node_id)
-      .map((m: any) => m.node_id as string);
+      .filter(
+        (m: any) =>
+          m && m.is_automatic === true && typeof m.node_id === "string"
+      )
+      .map((m: any) => m.node_id);
 
-    // If we don't have BPMN nodes, just return the raw list
+    // If no BPMN validation needed
     if (!bpmn || !Array.isArray(bpmn.nodes)) {
       return baseIds;
     }
 
-    // Filter only ids that actually exist in BPMN nodes
+    // Validate against BPMN nodes
     const nodeIdSet = new Set(
-      bpmn.nodes.map((n: any) => (n && n.id ? n.id : null)).filter(Boolean)
+      bpmn.nodes.map((n: any) => n?.id).filter(Boolean)
     );
 
     return baseIds.filter((id) => nodeIdSet.has(id));
@@ -211,14 +213,6 @@ I will model this process, ignoring the previous AI agent context and any code.`
     activities?: any[] | null,
     automaticIds?: string[]
   ) => {
-    try {
-      const layoutedXml = await layoutProcess(xml);
-      setFinalXml(layoutedXml);
-    } catch (e) {
-      console.error("❌ [Pipeline] bpmn-auto-layout failed, using raw XML:", e);
-      setFinalXml(xml);
-    }
-
     if (activities) {
       setPendingActivities(activities);
     }
@@ -227,6 +221,13 @@ I will model this process, ignoring the previous AI agent context and any code.`
       setAutomaticNodeIds(automaticIds);
     } else {
       setAutomaticNodeIds([]);
+    }
+    try {
+      const layoutedXml = await layoutProcess(xml);
+      setFinalXml(layoutedXml);
+    } catch (e) {
+      console.error("❌ [Pipeline] bpmn-auto-layout failed, using raw XML:", e);
+      setFinalXml(xml);
     }
   };
 
@@ -314,6 +315,10 @@ I will model this process, ignoring the previous AI agent context and any code.`
               const automaticIds = extractAutomaticNodeIds(
                 data.interrupt.mapping,
                 data.interrupt.bpmn
+              );
+              console.log(
+                "🚀 [Pipeline] Extracted Automatic node IDs:",
+                automaticIds
               );
               void applyAutoLayoutAndSetState(
                 result.xml,
@@ -521,6 +526,9 @@ I will model this process, ignoring the previous AI agent context and any code.`
     const apply = async () => {
       if (!finalXml || !onApplyXml) return;
       setIsApplying(true);
+      console.log("🚀 [AI Chatbot] Applying XML:", finalXml);
+      console.log("🚀 [AI Chatbot] Pending activities:", pendingActivities);
+      console.log("🚀 [AI Chatbot] Automatic node IDs:", automaticNodeIds);
       try {
         await onApplyXml(
           finalXml,

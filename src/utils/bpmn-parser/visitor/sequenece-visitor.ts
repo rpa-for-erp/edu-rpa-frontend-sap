@@ -117,6 +117,12 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
     let activityID = node.id;
     let configuration = this.properties.get(activityID);
 
+    console.log(`[SequenceVisitor] Visiting task: ${activityID}`, {
+      hasConfiguration: !!configuration,
+      keyword: configuration?.keyword,
+      activityName: configuration?.properties?.activityName,
+    });
+
     if (!configuration) {
       throw new BpmnParseError(
         BpmnParseErrorCode["Missing Property"],

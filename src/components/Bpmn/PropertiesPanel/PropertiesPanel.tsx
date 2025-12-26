@@ -105,8 +105,12 @@ export default function PropertiesPanel({
 
   const handleActivities = (activity: any) => {
     setProperty(activity.properties);
-    setFormValues(activity.properties.arguments);
-    setSaveResult(activity.properties.return);
+    setFormValues(activity.properties.arguments || {});
+    setSaveResult(activity.properties.return || null);
+    // Also restore the keyword from saved activity
+    if (activity.keyword) {
+      setActivityKeyword(activity.keyword);
+    }
     setIsExist(true);
   };
 
@@ -133,9 +137,68 @@ export default function PropertiesPanel({
   }, [isOpen, activityItem]);
 
   const handleGoBack = () => {
+    // Clear properties in storage when going back
+    // This ensures old data doesn't persist when selecting a different activity
+    if (activityItem) {
+      const existingActivity = getActivityInProcess(
+        processID,
+        activityItem.activityID
+      );
+
+      // Determine what to clear based on which step we're going back from
+      const currentStep = sideBarState.currentStep;
+      let clearedProperties = {};
+
+      if (currentStep === 3) {
+        // Going back from step 3 to step 2: clear activityName and arguments
+        clearedProperties = {
+          activityPackage: sideBarState.packageName,
+          activityName: "",
+          library: "",
+          arguments: {},
+          return: null,
+        };
+      } else if (currentStep === 2) {
+        // Going back from step 2 to step 1: clear everything
+        clearedProperties = {
+          activityPackage: "",
+          activityName: "",
+          library: "",
+          arguments: {},
+          return: null,
+        };
+      }
+
+      const updatePayload = {
+        ...existingActivity,
+        activityID: activityItem.activityID,
+        keyword: "",
+        properties: clearedProperties,
+      };
+
+      console.log("[PropertiesPanel] Going back - clearing properties:", {
+        activityID: activityItem.activityID,
+        fromStep: currentStep,
+        toStep: currentStep - 1,
+      });
+
+      const updateProperties = updateActivityInProcess(
+        processID,
+        updatePayload
+      );
+      const updateProcess = updateLocalStorage({
+        ...getProcessFromLocalStorage(processID),
+        activities: updateProperties,
+      });
+
+      setLocalStorageObject(LocalStorage.PROCESS_LIST, updateProcess);
+    }
+
+    // Reset local state
     setBack();
     setFormValues({});
     setSaveResult(null);
+    setActivityKeyword("");
   };
 
   const handleInputChange = (key: string, value: any) => {
@@ -149,8 +212,14 @@ export default function PropertiesPanel({
   const handleUpdateProperties = () => {
     if (sideBarState.currentStep < 3 || !activityItem) return;
 
+    const existingActivity = getActivityInProcess(
+      processID,
+      activityItem.activityID
+    );
+
     const updatePayload = {
-      ...getActivityInProcess(processID, activityItem.activityID),
+      ...existingActivity,
+      activityID: activityItem.activityID,
       keyword: activityKeyword,
       properties: {
         activityPackage: sideBarState.packageName,
@@ -160,6 +229,13 @@ export default function PropertiesPanel({
         return: saveResult,
       },
     };
+
+    console.log("[PropertiesPanel] Updating properties:", {
+      activityID: activityItem.activityID,
+      keyword: activityKeyword,
+      packageName: sideBarState.packageName,
+      activityName: sideBarState.activityName,
+    });
 
     const updateProperties = updateActivityInProcess(processID, updatePayload);
     const updateProcess = updateLocalStorage({
@@ -172,7 +248,13 @@ export default function PropertiesPanel({
 
   useEffect(() => {
     handleUpdateProperties();
-  }, [formValues, saveResult]);
+  }, [
+    formValues,
+    saveResult,
+    activityKeyword,
+    sideBarState.packageName,
+    sideBarState.activityName,
+  ]);
 
   const headerIcon =
     getServiceIcon(sideBarState.serviceName) ||

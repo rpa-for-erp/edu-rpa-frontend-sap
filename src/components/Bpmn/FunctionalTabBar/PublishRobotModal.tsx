@@ -24,7 +24,7 @@ import {
   Container,
   Heading,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toastSuccess } from "@/utils/common";
 import { useRouter } from "next/router";
 import robotApi from "@/apis/robotApi";
@@ -68,6 +68,9 @@ export const PublishRobotModal = (props: Props) => {
   const [isOpenErrorDetail, setIsOpenErrorDetail] = useState(false);
   const onClose = () => setIsOpenErrorDetail(false);
 
+  // Track if we're currently executing a step to prevent duplicate calls
+  const isExecutingRef = useRef(false);
+
   const [result, setResult] = useState<{
     code: any;
     credentials: string[];
@@ -88,14 +91,24 @@ export const PublishRobotModal = (props: Props) => {
 
   // Handler for publish button click
   const handlePublishClick = (option: boolean = true) => {
-    setPublishClicked(option); // Set publish button clicked to true
-    setActiveStep(0); // Reset active step to start from the beginning
+    console.log("🎬 [Publish] Button clicked, resetting state...");
+    setPublishClicked(option);
+    setActiveStep(0);
     setError(null);
+    isExecutingRef.current = false; // Reset execution flag
   };
 
   // Function to simulate API call for the current step
   const simulateAPICallForCurrentStep = async () => {
-    setLoading(true); // Set loading to true while "API call" is in progress
+    // Prevent duplicate calls
+    if (isExecutingRef.current) {
+      console.log("⚠️ [Publish] Already executing, skipping duplicate call");
+      return;
+    }
+
+    isExecutingRef.current = true;
+    setLoading(true);
+
     try {
       switch (activeStep) {
         case 0:
@@ -114,8 +127,11 @@ export const PublishRobotModal = (props: Props) => {
           if (isErrorReponse) {
             throw new ValidationError("Validation Error", response);
           }
+          console.log("✅ [Publish Step 0] Validation successful");
           break;
+
         case 1:
+          console.log("📋 [Publish Step 1] Checking connections...");
           let connections = await connectionApi.getConnectionsByConnectionKey(
             result.credentials.map((k: any) => k.connectionKey)
           );
@@ -148,8 +164,11 @@ export const PublishRobotModal = (props: Props) => {
               expiredConnections
             );
           }
+          console.log("✅ [Publish Step 1] Connections verified");
+          break;
 
         case 2:
+          console.log("📋 [Publish Step 2] Publishing robot...");
           try {
             const publishPayload = {
               name: robotName,
@@ -165,21 +184,29 @@ export const PublishRobotModal = (props: Props) => {
             await robotApi.createRobot(publishPayload);
 
             toastSuccess(toast, "Create robot successfully!");
+            console.log("✅ [Publish Step 2] Robot created successfully");
 
             // Redirect to robot page
             router.push("/robot");
           } catch (error) {
             throw new RobotCreationError(error.message, error.response);
           }
+          break;
+
         default:
           break;
       }
+
       // If "API call" is successful, proceed to the next step
+      console.log(`✅ [Publish Step ${activeStep}] Moving to next step...`);
       setActiveStep((prevStep) => prevStep + 1);
     } catch (error) {
-      setError(error); // Set error message
+      console.error(`❌ [Publish Step ${activeStep}] Error:`, error);
+      setError(error);
     } finally {
-      setLoading(false); // Reset loading status regardless of success or failure
+      setLoading(false);
+      isExecutingRef.current = false;
+      console.log(`🏁 [Publish Step ${activeStep}] Execution finished`);
     }
   };
 
@@ -189,8 +216,18 @@ export const PublishRobotModal = (props: Props) => {
 
   // This effect will automatically simulate API call for the current step when the component mounts or when the active step changes
   useEffect(() => {
+    console.log(
+      "📊 [useEffect] Triggered - publishClicked:",
+      publishClicked,
+      "activeStep:",
+      activeStep
+    );
+
     if (publishClicked && activeStep < steps.length) {
+      console.log(`🚀 [useEffect] Triggering step ${activeStep}...`);
       simulateAPICallForCurrentStep();
+    } else if (activeStep >= steps.length) {
+      console.log("✅ [useEffect] All steps completed!");
     }
   }, [publishClicked, activeStep]);
 
