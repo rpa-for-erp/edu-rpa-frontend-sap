@@ -50,6 +50,8 @@ import { QUERY_KEY } from "@/constants/queryKey";
 import LoadingIndicator from "@/components/LoadingIndicator/LoadingIndicator";
 import { ToolTipExplain } from "@/constants/description";
 import { formatDateTime } from "@/utils/time";
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export default function Studio() {
   const router = useRouter();
@@ -896,3 +898,11 @@ export default function Studio() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

@@ -28,6 +28,8 @@ import CreateWorkspaceModal from '@/components/Workspace/CreateWorkspaceModal';
 import { useRouter } from 'next/router';
 import { FaTrash, FaCog, FaSignOutAlt } from 'react-icons/fa';
 import { userSelector } from '@/redux/selector';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 import { useSelector } from 'react-redux';
 import { MdArrowDropDown } from 'react-icons/md';
 import { COLORS } from '@/constants/colors';
@@ -434,3 +436,11 @@ const WorkspaceListPage: React.FC = () => {
 };
 
 export default WorkspaceListPage;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

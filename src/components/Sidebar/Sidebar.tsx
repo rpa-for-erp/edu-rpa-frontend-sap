@@ -22,35 +22,37 @@ import {
   clearCurrentWorkspace,
 } from '@/redux/slice/homeSlice';
 import { useEffect, useState, useMemo } from 'react';
-
-const personalSidebarItems = [
-  { path: '/home', name: 'Home', icon: FaHome },
-  { path: '/studio', name: 'Studio', icon: RiFlowChart },
-  { path: '/robot', name: 'Robot', icon: FaRobot },
-  {
-    path: '/integration-service',
-    name: 'Integration Service',
-    icon: IoIosRocket,
-  },
-  { path: '/storage', name: 'Storage', icon: FaFile },
-  {
-    path: '/document-template',
-    name: 'Document Template',
-    icon: FaFileInvoice,
-  },
-  { path: '/workspace', name: 'Workspace', icon: MdWorkspaces },
-];
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   children?: React.ReactNode;
 }
 
 const Sidebar = ({ children }: Props) => {
+  const { t } = useTranslation('sidebar');
   const { isOpen, onClose } = useDisclosure();
   const pathName = usePathname();
   const dispatch = useDispatch();
   const { isHiddenSidebar, currentWorkspaceId } = useSelector(homeSelector);
   const sidebarWidth = isHiddenSidebar ? 81 : 250;
+
+  const personalSidebarItems = [
+    { path: '/home', name: t('home'), icon: FaHome },
+    { path: '/studio', name: t('studio'), icon: RiFlowChart },
+    { path: '/robot', name: t('robot'), icon: FaRobot },
+    {
+      path: '/integration-service',
+      name: t('integrationService'),
+      icon: IoIosRocket,
+    },
+    { path: '/storage', name: t('storage'), icon: FaFile },
+    {
+      path: '/document-template',
+      name: t('documentTemplate'),
+      icon: FaFileInvoice,
+    },
+    { path: '/workspace', name: t('workspace'), icon: MdWorkspaces },
+  ];
 
   // Clear workspace ID when navigating to personal routes
   useEffect(() => {

@@ -26,6 +26,8 @@ import EditDocumentTemplateModal from './edit-modal';
 import documentTemplateApi from '@/apis/documentTemplateApi';
 import { ToolTipExplain } from '@/constants/description';
 import { toastSuccess } from '@/utils/common';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export interface DocumentTemplateListProps {
   isEditable?: boolean;
@@ -258,3 +260,11 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

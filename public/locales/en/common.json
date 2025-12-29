@@ -1,0 +1,33 @@
+{
+  "buttons": {
+    "signUp": "Sign up",
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "back": "Back",
+    "submit": "Submit",
+    "close": "Close",
+    "confirm": "Confirm",
+    "reset": "Reset"
+  },
+  "labels": {
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "description": "Description",
+    "loading": "Loading...",
+    "noData": "No data available"
+  },
+  "messages": {
+    "welcome": "Welcome",
+    "error": "An error occurred",
+    "success": "Success",
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDescription": "The page you're looking for does not seem to exist"
+  }
+}
+

@@ -22,6 +22,8 @@ import { Robot, TriggerType } from '@/interfaces/robot';
 import { toastError } from '@/utils/common';
 import { ToolTipExplain } from '@/constants/description';
 import { formatDateTime } from '@/utils/time';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export default function RobotPage() {
   const [nameFilter, setNameFilter] = useState('');
@@ -132,3 +134,11 @@ export default function RobotPage() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};
