@@ -92,6 +92,7 @@ export default function BpmnModelerLayout({
           isOpen={isChatbotOpen}
           onClose={() => onToggleChatbot?.()}
           processId={processID}
+          modelerRef={modelerRef}
           onApplyXml={onApplyXml}
         />
       )}

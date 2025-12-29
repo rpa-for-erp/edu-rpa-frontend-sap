@@ -3,7 +3,6 @@ import {
   Box,
   Flex,
   Text,
-  Input,
   IconButton,
   CloseButton,
   VStack,
@@ -13,9 +12,11 @@ import {
   useToast,
   Link,
   Badge,
-  Divider,
   Avatar,
   Textarea,
+  Checkbox,
+  Tag,
+  TagLabel,
 } from "@chakra-ui/react";
 import { ArrowForwardIcon, CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import { RiRobot2Fill } from "react-icons/ri";
@@ -32,7 +33,7 @@ interface AIChatbotProps {
   isOpen: boolean;
   onClose: () => void;
   processId: string;
-
+  modelerRef?: any;
   onApplyXml?: (
     xml: string,
     activities?: any[],
@@ -47,22 +48,50 @@ type PipelineStage =
   | "mapping_feedback"
   | "completed";
 
+// Mapping node names to loading messages
+const getLoadingMessage = (nodeName?: string): string => {
+  if (!nodeName) return "Processing...";
+
+  const nodeMap: Record<string, string> = {
+    user_input: "📝 Handling user input...",
+    bpmn_free: "🎨 Generating BPMN structure...",
+    apply_feedback: "🔄 Apply user feedbackText...",
+    retrieve_map: "🔍 Retrieving activityPackage...",
+    select_assign: "📦 Select/Assign activityPackage...",
+    validate: "✅ Validating process...",
+    render: "📄 Generate XML...",
+  };
+
+  // Try exact match first
+  if (nodeMap[nodeName]) {
+    return nodeMap[nodeName];
+  }
+
+  // Try partial match
+  for (const [key, message] of Object.entries(nodeMap)) {
+    if (nodeName.toLowerCase().includes(key)) {
+      return message;
+    }
+  }
+
+  return `⚙️ Processing: ${nodeName}...`;
+};
+
 export default function AIChatbot({
   isOpen,
   onClose,
   processId,
-
+  modelerRef,
   onApplyXml,
 }: AIChatbotProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: "welcome",
       role: "assistant",
-      content: `Certainly! I usually take around 50 seconds to handle your request.
-
-I don't always get it right, so please review the process and feel free to try again with a different prompt. To learn more, visit the Chatbot RPA Documentation.
-
-I will model this process, ignoring the previous AI agent context and any code.`,
+      content: `Chat with the Chatbot RPA 
+for assistance creating a new BPMN process and assign existing activity package properly. For the best results:
+- Please provide your goal, the actors involved, the step-by-step actions, conditions/branches, and any systems or data used.
+- You can also mention existing activity packages so the assistant can map tasks correctly into your RPA library.`,
       timestamp: Date.now(),
     },
   ]);
@@ -78,6 +107,19 @@ I will model this process, ignoring the previous AI agent context and any code.`
   const [pendingActivities, setPendingActivities] = useState<any[] | null>(
     null
   );
+  const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([]);
+  const [selectedNodesInfo, setSelectedNodesInfo] = useState<
+    Array<{ id: string; name: string; type: string }>
+  >([]);
+  const [availableNodes, setAvailableNodes] = useState<
+    Array<{ id: string; name: string; type: string }>
+  >([]);
+  const [isRejectMode, setIsRejectMode] = useState(false);
+  const [currentLoadingMessage, setCurrentLoadingMessage] =
+    useState<string>("");
+  const [simulatedLoadingStage, setSimulatedLoadingStage] = useState<
+    "user_input" | "bpmn_generating" | "retrieving" | "select_assign" | null
+  >(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const toast = useToast();
 
@@ -96,10 +138,10 @@ I will model this process, ignoring the previous AI agent context and any code.`
         {
           id: "welcome",
           role: "assistant",
-          content: `Chat with the Chatbot RPA 
+          content: `Chat with the Chatbot RPA 
 for assistance creating a new BPMN process and assign existing activity package properly. For the best results:
 - Please provide your goal, the actors involved, the step-by-step actions, conditions/branches, and any systems or data used.
-- You can also mention existing activity packages so the assistant can map tasks correctly into your RPA library. `,
+- You can also mention existing activity packages so the assistant can map tasks correctly into your RPA library.`,
           timestamp: Date.now(),
         },
       ]);
@@ -107,8 +149,120 @@ for assistance creating a new BPMN process and assign existing activity package 
       setCurrentInterrupt(null);
       setFinalXml(null);
       setFeedbackText("");
+      setSelectedNodeIds([]);
+      setSelectedNodesInfo([]);
+      setIsRejectMode(false);
+      setSimulatedLoadingStage(null);
     }
   }, [isOpen]);
+
+  // Listen to BPMN modeler selection changes
+  useEffect(() => {
+    if (!modelerRef?.bpmnModeler || !isRejectMode) return;
+
+    const eventBus = modelerRef.bpmnModeler.get("eventBus");
+    const selection = modelerRef.bpmnModeler.get("selection");
+    const elementRegistry = modelerRef.bpmnModeler.get("elementRegistry");
+
+    const handleSelectionChanged = () => {
+      try {
+        const selectedElements = selection.get();
+        const nodesInfo: Array<{ id: string; name: string; type: string }> = [];
+
+        selectedElements.forEach((el: any) => {
+          if (!el?.id) return;
+
+          // Get element from registry to access businessObject
+          const element = elementRegistry.get(el.id);
+          if (!element || !element.businessObject) return;
+
+          const bo = element.businessObject;
+          const nodeName = bo.name || el.id;
+          const nodeType = bo.$type || "Unknown";
+
+          // Filter: Only include Tasks, Gateways, and non-start/end Events
+          const isTask = nodeType.includes("Task");
+          const isGateway = nodeType.includes("Gateway");
+          const isEvent = nodeType.includes("Event");
+          const isStartOrEnd =
+            el.id.includes("StartEvent") || el.id.includes("EndEvent");
+
+          if (isTask || isGateway || (isEvent && !isStartOrEnd)) {
+            nodesInfo.push({
+              id: el.id,
+              name: nodeName,
+              type: nodeType,
+            });
+          }
+        });
+
+        setSelectedNodesInfo(nodesInfo);
+        setSelectedNodeIds(nodesInfo.map((n) => n.id));
+
+        // Add/update message showing selected nodes
+        if (nodesInfo.length > 0) {
+          const selectedNodesText = nodesInfo
+            .map((n) => `${n.name} (${n.id})`)
+            .join(", ");
+
+          setMessages((prev) => {
+            // Remove previous selection message if exists
+            const filtered = prev.filter(
+              (msg) => !msg.id.startsWith("selected-nodes-")
+            );
+            return [
+              ...filtered,
+              {
+                id: `selected-nodes-${Date.now()}`,
+                role: "system",
+                content: `**Selected Nodes:** ${selectedNodesText}`,
+                timestamp: Date.now(),
+              },
+            ];
+          });
+        } else {
+          // Remove selection message if no nodes selected
+          setMessages((prev) =>
+            prev.filter((msg) => !msg.id.startsWith("selected-nodes-"))
+          );
+        }
+      } catch (error) {
+        console.error("❌ [Chatbot] Error handling selection:", error);
+      }
+    };
+
+    // Initial check
+    handleSelectionChanged();
+
+    eventBus.on("selection.changed", handleSelectionChanged);
+
+    return () => {
+      eventBus.off("selection.changed", handleSelectionChanged);
+    };
+  }, [modelerRef, isRejectMode]);
+
+  // Extract available nodes from BPMN structure
+  const extractAvailableNodes = (
+    bpmn: any
+  ): Array<{ id: string; name: string; type: string }> => {
+    if (!bpmn?.nodes) return [];
+    return bpmn.nodes
+      .filter((node: any) => {
+        if (!node.id) return false;
+        // Include Tasks, Gateways, but exclude Start/End Events
+        const isTask = node.type?.includes("Task");
+        const isGateway = node.type?.includes("Gateway");
+        const isEvent = node.type?.includes("Event");
+        const isStartOrEnd =
+          node.id.includes("StartEvent") || node.id.includes("EndEvent");
+        return isTask || isGateway || (isEvent && !isStartOrEnd);
+      })
+      .map((node: any) => ({
+        id: node.id,
+        name: node.name || node.id,
+        type: node.type || "Unknown",
+      }));
+  };
 
   // Start Pipeline Mutation
   const startPipelineMutation = useMutation({
@@ -155,6 +309,8 @@ for assistance creating a new BPMN process and assign existing activity package 
     },
     onSuccess: (data: PipelineResponse) => {
       console.log("✅ [Pipeline] Feedback submitted:", data);
+      setIsRejectMode(false);
+      setSelectedNodeIds([]);
       handlePipelineResponse(data);
     },
     onError: (error: any) => {
@@ -182,12 +338,10 @@ for assistance creating a new BPMN process and assign existing activity package 
   const extractAutomaticNodeIds = (mapping: any, bpmn?: any): string[] => {
     if (!mapping) return [];
 
-    // Normalize mapping entries
     const entries: any[] = Array.isArray(mapping)
       ? mapping.flatMap((item) => Object.values(item))
       : Object.values(mapping);
 
-    // Collect automatic node ids
     const baseIds = entries
       .filter(
         (m: any) =>
@@ -195,12 +349,10 @@ for assistance creating a new BPMN process and assign existing activity package 
       )
       .map((m: any) => m.node_id);
 
-    // If no BPMN validation needed
     if (!bpmn || !Array.isArray(bpmn.nodes)) {
       return baseIds;
     }
 
-    // Validate against BPMN nodes
     const nodeIdSet = new Set(
       bpmn.nodes.map((n: any) => n?.id).filter(Boolean)
     );
@@ -248,8 +400,10 @@ for assistance creating a new BPMN process and assign existing activity package 
         };
         setMessages((prev) => [...prev, message]);
 
-        // Display BPMN info
         const bpmnInfo = data.interrupt.bpmn;
+        const nodes = extractAvailableNodes(bpmnInfo);
+        setAvailableNodes(nodes);
+
         const bpmnMessage: ChatMessage = {
           id: `bpmn-info-${Date.now()}`,
           role: "system",
@@ -262,7 +416,6 @@ for assistance creating a new BPMN process and assign existing activity package 
         };
         setMessages((prev) => [...prev, bpmnMessage]);
 
-        // Convert BPMN JSON -> XML for preview / apply
         try {
           const result = convertJsonToProcess({ bpmn: bpmnInfo });
           if (result.success && result.xml) {
@@ -285,6 +438,13 @@ for assistance creating a new BPMN process and assign existing activity package 
       } else if (data.interrupt.type === "mapping_feedback") {
         console.log("📦 [Pipeline] Mapping feedback:", data.interrupt);
         setCurrentStage("mapping_feedback");
+        setSimulatedLoadingStage(null); // Clear simulation when feedback arrives
+
+        // Remove loading messages
+        setMessages((prev) =>
+          prev.filter((msg) => !msg.id.startsWith("loading-"))
+        );
+
         const message: ChatMessage = {
           id: `mapping-feedback-${Date.now()}`,
           role: "assistant",
@@ -295,7 +455,6 @@ for assistance creating a new BPMN process and assign existing activity package 
         };
         setMessages((prev) => [...prev, message]);
 
-        // Display mapping info
         const mappingInfo = data.interrupt.mapping;
         const mappingMessage: ChatMessage = {
           id: `mapping-info-${Date.now()}`,
@@ -307,8 +466,10 @@ for assistance creating a new BPMN process and assign existing activity package 
         };
         setMessages((prev) => [...prev, mappingMessage]);
 
-        // Convert BPMN (if provided) for preview / apply
         if (data.interrupt.bpmn) {
+          const nodes = extractAvailableNodes(data.interrupt.bpmn);
+          setAvailableNodes(nodes);
+
           try {
             const result = convertJsonToProcess({ bpmn: data.interrupt.bpmn });
             if (result.success && result.xml) {
@@ -338,7 +499,6 @@ for assistance creating a new BPMN process and assign existing activity package 
       console.log("📦 [Pipeline] Completed:", data);
       setCurrentStage("completed");
 
-      // Always derive XML from BPMN (nodes, flows), ignore any XML returned from backend
       const completedMapping = data.mapping || data.state?.mapping;
       const completedBpmn = data.bpmn || data.state?.bpmn;
 
@@ -395,13 +555,43 @@ for assistance creating a new BPMN process and assign existing activity package 
     } else if (data.status === "running") {
       console.log("📦 [Pipeline] Running:", data);
       setCurrentStage("processing");
-      const processingMessage: ChatMessage = {
-        id: `processing-${Date.now()}`,
-        role: "assistant",
-        content: `Processing at node: ${data.current_node || "unknown"}...`,
-        timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, processingMessage]);
+      const loadingMsg = getLoadingMessage(data.current_node);
+      setCurrentLoadingMessage(loadingMsg);
+
+      // Update last message if it's a loading message, otherwise add new one
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (
+          lastMsg &&
+          lastMsg.role === "assistant" &&
+          (lastMsg.id.startsWith("loading-") ||
+            lastMsg.content.includes("⚙️") ||
+            lastMsg.content.includes("📝") ||
+            lastMsg.content.includes("🎨") ||
+            lastMsg.content.includes("🔍") ||
+            lastMsg.content.includes("📦") ||
+            lastMsg.content.includes("🔄") ||
+            lastMsg.content.includes("✅"))
+        ) {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMsg,
+              content: loadingMsg,
+              timestamp: Date.now(),
+            },
+          ];
+        }
+        return [
+          ...prev,
+          {
+            id: `loading-${Date.now()}`,
+            role: "assistant",
+            content: loadingMsg,
+            timestamp: Date.now(),
+          },
+        ];
+      });
     } else if (data.status === "error") {
       console.log("📦 [Pipeline] Error:", data);
       setCurrentStage("idle");
@@ -418,7 +608,6 @@ for assistance creating a new BPMN process and assign existing activity package 
   const handleSendMessage = () => {
     if (!inputValue.trim()) return;
 
-    // Add user message
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       role: "user",
@@ -427,11 +616,51 @@ for assistance creating a new BPMN process and assign existing activity package 
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Start pipeline
     setCurrentStage("processing");
-    startPipelineMutation.mutate(inputValue);
+    setSimulatedLoadingStage("user_input");
+    setCurrentLoadingMessage("📝 Handling user input...");
 
-    // Clear input
+    // Add loading message
+    const loadingMsg: ChatMessage = {
+      id: `loading-${Date.now()}`,
+      role: "assistant",
+      content: "📝 Handling user input...",
+      timestamp: Date.now(),
+    };
+
+    // Simulate 2s delay before generating BPMN
+    setTimeout(() => {
+      setMessages((prev) => [...prev, loadingMsg]);
+      setSimulatedLoadingStage("bpmn_generating");
+      setCurrentLoadingMessage("🎨 Generating BPMN structure...");
+
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.id.startsWith("loading-")) {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMsg,
+              content: "🎨 Generating BPMN structure...",
+              timestamp: Date.now(),
+            },
+          ];
+        }
+        return [
+          ...prev,
+          {
+            id: `loading-${Date.now()}`,
+            role: "assistant",
+            content: "🎨 Generating BPMN structure...",
+            timestamp: Date.now(),
+          },
+        ];
+      });
+
+      // Then start actual pipeline
+      startPipelineMutation.mutate(inputValue);
+    }, 3000);
+
     setInputValue("");
   };
 
@@ -447,35 +676,135 @@ for assistance creating a new BPMN process and assign existing activity package 
     setMessages((prev) => [...prev, userMessage]);
 
     setCurrentStage("processing");
+    setSimulatedLoadingStage("retrieving");
+    setCurrentLoadingMessage("🔍 Retrieving activityPackage...");
+
+    // Add loading message
+    const loadingMsg: ChatMessage = {
+      id: `loading-${Date.now()}`,
+      role: "assistant",
+      content: "🔍 Retrieving activityPackage...",
+      timestamp: Date.now(),
+    };
+
     submitFeedbackMutation.mutate({
       threadId,
       feedback: { user_decision: "approve" },
     });
+    // Simulate 3s delay before select_assign
+    setTimeout(() => {
+      setMessages((prev) => [...prev, loadingMsg]);
+      setSimulatedLoadingStage("select_assign");
+      setCurrentLoadingMessage("📦 Select/Assign activityPackage...");
+
+      setMessages((prev) => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.id.startsWith("loading-")) {
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMsg,
+              content: "📦 Select/Assign activityPackage...",
+              timestamp: Date.now(),
+            },
+          ];
+        }
+        return [
+          ...prev,
+          {
+            id: `loading-${Date.now()}`,
+            role: "assistant",
+            content: "📦 Select/Assign activityPackage...",
+            timestamp: Date.now(),
+          },
+        ];
+      });
+
+      // Then submit feedback
+    }, 3000);
+
     setFeedbackText("");
+    setIsRejectMode(false);
   };
 
   const handleRejectBpmn = () => {
     if (!threadId) return;
 
+    if (!isRejectMode) {
+      setIsRejectMode(true);
+      toast({
+        title: "Please select BPMN nodes",
+        description:
+          "Click on the canvas to select nodes/elements that need feedback",
+        status: "info",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (selectedNodeIds.length === 0) {
+      toast({
+        title: "No nodes selected",
+        description:
+          "Please select at least one BPMN node/element on the canvas",
+        status: "warning",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (!feedbackText.trim()) {
+      toast({
+        title: "Feedback required",
+        description: "Please provide feedback text when rejecting",
+        status: "warning",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const selectedNodesText = selectedNodesInfo
+      .map((n) => `${n.name} (${n.id})`)
+      .join(", ");
+
     const userMessage: ChatMessage = {
       id: `user-reject-${Date.now()}`,
       role: "user",
-      content: `❌ Rejected BPMN structure${
-        feedbackText ? `\nFeedback: ${feedbackText}` : ""
-      }`,
+      content: `❌ Rejected BPMN structure\nSelected nodes: ${selectedNodesText}\nFeedback: ${feedbackText}`,
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, userMessage]);
 
     setCurrentStage("processing");
+    setSimulatedLoadingStage(null);
+    setCurrentLoadingMessage("🔄 Apply user feedbackText...");
+
+    const loadingMsg: ChatMessage = {
+      id: `loading-${Date.now()}`,
+      role: "assistant",
+      content: "🔄 Apply user feedbackText...",
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, loadingMsg]);
+
     submitFeedbackMutation.mutate({
       threadId,
       feedback: {
         user_decision: "reject",
-        user_feedback_text: feedbackText || undefined,
+        user_feedback_text: feedbackText,
+        selected_node_ids: selectedNodeIds,
       },
     });
     setFeedbackText("");
+    setIsRejectMode(false);
+    setSelectedNodeIds([]);
+    setSelectedNodesInfo([]);
   };
 
   const handleApproveMapping = () => {
@@ -490,35 +819,93 @@ for assistance creating a new BPMN process and assign existing activity package 
     setMessages((prev) => [...prev, userMessage]);
 
     setCurrentStage("processing");
+    setCurrentLoadingMessage("🔄 Processing approval...");
     submitFeedbackMutation.mutate({
       threadId,
       feedback: { user_mapping_decision: "approve" },
     });
     setFeedbackText("");
+    setIsRejectMode(false);
   };
 
   const handleRejectMapping = () => {
     if (!threadId) return;
 
+    if (!isRejectMode) {
+      setIsRejectMode(true);
+      toast({
+        title: "Please select BPMN nodes",
+        description:
+          "Click on the canvas to select nodes/elements that need feedback",
+        status: "info",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (selectedNodeIds.length === 0) {
+      toast({
+        title: "No nodes selected",
+        description:
+          "Please select at least one BPMN node/element on the canvas",
+        status: "warning",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    if (!feedbackText.trim()) {
+      toast({
+        title: "Feedback required",
+        description: "Please provide feedback text when rejecting",
+        status: "warning",
+        position: "top-right",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    const selectedNodesText = selectedNodesInfo
+      .map((n) => `${n.name} (${n.id})`)
+      .join(", ");
+
     const userMessage: ChatMessage = {
       id: `user-reject-mapping-${Date.now()}`,
       role: "user",
-      content: `❌ Rejected activity mapping${
-        feedbackText ? `\nFeedback: ${feedbackText}` : ""
-      }`,
+      content: `❌ Rejected activity mapping\nSelected nodes: ${selectedNodesText}\nFeedback: ${feedbackText}`,
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, userMessage]);
 
     setCurrentStage("processing");
+    setSimulatedLoadingStage(null);
+    setCurrentLoadingMessage("🔄 Apply user feedbackText...");
+
+    const loadingMsg: ChatMessage = {
+      id: `loading-${Date.now()}`,
+      role: "assistant",
+      content: "🔄 Apply user feedbackText...",
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, loadingMsg]);
+
     submitFeedbackMutation.mutate({
       threadId,
       feedback: {
         user_mapping_decision: "reject",
-        user_mapping_feedback_text: feedbackText || undefined,
+        user_mapping_feedback_text: feedbackText,
+        selected_node_ids: selectedNodeIds,
       },
     });
     setFeedbackText("");
+    setIsRejectMode(false);
+    setSelectedNodeIds([]);
+    setSelectedNodesInfo([]);
   };
 
   // Auto-apply to canvas whenever we have fresh XML and handler provided
@@ -557,11 +944,10 @@ for assistance creating a new BPMN process and assign existing activity package 
     const welcome: ChatMessage = {
       id: "welcome",
       role: "assistant",
-      content: `Certainly! I usually take around 50 seconds to handle your request.
-
-I don't always get it right, so please review the process and feel free to try again with a different prompt. To learn more, visit the Chatbot RPA Documentation.
-
-I will model this process, ignoring the previous AI agent context and any code.`,
+      content: `Chat with the Chatbot RPA 
+for assistance creating a new BPMN process and assign existing activity package properly. For the best results:
+- Please provide your goal, the actors involved, the step-by-step actions, conditions/branches, and any systems or data used.
+- You can also mention existing activity packages so the assistant can map tasks correctly into your RPA library.`,
       timestamp: Date.now(),
     };
 
@@ -574,16 +960,26 @@ I will model this process, ignoring the previous AI agent context and any code.`
     setPendingActivities(null);
     setFeedbackText("");
     setInputValue("");
+    setIsRejectMode(false);
+    setSelectedNodeIds([]);
+    setSelectedNodesInfo([]);
+    setSimulatedLoadingStage(null);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      if (currentStage === "idle") {
+        handleSendMessage();
+      }
     }
   };
 
   if (!isOpen) return null;
+
+  const showFeedbackButtons =
+    (currentStage === "bpmn_feedback" || currentStage === "mapping_feedback") &&
+    !submitFeedbackMutation.isPending;
 
   return (
     <Box
@@ -592,7 +988,7 @@ I will model this process, ignoring the previous AI agent context and any code.`
       right={4}
       pb={6}
       width="500px"
-      height="700px"
+      height="650px"
       bg="white"
       borderRadius="lg"
       boxShadow="2xl"
@@ -751,9 +1147,7 @@ I will model this process, ignoring the previous AI agent context and any code.`
                 <HStack spacing={2}>
                   <Spinner size="xs" color="teal.500" />
                   <Text fontSize="sm" color="gray.500">
-                    {currentStage === "processing"
-                      ? "Processing..."
-                      : "Thinking..."}
+                    {currentLoadingMessage || "Processing..."}
                   </Text>
                 </HStack>
               </Box>
@@ -761,133 +1155,164 @@ I will model this process, ignoring the previous AI agent context and any code.`
           </Flex>
         )}
 
-        {/* BPMN Feedback Buttons */}
-        {currentStage === "bpmn_feedback" &&
-          !submitFeedbackMutation.isPending && (
-            <VStack spacing={2} width="100%" pt={2}>
-              <Textarea
-                placeholder="Optional: Provide feedback if rejecting..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                size="sm"
-                bg="white"
-                rows={2}
-              />
-              <HStack spacing={3} width="100%" justify="center">
-                <Button
-                  size="sm"
-                  colorScheme="green"
-                  leftIcon={<CheckIcon />}
-                  onClick={handleApproveBpmn}
-                >
-                  Approve BPMN
-                </Button>
-                <Button
-                  size="sm"
-                  colorScheme="red"
-                  variant="outline"
-                  leftIcon={<CloseIcon />}
-                  onClick={handleRejectBpmn}
-                >
-                  Reject BPMN
-                </Button>
-              </HStack>
-            </VStack>
-          )}
-
-        {/* Mapping Feedback Buttons */}
-        {currentStage === "mapping_feedback" &&
-          !submitFeedbackMutation.isPending && (
-            <VStack spacing={2} width="100%" pt={2}>
-              <Textarea
-                placeholder="Optional: Provide feedback if rejecting..."
-                value={feedbackText}
-                onChange={(e) => setFeedbackText(e.target.value)}
-                size="sm"
-                bg="white"
-                rows={2}
-              />
-              <HStack spacing={3} width="100%" justify="center">
-                <Button
-                  size="sm"
-                  colorScheme="green"
-                  leftIcon={<CheckIcon />}
-                  onClick={handleApproveMapping}
-                >
-                  Approve Mapping
-                </Button>
-                <Button
-                  size="sm"
-                  colorScheme="red"
-                  variant="outline"
-                  leftIcon={<CloseIcon />}
-                  onClick={handleRejectMapping}
-                >
-                  Reject Mapping
-                </Button>
-              </HStack>
-            </VStack>
-          )}
+        {/* Selected Nodes Display */}
+        {isRejectMode && selectedNodeIds.length > 0 && (
+          <Box
+            bg="yellow.50"
+            p={3}
+            borderRadius="md"
+            border="1px solid"
+            borderColor="yellow.200"
+          >
+            <Text fontSize="xs" fontWeight="bold" mb={2} color="yellow.800">
+              Selected Nodes for Feedback:
+            </Text>
+            <HStack spacing={2} flexWrap="wrap">
+              {selectedNodeIds.map((nodeId) => {
+                const node = availableNodes.find((n) => n.id === nodeId);
+                return (
+                  <Tag key={nodeId} size="sm" colorScheme="yellow">
+                    <TagLabel>{node?.name || nodeId}</TagLabel>
+                  </Tag>
+                );
+              })}
+            </HStack>
+          </Box>
+        )}
 
         <div ref={messagesEndRef} />
       </VStack>
 
-      {/* Input Area */}
+      {/* Input Area - Unified for all stages */}
       <Box
         px={4}
-        py={3}
+        // py={3}
         borderTop="1px solid"
         borderColor="gray.200"
         bg="white"
         borderBottomRadius="lg"
       >
+        {/* Approve/Reject Buttons - Above textarea */}
+        {showFeedbackButtons && (
+          <HStack spacing={3} mb={3} justify="center">
+            <Button
+              size="sm"
+              colorScheme="green"
+              leftIcon={<CheckIcon />}
+              onClick={
+                currentStage === "bpmn_feedback"
+                  ? handleApproveBpmn
+                  : handleApproveMapping
+              }
+              isDisabled={submitFeedbackMutation.isPending}
+            >
+              {currentStage === "bpmn_feedback"
+                ? "Approve BPMN"
+                : "Approve Mapping"}
+            </Button>
+            <Button
+              size="sm"
+              colorScheme="red"
+              variant="outline"
+              leftIcon={<CloseIcon />}
+              onClick={
+                currentStage === "bpmn_feedback"
+                  ? handleRejectBpmn
+                  : handleRejectMapping
+              }
+              isDisabled={submitFeedbackMutation.isPending}
+            >
+              {currentStage === "bpmn_feedback"
+                ? "Reject BPMN"
+                : "Reject Mapping"}
+            </Button>
+          </HStack>
+        )}
+
+        {/* Reject Mode Instructions */}
+        {isRejectMode && (
+          <Box
+            bg="blue.50"
+            p={2}
+            borderRadius="md"
+            mb={2}
+            border="1px solid"
+            borderColor="blue.200"
+          >
+            <Text fontSize="xs" color="blue.800">
+              ⚠️ Please select node/element BPMN need feedback on the canvas,
+              then provide feedback text below.
+            </Text>
+          </Box>
+        )}
+
+        {/* Textarea - Unified input */}
+        <HStack spacing={1} align="flex-end">
+          <Textarea
+            placeholder={
+              currentStage === "idle"
+                ? "Enter a process description"
+                : isRejectMode
+                ? "Please provide feedback for selected nodes (required)"
+                : "Optional: Provide feedback if rejecting..."
+            }
+            value={currentStage === "idle" ? inputValue : feedbackText}
+            onChange={(e) => {
+              if (currentStage === "idle") {
+                setInputValue(e.target.value);
+              } else {
+                setFeedbackText(e.target.value);
+              }
+            }}
+            onKeyPress={handleKeyPress}
+            size="sm"
+            bg="gray.50"
+            borderColor={isRejectMode ? "red.200" : "teal.100"}
+            _focus={{
+              borderColor: isRejectMode ? "red.500" : "teal.500",
+              boxShadow: "0 0 0 1px #319795",
+            }}
+            rows={currentStage === "idle" ? 3 : 2}
+            isDisabled={
+              (currentStage !== "idle" &&
+                currentStage !== "bpmn_feedback" &&
+                currentStage !== "mapping_feedback") ||
+              startPipelineMutation.isPending ||
+              submitFeedbackMutation.isPending ||
+              isApplying
+            }
+            isRequired={isRejectMode}
+          />
+          {currentStage === "idle" && (
+            <IconButton
+              aria-label="Send message"
+              icon={<ArrowForwardIcon />}
+              colorScheme="teal"
+              size="md"
+              onClick={handleSendMessage}
+              isDisabled={
+                !inputValue.trim() ||
+                startPipelineMutation.isPending ||
+                submitFeedbackMutation.isPending ||
+                isApplying
+              }
+              isLoading={startPipelineMutation.isPending}
+            />
+          )}
+        </HStack>
+
+        {/* Reset Chat Button */}
         <Button
-          size="sm"
+          size="xs"
           variant="ghost"
           onClick={handleResetChat}
+          mt={2}
           isDisabled={
             startPipelineMutation.isPending || submitFeedbackMutation.isPending
           }
         >
           Reset chat
         </Button>
-        <HStack spacing={2} align="center">
-          <Input
-            placeholder="Enter a process description"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={handleKeyPress}
-            size="md"
-            bg="gray.50"
-            border="2px solid"
-            borderColor="teal.200"
-            _focus={{
-              borderColor: "teal.500",
-              boxShadow: "0 0 0 1px #319795",
-            }}
-            isDisabled={
-              startPipelineMutation.isPending ||
-              submitFeedbackMutation.isPending ||
-              isApplying ||
-              currentStage !== "idle"
-            }
-          />
-          <IconButton
-            aria-label="Send message"
-            icon={<ArrowForwardIcon />}
-            colorScheme="teal"
-            size="md"
-            onClick={handleSendMessage}
-            isDisabled={
-              !inputValue.trim() ||
-              startPipelineMutation.isPending ||
-              submitFeedbackMutation.isPending ||
-              isApplying ||
-              currentStage !== "idle"
-            }
-            isLoading={startPipelineMutation.isPending}
-          />
-        </HStack>
       </Box>
     </Box>
   );
