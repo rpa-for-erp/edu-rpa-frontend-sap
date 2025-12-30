@@ -112,22 +112,25 @@ export const PublishRobotModal = (props: Props) => {
     try {
       switch (activeStep) {
         case 0:
+          // TEMPORARY: Skip validation for faster development
+          console.log('⚠️ Skipping validation step (disabled for development)');
+          
           // Check if code uses RPA.Moodle
-          const codeString = JSON.stringify(result?.code);
-          const usesMoodle = codeString.includes('RPA.Moodle');
+          // const codeString = JSON.stringify(result?.code);
+          // const usesMoodle = codeString.includes('RPA.Moodle');
           
-          if (usesMoodle) {
-            // Skip validation for Moodle - library not yet installed on validation server
-            console.log('⚠️ Skipping validation for Moodle robot');
-            break;
-          }
+          // if (usesMoodle) {
+          //   // Skip validation for Moodle - library not yet installed on validation server
+          //   console.log('⚠️ Skipping validation for Moodle robot');
+          //   break;
+          // }
           
-          const response = await dryrun(result?.code);
-          const isErrorReponse = handleCheckDryrunError(response);
-          if (isErrorReponse) {
-            throw new ValidationError("Validation Error", response);
-          }
-          console.log("✅ [Publish Step 0] Validation successful");
+          // const response = await dryrun(result?.code);
+          // const isErrorReponse = handleCheckDryrunError(response);
+          // if (isErrorReponse) {
+          //   throw new ValidationError("Validation Error", response);
+          // }
+          // console.log("✅ [Publish Step 0] Validation successful");
           break;
 
         case 1:

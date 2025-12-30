@@ -449,7 +449,16 @@ export default function PropertiesSideBar({
                       />
                     );
                   case "number":
-                    return renderInput(paramKey, "number");
+                    return (
+                      <TextAutoComplete
+                        type="text"
+                        value={formValues[paramKey]?.value ?? ""}
+                        onChange={(newValue: string) =>
+                          handleInputChange(paramKey, newValue)
+                        }
+                        recommendedWords={variableStorage}
+                      />
+                    );
                   case "connection.Google Drive":
                     return renderConnectionSelect(
                       paramKey,

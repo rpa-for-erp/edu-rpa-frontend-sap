@@ -1,5 +1,5 @@
 export const LibrabryConfigurations = {
-  'ErpRpa.Document': {
+  'EduRPA.Document': {
     lang: 'vi',
     performance: 'accurate',
   },
@@ -624,7 +624,7 @@ export const ActivityPackages = [
     _id: 'google_classroom',
     displayName: 'Google Classroom',
     description: 'Help you integrate your work with Google Classroom',
-    library: 'ErpRpa.Google',
+    library: 'EduRPA.Google',
     activityTemplates: [
       {
         templateId: 'google_classroom.set_up_connection',
@@ -636,7 +636,7 @@ export const ActivityPackages = [
         arguments: {
           Librabry: {
             type: 'string',
-            value: 'ErpRpa.Google',
+            value: 'EduRPA.Google',
             description: 'Librabry for setup OAuth token',
             hidden: true,
           },
@@ -996,7 +996,7 @@ export const ActivityPackages = [
     _id: 'google_form',
     displayName: 'Google Form',
     description: 'Help you integrate your work with Google Form',
-    library: 'ErpRpa.Google',
+    library: 'EduRPA.Google',
     activityTemplates: [
       {
         templateId: 'google_form.set_up_connection',
@@ -1008,7 +1008,7 @@ export const ActivityPackages = [
         arguments: {
           Librabry: {
             type: 'string',
-            value: 'ErpRpa.Google',
+            value: 'EduRPA.Google',
             description: 'Librabry for setup OAuth token',
             hidden: true,
           },
@@ -1356,7 +1356,7 @@ export const ActivityPackages = [
     displayName: 'Document automation',
     description:
       'Help you automate tasks related to documents (traditional paper documents or digital documents like PDFs) with the help of AI',
-    library: 'ErpRpa.Document',
+    library: 'EduRPA.Document',
     activityTemplates: [
       {
         templateId: 'extract_data_from_document',
@@ -1427,7 +1427,7 @@ export const ActivityPackages = [
     displayName: 'File storage',
     description:
       "Help you store and retrieve files in the platform's file storage",
-    library: 'ErpRpa.Storage',
+    library: 'EduRPA.Storage',
     activityTemplates: [
       {
         templateId: 'upload_file',
@@ -2562,12 +2562,551 @@ export const ActivityPackages = [
           description: 'Upload information with links',
         },
       },
+      // User Lookup
+      {
+        templateId: 'moodle.get_user_by_username',
+        displayName: 'Get User By Username',
+        description: 'Get user information by username',
+        iconCode: 'FaUserSearch',
+        type: 'activity',
+        keyword: 'Get User By Username',
+        arguments: {
+          Username: {
+            type: 'string',
+            keywordArg: 'username',
+            description: 'Username to search for',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'User Info',
+          type: 'dictionary',
+          description: 'User information dictionary',
+        },
+      },
+      {
+        templateId: 'moodle.get_user_by_email',
+        displayName: 'Get User By Email',
+        description: 'Get user information by email address',
+        iconCode: 'FaEnvelope',
+        type: 'activity',
+        keyword: 'Get User By Email',
+        arguments: {
+          Email: {
+            type: 'email',
+            keywordArg: 'email',
+            description: 'Email address to search for',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'User Info',
+          type: 'dictionary',
+          description: 'User information dictionary',
+        },
+      },
+      {
+        templateId: 'moodle.get_user_by_username_or_email',
+        displayName: 'Get User By Username Or Email',
+        description: 'Get user by username or email (flexible search)',
+        iconCode: 'FaSearch',
+        type: 'activity',
+        keyword: 'Get User By Username Or Email',
+        arguments: {
+          Identifier: {
+            type: 'string',
+            keywordArg: 'identifier',
+            description: 'Username or email address',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'User Info',
+          type: 'dictionary',
+          description: 'User information dictionary',
+        },
+      },
+      // Assignment Management
+      {
+        templateId: 'moodle.get_assignment_id_from_url',
+        displayName: 'Get Assignment ID From URL',
+        description: 'Extract assignment course module ID from Moodle URL',
+        iconCode: 'FaLink',
+        type: 'activity',
+        keyword: 'Get Assignment ID From URL',
+        arguments: {
+          URL: {
+            type: 'string',
+            keywordArg: 'url',
+            description: 'Moodle assignment URL',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'Assignment ID',
+          type: 'number',
+          description: 'Course module ID (cmid)',
+        },
+      },
+      {
+        templateId: 'moodle.get_assignment_instance_id_from_cmid',
+        displayName: 'Get Assignment Instance ID From Course Module ID',
+        description: 'Convert course module ID to assignment instance ID',
+        iconCode: 'FaExchangeAlt',
+        type: 'activity',
+        keyword: 'Get Assignment Instance ID From Course Module ID',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Moodle course ID',
+            value: 0,
+          },
+          'Course Module ID': {
+            type: 'number',
+            keywordArg: 'cmid',
+            description: 'Course module ID from URL',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Instance ID',
+          type: 'number',
+          description: 'Assignment instance ID',
+        },
+      },
+      {
+        templateId: 'moodle.create_submission_for_student',
+        displayName: 'Create Submission For Student',
+        description: 'Create/submit assignment for a student',
+        iconCode: 'FaFileUpload',
+        type: 'activity',
+        keyword: 'Create Submission For Student',
+        arguments: {
+          'Assignment ID': {
+            type: 'number',
+            keywordArg: 'assignment_id',
+            description: 'Assignment instance ID',
+            value: 0,
+          },
+          'User ID': {
+            type: 'number',
+            keywordArg: 'user_id',
+            description: 'Student user ID',
+            value: 0,
+          },
+          'Submission Text': {
+            type: 'string',
+            keywordArg: 'submission_text',
+            description: 'Text content for submission',
+            value: 'Auto-submitted for grading',
+          },
+        },
+        return: {
+          displayName: 'Submission Result',
+          type: 'dictionary',
+          description: 'Submission creation result',
+        },
+      },
+      {
+        templateId: 'moodle.submit_assignment_for_students',
+        displayName: 'Submit Assignment For Students',
+        description: 'Create submissions for multiple students',
+        iconCode: 'FaUsersCog',
+        type: 'activity',
+        keyword: 'Submit Assignment For Students',
+        arguments: {
+          'Assignment ID': {
+            type: 'number',
+            keywordArg: 'assignment_id',
+            description: 'Assignment instance ID',
+            value: 0,
+          },
+          'Student Usernames': {
+            type: 'list',
+            keywordArg: 'student_usernames',
+            description: 'List of student usernames',
+            value: [],
+          },
+        },
+        return: {
+          displayName: 'Summary',
+          type: 'dictionary',
+          description: 'Submission creation summary',
+        },
+      },
+      // AI Grading with Gemini
+      {
+        templateId: 'moodle.setup_gemini_ai',
+        displayName: 'Setup Gemini AI',
+        description: 'Setup Gemini AI for automatic grading',
+        iconCode: 'FaRobot',
+        type: 'activity',
+        keyword: 'Setup Gemini AI',
+        arguments: {
+          'API Key': {
+            type: 'string',
+            keywordArg: 'api_key',
+            description: 'Gemini API key from Google AI Studio',
+            value: '',
+          },
+        },
+      },
+      {
+        templateId: 'moodle.grade_submission_with_gemini',
+        displayName: 'Grade Submission With Gemini',
+        description: 'Grade a student submission using Gemini AI',
+        iconCode: 'FaCheckSquare',
+        type: 'activity',
+        keyword: 'Grade Submission With Gemini',
+        arguments: {
+          'Submission Text': {
+            type: 'string',
+            keywordArg: 'submission_text',
+            description: "Student's submission text",
+            value: '',
+          },
+          'Question Text': {
+            type: 'string',
+            keywordArg: 'question_text',
+            description: 'Test questions',
+            value: '',
+          },
+          'Answer Key': {
+            type: 'string',
+            keywordArg: 'answer_key',
+            description: 'Answer key',
+            value: '',
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score',
+            value: 10,
+          },
+        },
+        return: {
+          displayName: 'Grading Result',
+          type: 'dictionary',
+          description: 'Score, feedback, and details',
+        },
+      },
+      {
+        templateId: 'moodle.grade_image_submission_with_gemini_vision',
+        displayName: 'Grade Image Submission With Gemini Vision',
+        description: 'Grade student submission from image using Gemini Vision',
+        iconCode: 'FaImage',
+        type: 'activity',
+        keyword: 'Grade Image Submission With Gemini Vision',
+        arguments: {
+          'Image Path': {
+            type: 'string',
+            keywordArg: 'image_path',
+            description: "Path to student's answer sheet image",
+            value: '',
+          },
+          Questions: {
+            type: 'string',
+            keywordArg: 'questions',
+            description: 'Questions text',
+            value: '',
+          },
+          'Answer Key': {
+            type: 'string',
+            keywordArg: 'answer_key',
+            description: 'Answer key text',
+            value: '',
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score',
+            value: 10.0,
+          },
+        },
+        return: {
+          displayName: 'Grading Result',
+          type: 'dictionary',
+          description: 'Score and feedback from image analysis',
+        },
+      },
+      // Grade Upload and Export
+      {
+        templateId: 'moodle.upload_grades_to_moodle',
+        displayName: 'Upload Grades To Moodle',
+        description: 'Upload grades to Moodle assignment gradebook',
+        iconCode: 'FaCloudUploadAlt',
+        type: 'activity',
+        keyword: 'Upload Grades To Moodle',
+        arguments: {
+          'Assignment ID': {
+            type: 'number',
+            keywordArg: 'assignment_id',
+            description: 'Moodle assignment instance ID',
+            value: 0,
+          },
+          Grades: {
+            type: 'list',
+            keywordArg: 'grades',
+            description: 'List of grade dictionaries with student_name, score, feedback',
+            value: [],
+          },
+        },
+        return: {
+          displayName: 'Upload Summary',
+          type: 'dictionary',
+          description: 'Summary of uploaded grades',
+        },
+      },
+      {
+        templateId: 'moodle.export_grading_results_to_excel',
+        displayName: 'Export Grading Results To Excel',
+        description: 'Export grading results to Excel file',
+        iconCode: 'FaFileExcel',
+        type: 'activity',
+        keyword: 'Export Grading Results To Excel',
+        arguments: {
+          'Grading Results': {
+            type: 'list',
+            keywordArg: 'grading_results',
+            description: 'List of grading result dictionaries',
+            value: [],
+          },
+          'Output Path': {
+            type: 'string',
+            keywordArg: 'output_path',
+            description: 'Path to save Excel file',
+            value: '',
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score for percentage calculation',
+            value: 10.0,
+          },
+        },
+        return: {
+          displayName: 'File Path',
+          type: 'string',
+          description: 'Path to created Excel file',
+        },
+      },
+      {
+        templateId: 'moodle.export_grading_results_to_csv',
+        displayName: 'Export Grading Results To CSV',
+        description: 'Export grading results to CSV for Moodle gradebook import',
+        iconCode: 'FaFileCsv',
+        type: 'activity',
+        keyword: 'Export Grading Results To CSV',
+        arguments: {
+          'Grading Results': {
+            type: 'list',
+            keywordArg: 'grading_results',
+            description: 'List of grading result dictionaries',
+            value: [],
+          },
+          'Output Path': {
+            type: 'string',
+            keywordArg: 'output_path',
+            description: 'Path to save CSV file',
+            value: '',
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score',
+            value: 10.0,
+          },
+          'Grade Item Name': {
+            type: 'string',
+            keywordArg: 'grade_item_name',
+            description: 'Name of the grade item in Moodle',
+            value: 'Auto Grading',
+          },
+        },
+        return: {
+          displayName: 'File Path',
+          type: 'string',
+          description: 'Path to created CSV file',
+        },
+      },
+      {
+        templateId: 'moodle.export_detailed_grading_results_to_excel',
+        displayName: 'Export Detailed Grading Results To Excel',
+        description: 'Export detailed student answers and grading breakdown to Excel',
+        iconCode: 'FaFileExcel',
+        type: 'activity',
+        keyword: 'Export Detailed Grading Results To Excel',
+        arguments: {
+          'Grading Results': {
+            type: 'list',
+            keywordArg: 'grading_results',
+            description: 'List of grading result dictionaries',
+            value: [],
+          },
+          'Output Path': {
+            type: 'string',
+            keywordArg: 'output_path',
+            description: 'Path to save Excel file',
+            value: '',
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score for percentage calculation',
+            value: 10.0,
+          },
+        },
+        return: {
+          displayName: 'File Path',
+          type: 'string',
+          description: 'Path to created Excel file with detailed results',
+        },
+      },
+      {
+        templateId: 'moodle.export_student_answers_to_csv',
+        displayName: 'Export Student Answers To CSV',
+        description: 'Export only student answers to CSV (without grading details)',
+        iconCode: 'FaFileCsv',
+        type: 'activity',
+        keyword: 'Export Student Answers To CSV',
+        arguments: {
+          'Grading Results': {
+            type: 'list',
+            keywordArg: 'grading_results',
+            description: 'List of grading result dictionaries',
+            value: [],
+          },
+          'Output Path': {
+            type: 'string',
+            keywordArg: 'output_path',
+            description: 'Path to save CSV file',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'File Path',
+          type: 'string',
+          description: 'Path to created CSV file with student answers',
+        },
+      },
       // Complete Workflows
+      {
+        templateId: 'moodle.complete_auto_grading_and_upload_workflow',
+        displayName: 'Complete Auto Grading And Upload Workflow',
+        description: 'Grade submissions and upload results to Moodle',
+        iconCode: 'FaProjectDiagram',
+        type: 'activity',
+        keyword: 'Complete Auto Grading And Upload Workflow',
+        arguments: {
+          'Submissions Folder ID': {
+            type: 'string',
+            keywordArg: 'submissions_folder_id',
+            description: 'Google Drive folder with submissions',
+            value: '',
+          },
+          'Question File ID': {
+            type: 'string',
+            keywordArg: 'question_file_id',
+            description: 'File ID of questions',
+            value: '',
+          },
+          'Answer Key File ID': {
+            type: 'string',
+            keywordArg: 'answer_key_file_id',
+            description: 'File ID of answer key',
+            value: '',
+          },
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Moodle course ID',
+            value: 0,
+          },
+          'Assignment ID': {
+            type: 'number',
+            keywordArg: 'assignment_id',
+            description: 'Moodle assignment ID',
+            value: 0,
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score',
+            value: 10.0,
+          },
+        },
+        return: {
+          displayName: 'Complete Results',
+          type: 'dictionary',
+          description: 'Grading and upload results',
+        },
+      },
+      {
+        templateId: 'moodle.grade_all_image_submissions',
+        displayName: 'Grade All Image Submissions',
+        description: 'Grade all image submissions using Gemini Vision',
+        iconCode: 'FaImages',
+        type: 'activity',
+        keyword: 'Grade All Image Submissions',
+        arguments: {
+          'Submissions Folder ID': {
+            type: 'string',
+            keywordArg: 'submissions_folder_id',
+            description: 'Google Drive folder with image submissions',
+            value: '',
+          },
+          'Question File ID': {
+            type: 'string',
+            keywordArg: 'question_file_id',
+            description: 'File ID of questions',
+            value: '',
+          },
+          'Answer Key File ID': {
+            type: 'string',
+            keywordArg: 'answer_key_file_id',
+            description: 'File ID of answer key',
+            value: '',
+          },
+          'Max Score': {
+            type: 'number',
+            keywordArg: 'max_score',
+            description: 'Maximum score',
+            value: 10.0,
+          },
+        },
+        return: {
+          displayName: 'Grades List',
+          type: 'list',
+          description: 'List of grades',
+        },
+      },
+      {
+        templateId: 'moodle.list_files_in_google_drive_folder',
+        displayName: 'List Files In Google Drive Folder',
+        description: 'List all files in a Google Drive folder',
+        iconCode: 'FaFolderOpen',
+        type: 'activity',
+        keyword: 'List Files In Google Drive Folder',
+        arguments: {
+          'Folder ID': {
+            type: 'string',
+            keywordArg: 'folder_id',
+            description: 'Google Drive folder ID',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'Files List',
+          type: 'list',
+          description: 'List of files with id, name, mimeType',
+        },
+      },
       {
         templateId: 'moodle.complete_bulk_enrollment_workflow',
         displayName: 'Complete Bulk Enrollment Workflow',
         description: 'Download Excel from Drive, create students and courses',
-        iconCode: 'FaProjectDiagram',
+        iconCode: 'FaUsersCog',
         type: 'activity',
         keyword: 'Complete Bulk Enrollment Workflow',
         arguments: {
@@ -2588,6 +3127,220 @@ export const ActivityPackages = [
           displayName: 'Workflow Summary',
           type: 'dictionary',
           description: 'Complete workflow execution summary',
+        },
+      },
+      // Grading and Reporting
+      {
+        templateId: 'moodle.get_course_grades',
+        displayName: 'Get Course Grades',
+        description: 'Get all student grades in a course',
+        iconCode: 'FaChartBar',
+        type: 'activity',
+        keyword: 'Get Course Grades',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Grades List',
+          type: 'list',
+          description: 'List of grade dictionaries with student info and grades',
+        },
+      },
+      {
+        templateId: 'moodle.get_assignment_submissions',
+        displayName: 'Get Assignment Submissions',
+        description: 'Get all student submissions for an assignment',
+        iconCode: 'FaFileAlt',
+        type: 'activity',
+        keyword: 'Get Assignment Submissions',
+        arguments: {
+          'Assignment ID': {
+            type: 'number',
+            keywordArg: 'assignment_id',
+            description: 'Assignment instance ID',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Submissions List',
+          type: 'list',
+          description: 'List of submission dictionaries',
+        },
+      },
+      {
+        templateId: 'moodle.get_assignment_grades',
+        displayName: 'Get Assignment Grades',
+        description: 'Get grades for all students in an assignment',
+        iconCode: 'FaGraduationCap',
+        type: 'activity',
+        keyword: 'Get Assignment Grades',
+        arguments: {
+          'Assignment ID': {
+            type: 'number',
+            keywordArg: 'assignment_id',
+            description: 'Assignment instance ID',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Grades List',
+          type: 'list',
+          description: 'List of grade dictionaries with username, fullname, grade',
+        },
+      },
+      {
+        templateId: 'moodle.get_course_enrolled_users',
+        displayName: 'Get Course Enrolled Users',
+        description: 'Get all users enrolled in a course',
+        iconCode: 'FaUsers',
+        type: 'activity',
+        keyword: 'Get Course Enrolled Users',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Users List',
+          type: 'list',
+          description: 'List of enrolled user dictionaries',
+        },
+      },
+      {
+        templateId: 'moodle.export_course_grades_to_excel',
+        displayName: 'Export Course Grades To Excel',
+        description: 'Export all course grades to Excel file',
+        iconCode: 'FaFileExcel',
+        type: 'activity',
+        keyword: 'Export Course Grades To Excel',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+          'Output Path': {
+            type: 'string',
+            keywordArg: 'output_path',
+            description: 'Path to save Excel file',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'File Path',
+          type: 'string',
+          description: 'Path to created Excel file',
+        },
+      },
+      {
+        templateId: 'moodle.export_course_grades_to_csv',
+        displayName: 'Export Course Grades To CSV',
+        description: 'Export all course grades to CSV file',
+        iconCode: 'FaFileCsv',
+        type: 'activity',
+        keyword: 'Export Course Grades To CSV',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+          'Output Path': {
+            type: 'string',
+            keywordArg: 'output_path',
+            description: 'Path to save CSV file',
+            value: '',
+          },
+        },
+        return: {
+          displayName: 'File Path',
+          type: 'string',
+          description: 'Path to created CSV file',
+        },
+      },
+      {
+        templateId: 'moodle.get_course_activity_completion',
+        displayName: 'Get Course Activity Completion',
+        description: 'Get activity completion status for course',
+        iconCode: 'FaTasks',
+        type: 'activity',
+        keyword: 'Get Course Activity Completion',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+          'User ID': {
+            type: 'number',
+            keywordArg: 'userid',
+            description: 'User ID (optional, leave 0 for all users)',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Completion Data',
+          type: 'dictionary',
+          description: 'Activity completion data',
+        },
+      },
+      {
+        templateId: 'moodle.generate_course_report',
+        displayName: 'Generate Course Report',
+        description: 'Generate comprehensive course report (grades, enrollments, submissions)',
+        iconCode: 'FaFileContract',
+        type: 'activity',
+        keyword: 'Generate Course Report',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+          'Output Directory': {
+            type: 'string',
+            keywordArg: 'output_dir',
+            description: 'Directory to save report files',
+            value: './course_reports',
+          },
+        },
+        return: {
+          displayName: 'Report Files',
+          type: 'dictionary',
+          description: 'Dictionary with paths to generated report files',
+        },
+      },
+      {
+        templateId: 'moodle.get_course_statistics',
+        displayName: 'Get Course Statistics',
+        description: 'Get comprehensive statistics about a course',
+        iconCode: 'FaChartPie',
+        type: 'activity',
+        keyword: 'Get Course Statistics',
+        arguments: {
+          'Course ID': {
+            type: 'number',
+            keywordArg: 'course_id',
+            description: 'Course ID',
+            value: 0,
+          },
+        },
+        return: {
+          displayName: 'Statistics',
+          type: 'dictionary',
+          description: 'Course statistics including student count, average grade, etc.',
         },
       },
     ],
