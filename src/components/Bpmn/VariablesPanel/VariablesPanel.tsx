@@ -27,6 +27,40 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
     initialStorage ? initialStorage.variables : []
   );
 
+  // Listen for variables-updated event from CustomModeler
+  useEffect(() => {
+    console.log('🎨 [VariablesPanel] Setting up for processID:', processID);
+    
+    const handleVariablesUpdate = (event: CustomEvent) => {
+      console.log('📢 [VariablesPanel] Received variables-updated event:', event.detail);
+      // Only refresh if the event is for this process
+      if (event.detail.processID === processID) {
+        const updatedStorage = getVariableItemFromLocalStorage(processID);
+        console.log('📦 [VariablesPanel] Updated storage from event:', updatedStorage);
+        if (updatedStorage && updatedStorage.variables) {
+          console.log('✅ [VariablesPanel] Setting variables from event:', updatedStorage.variables);
+          setVariableList(updatedStorage.variables);
+        }
+      }
+    };
+
+    // Check immediately on mount (in case event already fired)
+    const initialStorage = getVariableItemFromLocalStorage(processID);
+    console.log('🔍 [VariablesPanel] Initial storage on mount:', initialStorage);
+    if (initialStorage && initialStorage.variables && initialStorage.variables.length > 0) {
+      console.log('✅ [VariablesPanel] Setting initial variables:', initialStorage.variables);
+      setVariableList(initialStorage.variables);
+    } else {
+      console.warn('⚠️ [VariablesPanel] No variables found in localStorage');
+    }
+
+    window.addEventListener('variables-updated', handleVariablesUpdate as EventListener);
+
+    return () => {
+      window.removeEventListener('variables-updated', handleVariablesUpdate as EventListener);
+    };
+  }, [processID]);
+
   useEffect(() => {
     if (variableList.length > 0) {
       setVariableList((prevVariableList) => {
