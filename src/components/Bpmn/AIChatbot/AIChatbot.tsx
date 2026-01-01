@@ -122,6 +122,7 @@ const parseActivityId = (
     sap: "SAP MOCK",
     erpnext: "ERPNext",
     erp: "ERPNext",
+    moodle: "Moodle",
   };
 
   // Try to split the activity ID
@@ -929,6 +930,15 @@ for assistance creating a new BPMN process and assign existing activity package 
         };
         setMessages((prev) => [...prev, mappingMessage]);
 
+        // Always store mapping data for candidate selection
+        if (data.interrupt.mapping) {
+          setPendingMapping(data.interrupt.mapping);
+          setStoredMappingData(data.interrupt.mapping);
+          console.log(
+            "📝 [AIChatbot] Stored mapping for auto-assign and candidate selection"
+          );
+        }
+
         if (data.interrupt.bpmn) {
           const nodes = extractAvailableNodes(data.interrupt.bpmn);
           setAvailableNodes(nodes);
@@ -949,18 +959,6 @@ for assistance creating a new BPMN process and assign existing activity package 
                 result.activities || null,
                 automaticIds
               );
-
-              // Store mapping for auto-assign after XML is applied
-              if (
-                data.interrupt.type === "mapping_feedback" &&
-                data.interrupt.mapping
-              ) {
-                setPendingMapping(data.interrupt.mapping);
-                setStoredMappingData(data.interrupt.mapping);
-                console.log(
-                  "📝 [AIChatbot] Stored mapping for auto-assign and candidate selection"
-                );
-              }
             }
           } catch (e) {
             console.error(

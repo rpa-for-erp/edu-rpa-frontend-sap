@@ -96,16 +96,27 @@ function CustomModeler() {
     queryFn: () => processApi.getProcessByID(processID as string),
   });
 
-  const convertObjectToArray = (originalObject: OriginalObject) => {
-    return Object.entries(originalObject).map(
-      ([name, { type, isArgument, defaultValue }], index) => ({
-        id: index + 1,
-        name,
-        value: defaultValue,
-        isArgument,
-        type,
-      })
-    );
+  const convertObjectToArray = (
+    originalObject: OriginalObject | null | undefined
+  ) => {
+    // Handle null, undefined, or non-object input
+    if (!originalObject || typeof originalObject !== "object") {
+      return [];
+    }
+
+    // Handle empty object
+    const entries = Object.entries(originalObject);
+    if (entries.length === 0) {
+      return [];
+    }
+
+    return entries.map(([name, { type, isArgument, defaultValue }], index) => ({
+      id: index + 1,
+      name,
+      value: defaultValue,
+      isArgument,
+      type,
+    }));
   };
 
   // sync data from api to localStorage
@@ -139,7 +150,6 @@ function CustomModeler() {
       processID: processID,
       variables: convertObjectToArray(processDetailByID.variables),
     };
-    // console.log('Payload Storage', payloadStorage);
     const currentLocalStorageList = getLocalStorageObject(
       LocalStorage.VARIABLE_LIST
     );
@@ -156,6 +166,17 @@ function CustomModeler() {
         currentLocalStorageList
       );
     }
+
+    // Dispatch custom event to notify VariablesPanel to refresh
+    console.log(
+      "📢 [CustomModeler] Dispatching variables-updated event for:",
+      processID
+    );
+    window.dispatchEvent(
+      new CustomEvent("variables-updated", {
+        detail: { processID },
+      })
+    );
   }, [processDetailByID, processID]);
 
   const mutateSaveAll = useMutation({
