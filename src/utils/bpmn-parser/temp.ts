@@ -793,10 +793,19 @@ export function jsonToBpmnXml(
 
   // Build the BPMN XML
   let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="${definitionsId}" targetNamespace="http://bpmn.io/schema/bpmn" exporter="bpmn-js (https://demo.bpmn.io)" exporterVersion="17.0.0">
+<bpmn:definitions 
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" 
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" 
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" 
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  id="${definitionsId}" 
+  targetNamespace="http://bpmn.io/schema/bpmn"
+  exporter="edu-rpa"
+  exporterVersion="1.0">
 `;
 
-  xml += `  <bpmn:process id="${processId}" isExecutable="false">\n`;
+  xml += `  <bpmn:process id="${processId}" isExecutable="true">\n`;
 
   // Generate nodes
   nodes.forEach((node) => {

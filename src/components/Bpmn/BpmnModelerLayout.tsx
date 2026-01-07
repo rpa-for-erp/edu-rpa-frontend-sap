@@ -19,6 +19,9 @@ interface BpmnModelerLayoutProps {
   rightSidebar: ReactNode;
   bottomPanel: ReactNode;
   modelerRef?: any;
+  // SubProcess context
+  isInSubProcess?: boolean;
+  subProcessName?: string;
   // AI Chatbot props
   isChatbotOpen?: boolean;
   onToggleChatbot?: () => void;

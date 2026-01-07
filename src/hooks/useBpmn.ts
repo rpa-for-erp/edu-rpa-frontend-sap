@@ -1,24 +1,24 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   ImportXMLResult,
   ModdleElement,
   SaveXMLOptions,
-} from 'bpmn-js/lib/BaseViewer';
-import { BpmnJsReactHook } from '@/interfaces/BpmnJsReactHook';
+} from "bpmn-js/lib/BaseViewer";
+import { BpmnJsReactHook } from "@/interfaces/BpmnJsReactHook";
 //@ts-ignore
-import { BpmnModeler as IBpmnModeler } from 'bpmn-js/lib/Modeler';
-import { getActivityInProcess } from '@/utils/processService';
+import { BpmnModeler as IBpmnModeler } from "bpmn-js/lib/Modeler";
+import { getActivityInProcess } from "@/utils/processService";
 
 export const useBpmn: BpmnJsReactHook = () => {
   const [bpmnModeler, setBpmnModeler] =
     useState<ReturnType<IBpmnModeler>>(null);
 
   const getCanvas = () => {
-    return bpmnModeler.get('canvas');
+    return bpmnModeler.get("canvas");
   };
 
   const getEventBus = () => {
-    return bpmnModeler.get('eventBus');
+    return bpmnModeler.get("eventBus");
   };
 
   const importXML: (
@@ -36,18 +36,18 @@ export const useBpmn: BpmnJsReactHook = () => {
     return bpmnModeler.saveXML(options);
   };
   const getElementRegistry = () => {
-    return bpmnModeler.get('elementRegistry');
+    return bpmnModeler.get("elementRegistry");
   };
 
   const getElements = () => {
-    return bpmnModeler.get('elementRegistry').getAll();
+    return bpmnModeler.get("elementRegistry").getAll();
   };
 
   const getElementList = (processID: string) => {
     return getElements().map((item: any) => {
       const currentActivity = getActivityInProcess(processID, item.id);
       const properties = currentActivity ? currentActivity.properties : {};
-      const keyword = currentActivity ? currentActivity.keyword : '';
+      const keyword = currentActivity ? currentActivity.keyword : "";
       return {
         activityID: item.id,
         activityType: item.type,
@@ -57,30 +57,30 @@ export const useBpmn: BpmnJsReactHook = () => {
     });
   };
   const getElementById = (id: string) => {
-    return bpmnModeler.get('elementRegistry').get(id);
+    return bpmnModeler.get("elementRegistry").get(id);
   };
 
   const zoomIn = (step = 0.1) => {
-    bpmnModeler.get('zoomScroll')?.zoom(step);
+    bpmnModeler.get("zoomScroll")?.zoom(step);
   };
   const zoomOut = (step = 0.1) => {
-    bpmnModeler.get('zoomScroll')?.zoom(-step);
+    bpmnModeler.get("zoomScroll")?.zoom(-step);
   };
   const zoomFit = () => {
-    bpmnModeler.get('zoomScroll')?.zoom('fit-viewport');
+    bpmnModeler.get("zoomScroll")?.zoom("fit-viewport");
   };
   const setStyle = () => {
-    const canvas = bpmnModeler.get('canvas');
-    canvas.zoom('fit-viewport');
+    const canvas = bpmnModeler.get("canvas");
+    canvas.zoom("fit-viewport");
   };
   const addMarker = (id: string, cssClass: string) => {
-    bpmnModeler.get('canvas').addMarker(id, cssClass);
+    bpmnModeler.get("canvas").addMarker(id, cssClass);
   };
   const removeMarker = (id: string, cssClass: string) => {
-    bpmnModeler?.get('canvas').removeMarker(id, cssClass);
+    bpmnModeler?.get("canvas").removeMarker(id, cssClass);
   };
   const setColor = (elements: any, color: any) => {
-    bpmnModeler.get('modeling').setColor(elements, color);
+    bpmnModeler.get("modeling").setColor(elements, color);
   };
 
   const getBusinessObject = (id: string) => {
@@ -101,6 +101,30 @@ export const useBpmn: BpmnJsReactHook = () => {
 
   const getOutgoing = (id: string) => {
     return getBusinessObject(id).outgoing;
+  };
+
+  const undo = () => {
+    const commandStack = bpmnModeler?.get("commandStack");
+    if (commandStack && commandStack.canUndo()) {
+      commandStack.undo();
+    }
+  };
+
+  const redo = () => {
+    const commandStack = bpmnModeler?.get("commandStack");
+    if (commandStack && commandStack.canRedo()) {
+      commandStack.redo();
+    }
+  };
+
+  const canUndo = () => {
+    const commandStack = bpmnModeler?.get("commandStack");
+    return commandStack ? commandStack.canUndo() : false;
+  };
+
+  const canRedo = () => {
+    const commandStack = bpmnModeler?.get("commandStack");
+    return commandStack ? commandStack.canRedo() : false;
   };
 
   return {
@@ -125,5 +149,9 @@ export const useBpmn: BpmnJsReactHook = () => {
     setAttribute,
     getIncoming,
     getOutgoing,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 };

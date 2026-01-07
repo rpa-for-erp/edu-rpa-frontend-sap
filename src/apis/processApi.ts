@@ -1,10 +1,11 @@
 import {
   CreateProcessDto,
+  CreateProcessWithAllParamsDto,
   SaveProcessDto,
   UpdateProcessDto,
-} from '@/dtos/processDto';
-import apiBase from './config';
-import { ProcessResponse } from '@/interfaces/process';
+} from "@/dtos/processDto";
+import apiBase from "./config";
+import { ProcessResponse } from "@/interfaces/process";
 
 const getAllProcess = async (limit: number, page: number) => {
   return await apiBase
@@ -82,9 +83,20 @@ const getSharedToOfProcess = async (id: string) => {
     });
 };
 
+const createProcessWithAllParams = async (
+  payload: CreateProcessWithAllParamsDto
+) => {
+  return await apiBase
+    .post(`${process.env.NEXT_PUBLIC_DEV_API}/processes/all-params`, payload)
+    .then((res: any) => {
+      return res.data;
+    });
+};
+
 const processApi = {
   getAllProcess,
   createProcess,
+  createProcessWithAllParams,
   getNumberOfProcess,
   getProcessByID,
   updateProcessByID,

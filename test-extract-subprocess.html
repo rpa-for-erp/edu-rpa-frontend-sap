@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test SubProcess Extraction</title>
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.0.0/dist/assets/diagram-js.css">
+  <link rel="stylesheet" href="https://unpkg.com/bpmn-js@17.0.0/dist/assets/bpmn-js.css">
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial; }
+    .container { display: flex; gap: 20px; }
+    .panel { flex: 1; }
+    #canvas1, #canvas2 { height: 400px; border: 1px solid #ccc; }
+    h3 { margin: 0 0 10px 0; }
+    button { padding: 10px 20px; margin: 10px 0; cursor: pointer; }
+    pre { background: #f5f5f5; padding: 10px; overflow: auto; max-height: 300px; }
+  </style>
+</head>
+<body>
+  <h2>SubProcess Extraction Test</h2>
+  
+  <button id="loadBtn">1. Load Parent Process with SubProcess</button>
+  <button id="extractBtn" disabled>2. Extract SubProcess to New Process</button>
+  
+  <div class="container">
+    <div class="panel">
+      <h3>Original Process (with SubProcess)</h3>
+      <div id="canvas1"></div>
+    </div>
+    <div class="panel">
+      <h3>Extracted Process (SubProcess Content Only)</h3>
+      <div id="canvas2"></div>
+    </div>
+  </div>
+  
+  <h3>Extracted XML:</h3>
+  <pre id="xmlOutput"></pre>
+
+  <script src="https://unpkg.com/bpmn-js@17.0.0/dist/bpmn-modeler.development.js"></script>
+  <script>
+    const modeler1 = new BpmnJS({ container: '#canvas1' });
+    const modeler2 = new BpmnJS({ container: '#canvas2' });
+
+    // Original XML with subprocess
+    const originalXML = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_test" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_parent" isExecutable="false">
+    <bpmn:startEvent id="start1" name="Start">
+      <bpmn:outgoing>Flow_start_sub</bpmn:outgoing>
+    </bpmn:startEvent>
+    
+    <bpmn:subProcess id="SubProcess_loop" name="For Each Item">
+      <bpmn:incoming>Flow_start_sub</bpmn:incoming>
+      <bpmn:outgoing>Flow_sub_end</bpmn:outgoing>
+      
+      <bpmn:startEvent id="sub_start" name="Loop Start">
+        <bpmn:outgoing>Flow_sub_start_task</bpmn:outgoing>
+      </bpmn:startEvent>
+      
+      <bpmn:serviceTask id="task1" name="Process Item">
+        <bpmn:incoming>Flow_sub_start_task</bpmn:incoming>
+        <bpmn:outgoing>Flow_task1_task2</bpmn:outgoing>
+      </bpmn:serviceTask>
+      
+      <bpmn:serviceTask id="task2" name="Save Result">
+        <bpmn:incoming>Flow_task1_task2</bpmn:incoming>
+        <bpmn:outgoing>Flow_task2_end</bpmn:outgoing>
+      </bpmn:serviceTask>
+      
+      <bpmn:endEvent id="sub_end" name="Loop End">
+        <bpmn:incoming>Flow_task2_end</bpmn:incoming>
+      </bpmn:endEvent>
+      
+      <bpmn:sequenceFlow id="Flow_sub_start_task" sourceRef="sub_start" targetRef="task1" />
+      <bpmn:sequenceFlow id="Flow_task1_task2" sourceRef="task1" targetRef="task2" />
+      <bpmn:sequenceFlow id="Flow_task2_end" sourceRef="task2" targetRef="sub_end" />
+    </bpmn:subProcess>
+    
+    <bpmn:endEvent id="end1" name="End">
+      <bpmn:incoming>Flow_sub_end</bpmn:incoming>
+    </bpmn:endEvent>
+    
+    <bpmn:sequenceFlow id="Flow_start_sub" sourceRef="start1" targetRef="SubProcess_loop" />
+    <bpmn:sequenceFlow id="Flow_sub_end" sourceRef="SubProcess_loop" targetRef="end1" />
+  </bpmn:process>
+  
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_parent">
+      <bpmndi:BPMNShape id="start1_di" bpmnElement="start1">
+        <dc:Bounds x="100" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="SubProcess_loop_di" bpmnElement="SubProcess_loop" isExpanded="true">
+        <dc:Bounds x="200" y="100" width="500" height="250" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="sub_start_di" bpmnElement="sub_start">
+        <dc:Bounds x="220" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="task1_di" bpmnElement="task1">
+        <dc:Bounds x="300" y="178" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="task2_di" bpmnElement="task2">
+        <dc:Bounds x="450" y="178" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="sub_end_di" bpmnElement="sub_end">
+        <dc:Bounds x="600" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNShape id="end1_di" bpmnElement="end1">
+        <dc:Bounds x="750" y="200" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      
+      <bpmndi:BPMNEdge id="Flow_sub_start_task_di" bpmnElement="Flow_sub_start_task">
+        <di:waypoint x="256" y="218" />
+        <di:waypoint x="300" y="218" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="Flow_task1_task2_di" bpmnElement="Flow_task1_task2">
+        <di:waypoint x="400" y="218" />
+        <di:waypoint x="450" y="218" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="Flow_task2_end_di" bpmnElement="Flow_task2_end">
+        <di:waypoint x="550" y="218" />
+        <di:waypoint x="600" y="218" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="Flow_start_sub_di" bpmnElement="Flow_start_sub">
+        <di:waypoint x="136" y="218" />
+        <di:waypoint x="200" y="218" />
+      </bpmndi:BPMNEdge>
+      
+      <bpmndi:BPMNEdge id="Flow_sub_end_di" bpmnElement="Flow_sub_end">
+        <di:waypoint x="700" y="218" />
+        <di:waypoint x="750" y="218" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+    document.getElementById('loadBtn').addEventListener('click', async () => {
+      try {
+        await modeler1.importXML(originalXML);
+        modeler1.get('canvas').zoom('fit-viewport');
+        document.getElementById('extractBtn').disabled = false;
+        console.log('✅ Parent process loaded');
+      } catch (err) {
+        console.error('❌ Error loading:', err);
+      }
+    });
+
+    document.getElementById('extractBtn').addEventListener('click', async () => {
+      try {
+        const elementRegistry = modeler1.get('elementRegistry');
+        const subprocess = elementRegistry.get('SubProcess_loop');
+        
+        if (!subprocess) {
+          alert('SubProcess not found!');
+          return;
+        }
+
+        // Extract subprocess content
+        const subProcessBO = subprocess.businessObject;
+        const flowElements = subProcessBO.flowElements || [];
+        
+        console.log('📦 SubProcess flowElements:', flowElements);
+        console.log('📊 Element count:', flowElements.length);
+        
+        // Build XML with ONLY subprocess content
+        let extractedXML = `<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_extracted" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:process id="Process_extracted" isExecutable="false">\n`;
+
+        // Add all flowElements from subprocess
+        flowElements.forEach(element => {
+          const type = element.$type.replace('bpmn:', '');
+          const name = element.name ? ` name="${element.name}"` : '';
+          
+          // Handle sequence flows differently
+          if (type === 'sequenceFlow') {
+            const sourceRef = element.sourceRef?.id || '';
+            const targetRef = element.targetRef?.id || '';
+            extractedXML += `    <bpmn:sequenceFlow id="${element.id}"${name} sourceRef="${sourceRef}" targetRef="${targetRef}" />\n`;
+            console.log(`➡️ Flow: ${sourceRef} → ${targetRef}`);
+            return;
+          }
+          
+          // Regular elements
+          extractedXML += `    <bpmn:${type} id="${element.id}"${name}>\n`;
+          
+          if (element.incoming) {
+            element.incoming.forEach(flow => {
+              extractedXML += `      <bpmn:incoming>${flow.id}</bpmn:incoming>\n`;
+            });
+          }
+          
+          if (element.outgoing) {
+            element.outgoing.forEach(flow => {
+              extractedXML += `      <bpmn:outgoing>${flow.id}</bpmn:outgoing>\n`;
+            });
+          }
+          
+          extractedXML += `    </bpmn:${type}>\n`;
+        });
+
+        extractedXML += `  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_extracted">
+    <bpmndi:BPMNPlane id="BPMNPlane_extracted" bpmnElement="Process_extracted">
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>`;
+
+        // Display extracted XML
+        document.getElementById('xmlOutput').textContent = extractedXML;
+        
+        // Load in second modeler
+        await modeler2.importXML(extractedXML);
+        modeler2.get('canvas').zoom('fit-viewport');
+        
+        console.log('✅ SubProcess extracted successfully!');
+        console.log('📝 Extracted XML has ONLY subprocess content (no parent start/end)');
+        
+      } catch (err) {
+        console.error('❌ Error extracting:', err);
+        alert('Error: ' + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
+
