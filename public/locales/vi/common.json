@@ -1,0 +1,33 @@
+{
+  "buttons": {
+    "signUp": "Đăng ký",
+    "signIn": "Đăng nhập",
+    "signOut": "Đăng xuất",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Chỉnh sửa",
+    "create": "Tạo mới",
+    "back": "Quay lại",
+    "submit": "Gửi",
+    "close": "Đóng",
+    "confirm": "Xác nhận",
+    "reset": "Đặt lại"
+  },
+  "labels": {
+    "email": "Email",
+    "password": "Mật khẩu",
+    "name": "Tên",
+    "description": "Mô tả",
+    "loading": "Đang tải...",
+    "noData": "Không có dữ liệu"
+  },
+  "messages": {
+    "welcome": "Chào mừng",
+    "error": "Đã xảy ra lỗi",
+    "success": "Thành công",
+    "pageNotFound": "Không tìm thấy trang",
+    "pageNotFoundDescription": "Trang bạn đang tìm kiếm dường như không tồn tại"
+  }
+}
+

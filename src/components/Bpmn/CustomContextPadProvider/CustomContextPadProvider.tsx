@@ -1,6 +1,6 @@
-import removeUnsupportedBpmnFunctions from '../removeTrackPad';
+import removeUnsupportedBpmnFunctions from "../removeTrackPad";
 
 export default {
-  __init__: ['CustomContextPadProvider'],
-  CustomContextPadProvider: ['type', removeUnsupportedBpmnFunctions()],
+  __init__: ["CustomContextPadProvider"],
+  CustomContextPadProvider: ["type", removeUnsupportedBpmnFunctions()],
 };

@@ -28,6 +28,8 @@ import {
   InvitationStatus,
 } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 import { MdArrowDropDown } from 'react-icons/md';
 import { COLORS } from '@/constants/colors';
 
@@ -355,3 +357,11 @@ const InvitationPage: React.FC = () => {
 };
 
 export default InvitationPage;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

@@ -52,11 +52,14 @@ import { COLORS } from '@/constants/colors';
 import workspaceApi from '@/apis/workspaceApi';
 import { Workspace } from '@/interfaces/workspace';
 import { RiArrowGoBackFill } from 'react-icons/ri';
+import LanguageSwitcher from '../LanguageSwitcher/LanguageSwitcher';
+import { useTranslation } from 'next-i18next';
 
 const privateNotiChannelPrefix = 'notification.';
 
 const Navbar = () => {
   const router = useRouter();
+  const { t } = useTranslation('navbar');
   const dispatch = useDispatch();
   const pubnub = usePubNub();
   const toast = useToast();
@@ -203,7 +206,7 @@ const Navbar = () => {
                   borderBottom={`1px solid ${COLORS.borderDivider}`}
                 >
                   <Text fontWeight="600" fontSize="15px">
-                    Switch dashboard context
+                    {t('switchDashboardContext')}
                   </Text>
                   <Box
                     onClick={(e) => {
@@ -301,7 +304,7 @@ const Navbar = () => {
                   >
                     <MdWorkspaces size={20} />
                     <Text ml="10px" fontSize="14px" fontWeight="500">
-                      Manage workspaces
+                      {t('manageWorkspaces')}
                     </Text>
                   </Flex>
 
@@ -319,7 +322,7 @@ const Navbar = () => {
                   >
                     <MdAdd size={20} />
                     <Text ml="10px" fontSize="14px" fontWeight="500">
-                      Create workspace
+                      {t('createWorkspace')}
                     </Text>
                   </Flex>
                 </Box>
@@ -330,6 +333,7 @@ const Navbar = () => {
       </Flex>
 
       <HStack spacing={{ base: '0', md: '6' }}>
+        <LanguageSwitcher />
         <NotificationMenu />
         <Flex alignItems="center" mr={8}>
           <Menu>
@@ -351,7 +355,7 @@ const Navbar = () => {
                   onClick={() => router.push('/invitation')}
                 >
                   <MdOutlinePerson size={20} />
-                  <Text ml="10px">Profile</Text>
+                  <Text ml="10px">{t('profile')}</Text>
                 </Flex>
               </MenuItem>
               {/* Invitations */}
@@ -362,7 +366,7 @@ const Navbar = () => {
                   onClick={() => router.push('/invitation')}
                 >
                   <MdMail size={20} />
-                  <Text ml="10px">Invitations</Text>
+                  <Text ml="10px">{t('invitations')}</Text>
                 </Flex>
               </MenuItem>
               <MenuDivider />
@@ -374,13 +378,12 @@ const Navbar = () => {
               >
                 <Flex align="center" justify="center">
                   <MdMail size={20} />
-                  <Text ml="10px"> Sign out</Text>
+                  <Text ml="10px">{t('signOut')}</Text>
                 </Flex>
               </MenuItem>
             </MenuList>
           </Menu>
-        </Flex>{' '}
-        sửa cho giống trong hình
+        </Flex>
       </HStack>
     </Flex>
   );

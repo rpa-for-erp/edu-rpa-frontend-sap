@@ -3,6 +3,8 @@ import VerityOTPForm from '@/components/Forms/VerifyOTPForm';
 import ProgressBar from '@/components/ProgressBar/ProgressBar';
 import { useSteps } from '@chakra-ui/react';
 import React from 'react';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export default function SignUp() {
   const steps = [
@@ -33,3 +35,11 @@ export default function SignUp() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'header'])),
+    },
+  };
+};

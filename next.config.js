@@ -29,5 +29,11 @@ const config = {
   },
 };
 
+const { i18n } = require('./next-i18next.config');
+
 require("dotenv").config({ path: `./.env.${process.env.NODE_ENV}` });
-module.exports = config;
+
+module.exports = {
+  ...config,
+  i18n,
+};

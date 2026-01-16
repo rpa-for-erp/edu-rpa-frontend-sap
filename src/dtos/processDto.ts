@@ -15,3 +15,12 @@ export interface SaveProcessDto {
   variables: Record<string, any>;
   activities: any[];
 }
+
+export interface CreateProcessWithAllParamsDto {
+  id: string;
+  name: string;
+  description: string;
+  xml: string;
+  variables: any;
+  activities: Array<any>;
+}

@@ -7,6 +7,8 @@ import { useSearchParams } from 'next/navigation';
 import { setLocalStorageObject } from '@/utils/localStorageService';
 import { LocalStorage } from '@/constants/localStorage';
 import { useToast } from '@chakra-ui/react';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export default function Login() {
   const router = useRouter();
@@ -56,3 +58,11 @@ export default function Login() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'header'])),
+    },
+  };
+};

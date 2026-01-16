@@ -6,6 +6,8 @@ import OurTeamSection from '@/components/LandingPage/OurTeam/OurTeam';
 import TestimonialHome from '@/components/LandingPage/Testimonial/Testimonial';
 import PricingHome from '@/components/LandingPage/Pricing/Pricing';
 import ContactUsHome from '@/components/LandingPage/ContactUs/ContactUs';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 const componentsToRender = [
   { id: 'hero', component: <HeroHome /> },
@@ -25,3 +27,11 @@ export default function Home() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

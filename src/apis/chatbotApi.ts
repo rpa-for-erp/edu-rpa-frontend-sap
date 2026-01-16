@@ -64,11 +64,13 @@ export interface PipelineResponse {
 export interface BpmnFeedbackRequest {
   user_decision: "approve" | "reject";
   user_feedback_text?: string;
+  selected_node_ids?: string[]; // Node IDs selected on canvas for feedback
 }
 
 export interface MappingFeedbackRequest {
   user_mapping_decision: "approve" | "reject";
   user_mapping_feedback_text?: string;
+  selected_node_ids?: string[]; // Node IDs selected on canvas for feedback
 }
 
 export type FeedbackRequest = BpmnFeedbackRequest | MappingFeedbackRequest;

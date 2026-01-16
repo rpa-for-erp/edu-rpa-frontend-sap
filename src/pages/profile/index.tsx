@@ -16,6 +16,8 @@ import userApi from '@/apis/userApi';
 import { setUser } from '@/redux/slice/userSlice';
 import { userSelector } from '@/redux/selector';
 import { useDispatch, useSelector } from 'react-redux';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 interface ProfileFormData {
   fullName: string;
@@ -162,3 +164,11 @@ const ProfilePage: React.FC = () => {
 };
 
 export default ProfilePage;
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

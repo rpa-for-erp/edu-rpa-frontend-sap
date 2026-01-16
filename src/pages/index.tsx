@@ -5,6 +5,8 @@ import OurTeamSection from "@/components/LandingPage/OurTeam/OurTeam";
 import TestimonialHome from "@/components/LandingPage/Testimonial/Testimonial";
 import PricingHome from "@/components/LandingPage/Pricing/Pricing";
 import ContactUsHome from "@/components/LandingPage/ContactUs/ContactUs";
+import { GetStaticProps } from 'next';
+import { getStaticTranslations } from '@/utils/i18n';
 
 export default function RootPage() {
   const componentsToRender = [
@@ -28,3 +30,11 @@ export default function RootPage() {
     </div>
   );
 }
+
+export const getStaticProps: GetStaticProps = async (context) => {
+  return {
+    props: {
+      ...(await getStaticTranslations(context, ['common', 'header'])),
+    },
+  };
+};

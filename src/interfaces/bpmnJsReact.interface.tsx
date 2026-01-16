@@ -1,5 +1,5 @@
-import { useBpmn } from '@/hooks/useBpmn';
-import { IElement } from './bpmn.interface';
+import { useBpmn } from "@/hooks/useBpmn";
+import { IElement } from "./bpmn.interface";
 
 export type BpmnJsReactHandle = {
   saveXml: Function;
@@ -16,10 +16,14 @@ export type BpmnJsReactHandle = {
   ) => void;
   addMarker: (id: string, cssClass: string) => void;
   removeMarker: (id: string, cssClass: string) => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 };
 
 export type BpmnJsReactProps = {
-  mode?: 'view' | 'edit';
+  mode?: "view" | "edit";
   useBpmnJsReact?: ReturnType<typeof useBpmn>;
   xml?: any;
   height?: any;

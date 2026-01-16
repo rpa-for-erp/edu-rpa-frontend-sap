@@ -29,6 +29,8 @@ import FileUploadModal from "@/components/FileStorage/FileUploadModal";
 import ConfirmModal from "@/components/ConfirmModal/ConfirmModal";
 import { ToolTipExplain } from "@/constants/description";
 import { FileMetadata } from "@/interfaces/storage";
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export default function Storage() {
   const [files, setFiles] = useState<FileMetadata[]>([]);
@@ -312,3 +314,11 @@ export default function Storage() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};

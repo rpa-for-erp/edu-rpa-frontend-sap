@@ -1,4 +1,5 @@
 import { useBpmn } from "@/hooks/useBpmn";
+import { useSubProcessContext } from "@/hooks/useSubProcessContext";
 import { BpmnJsReactHandle } from "@/interfaces/bpmnJsReact.interface";
 import { useEffect, useRef, useState } from "react";
 import BpmnJsReact from "./BpmnJsReact";
@@ -23,6 +24,14 @@ import {
 import { useRouter } from "next/router";
 import { LocalStorage } from "@/constants/localStorage";
 import { exportFile, stringifyCyclicObject } from "@/utils/common";
+import UndoRedoButtons from "./UndoRedoButtons";
+import SubProcessControls from "./SubProcessControls";
+import CreateProcessFromSubProcessModal from "./CreateProcessFromSubProcessModal";
+import {
+  hasNestedSubProcesses,
+  extractSubProcessAsProcess,
+} from "@/utils/subprocessExtractor";
+import { extractSubProcessData } from "@/utils/subprocessDataExtractor";
 
 import {
   convertToRefactoredObject,
@@ -63,6 +72,7 @@ function CustomModeler() {
   const ref = useRef<BpmnJsReactHandle>(null);
   const params = useParams();
   const bpmnReactJs = useBpmn();
+  const { isInSubProcess, subProcessName } = useSubProcessContext(bpmnReactJs);
   const toast = useToast();
   const dispatch = useDispatch();
   const processID = params.id;
@@ -77,8 +87,18 @@ function CustomModeler() {
     onOpen: onOpenPublishModal,
     onClose: onClosePublishModal,
   } = useDisclosure();
+  const {
+    isOpen: isCreateFromSubProcessOpen,
+    onOpen: onOpenCreateFromSubProcess,
+    onClose: onCloseCreateFromSubProcess,
+  } = useDisclosure();
   const [errorTrace, setErrorTrace] = useState<string>("");
   const [showRobotCode, setShowRobotCode] = useState(false);
+  const [subProcessInfo, setSubProcessInfo] = useState<{
+    name: string;
+    elementCount: number;
+    hasNested: boolean;
+  }>({ name: "", elementCount: 0, hasNested: false });
   const [activityItem, setActivityItem] = useState({
     activityID: "",
     activityName: "",
@@ -96,9 +116,11 @@ function CustomModeler() {
     queryFn: () => processApi.getProcessByID(processID as string),
   });
 
-  const convertObjectToArray = (originalObject: OriginalObject | null | undefined) => {
+  const convertObjectToArray = (
+    originalObject: OriginalObject | null | undefined
+  ) => {
     // Handle null, undefined, or non-object input
-    if (!originalObject || typeof originalObject !== 'object') {
+    if (!originalObject || typeof originalObject !== "object") {
       return [];
     }
 
@@ -108,15 +130,13 @@ function CustomModeler() {
       return [];
     }
 
-    return entries.map(
-      ([name, { type, isArgument, defaultValue }], index) => ({
-        id: index + 1,
-        name,
-        value: defaultValue,
-        isArgument,
-        type,
-      })
-    );
+    return entries.map(([name, { type, isArgument, defaultValue }], index) => ({
+      id: index + 1,
+      name,
+      value: defaultValue,
+      isArgument,
+      type,
+    }));
   };
 
   // sync data from api to localStorage
@@ -168,10 +188,15 @@ function CustomModeler() {
     }
 
     // Dispatch custom event to notify VariablesPanel to refresh
-    console.log('📢 [CustomModeler] Dispatching variables-updated event for:', processID);
-    window.dispatchEvent(new CustomEvent('variables-updated', { 
-      detail: { processID } 
-    }));
+    console.log(
+      "📢 [CustomModeler] Dispatching variables-updated event for:",
+      processID
+    );
+    window.dispatchEvent(
+      new CustomEvent("variables-updated", {
+        detail: { processID },
+      })
+    );
   }, [processDetailByID, processID]);
 
   const mutateSaveAll = useMutation({
@@ -221,9 +246,7 @@ function CustomModeler() {
           const newLocalStorage = updateLocalStorage(updatedProcess);
           setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-          console.log(
-            "📦 [CreateVersion] Synced modeler state to localStorage"
-          );
+          console.log(" [CreateVersion] synced modeler state to localStorage");
         } catch (syncError) {
           console.error("Failed to sync modeler state:", syncError);
           throw new Error(
@@ -384,7 +407,58 @@ function CustomModeler() {
     return robotCode;
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
+    // Check if in subprocess by directly checking canvas root (more reliable than state)
+    if (bpmnReactJs.bpmnModeler) {
+      const canvas = bpmnReactJs.bpmnModeler.get("canvas") as any;
+      const currentRoot = canvas.getRootElement();
+      const isCurrentlyInSubProcess =
+        currentRoot?.businessObject?.$type === "bpmn:SubProcess";
+
+      console.log("📍 Current root type:", currentRoot?.businessObject?.$type);
+      console.log(
+        "📍 Current root name:",
+        currentRoot?.businessObject?.name || currentRoot?.id
+      );
+      console.log("📍 Is in subprocess:", isCurrentlyInSubProcess);
+
+      if (isCurrentlyInSubProcess) {
+        // Check if subprocess has nested subprocesses
+        const hasNested = hasNestedSubProcesses(
+          bpmnReactJs.bpmnModeler,
+          currentRoot.id
+        );
+
+        console.log("📦 SubProcess has nested:", hasNested);
+
+        if (hasNested) {
+          // Has nested subprocess → Show warning, don't allow publish
+          console.log("⚠️ NESTED SUBPROCESS DETECTED!");
+          console.log("→ Showing warning to user...");
+
+          toast({
+            title: "Cannot Publish from Nested SubProcess",
+            description:
+              'This subprocess contains nested subprocesses. Please use "Create Process from SubProcess" button to extract it first, or go back to the main process.',
+            status: "warning",
+            position: "top-right",
+            duration: 6000,
+            isClosable: true,
+          });
+
+          console.log("╚═══════════════════════════════════════════╝\n");
+          return; // Stop here - don't continue to publish
+        }
+
+        // No nested subprocess → Continue with normal publish flow
+        console.log("✅ No nested subprocess detected");
+        console.log("→ Proceeding with normal publish flow...");
+      } else {
+        console.log("✅ In main process");
+        console.log("→ Proceeding with normal publish flow...");
+      }
+    }
+
     try {
       // Validate by trying to compile robot code (DON'T save yet)
       const result = compileRobotCodePublish(processID as string);
@@ -430,6 +504,81 @@ function CustomModeler() {
 
   const handleCreateVersion = () => {
     onOpenCreateVersion();
+  };
+
+  const handleCreateProcessFromSubProcess = async (newProcessName: string) => {
+    try {
+      if (!bpmnReactJs.bpmnModeler) {
+        throw new Error("Modeler not initialized");
+      }
+
+      const canvas = bpmnReactJs.bpmnModeler.get("canvas") as any;
+      const currentRoot = canvas.getRootElement();
+      // Extract subprocess XML
+      const extracted = await extractSubProcessAsProcess(
+        bpmnReactJs.bpmnModeler,
+        currentRoot.id
+      );
+
+      // Get activities and variables from localStorage
+      const currentProcess = getProcessFromLocalStorage(processID as string);
+      const allActivities = currentProcess?.activities || [];
+      const allVariables = currentProcess?.variables || {};
+
+      console.log("📦 Parent process data:");
+      console.log("  - Total activities:", allActivities.length);
+      console.log("  - Total variables:", Object.keys(allVariables).length);
+
+      // Filter activities and variables for subprocess
+      const subProcessData = extractSubProcessData(
+        bpmnReactJs.bpmnModeler,
+        currentRoot.id,
+        allActivities,
+        allVariables
+      );
+
+      const newProcessId = `process_${Date.now().toString(36)}`;
+
+      // Create new process with all params
+      const newProcess = await processApi.createProcessWithAllParams({
+        id: newProcessId,
+        name: newProcessName,
+        description: `Created from subprocess: ${extracted.name}`,
+        xml: extracted.xml,
+        activities: subProcessData.activities,
+        variables: subProcessData.variables,
+      });
+
+      console.log("✅ Process created successfully!");
+      console.log("  - Process ID:", newProcessId);
+      console.log("  - Activities included:", subProcessData.activities.length);
+      console.log(
+        "  - Variables included:",
+        Object.keys(subProcessData.variables).length
+      );
+      console.log("╚═══════════════════════════════════════════╝\n");
+
+      toast({
+        title: "Process Created Successfully",
+        description: `Process "${newProcessName}" has been created with ${subProcessData.activities.length} activities. You can find it in the process list.`,
+        status: "success",
+        position: "top-right",
+        duration: 5000,
+        isClosable: true,
+      });
+
+      onCloseCreateFromSubProcess();
+    } catch (error: any) {
+      console.error("Error creating process from subprocess:", error);
+      toast({
+        title: "Failed to Create Process",
+        description: error?.message || "An unexpected error occurred",
+        status: "error",
+        position: "top-right",
+        duration: 5000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleShowVersions = () => {
@@ -521,6 +670,57 @@ function CustomModeler() {
   };
 
   const handleRobotCode = async () => {
+    // Check if in subprocess by directly checking canvas root (more reliable than state)
+    if (bpmnReactJs.bpmnModeler) {
+      const canvas = bpmnReactJs.bpmnModeler.get("canvas") as any;
+      const currentRoot = canvas.getRootElement();
+      const isCurrentlyInSubProcess =
+        currentRoot?.businessObject?.$type === "bpmn:SubProcess";
+
+      console.log("📍 Current root type:", currentRoot?.businessObject?.$type);
+      console.log(
+        "📍 Current root name:",
+        currentRoot?.businessObject?.name || currentRoot?.id
+      );
+      console.log("📍 Is in subprocess:", isCurrentlyInSubProcess);
+
+      if (isCurrentlyInSubProcess) {
+        // Check if subprocess has nested subprocesses
+        const hasNested = hasNestedSubProcesses(
+          bpmnReactJs.bpmnModeler,
+          currentRoot.id
+        );
+
+        console.log("📦 SubProcess has nested:", hasNested);
+
+        if (hasNested) {
+          // Has nested subprocess → Show warning, don't allow robot code
+          console.log("⚠️ NESTED SUBPROCESS DETECTED!");
+          console.log("→ Showing warning to user...");
+
+          toast({
+            title: "Cannot Generate Robot Code from Nested SubProcess",
+            description:
+              'This subprocess contains nested subprocesses. Please use "Create Process from SubProcess" button to extract it first, or go back to the main process.',
+            status: "warning",
+            position: "top-right",
+            duration: 6000,
+            isClosable: true,
+          });
+
+          console.log("╚═══════════════════════════════════════════╝\n");
+          return; // Stop here - don't continue to compile
+        }
+
+        // No nested subprocess → Continue with normal robot code flow
+        console.log("✅ No nested subprocess detected");
+        console.log("→ Proceeding with normal robot code compilation...");
+      } else {
+        console.log("✅ In main process");
+        console.log("→ Proceeding with normal robot code compilation...");
+      }
+    }
+
     // Sync XML and activities from modeler to localStorage before compiling
     // This ensures we're parsing the latest state, not stale data
     if (bpmnReactJs.bpmnModeler) {
@@ -670,6 +870,20 @@ function CustomModeler() {
     >
       <BpmnJsReact mode="edit" useBpmnJsReact={bpmnReactJs} ref={ref} />
 
+      {/* SubProcess navigation controls */}
+      {bpmnReactJs.bpmnModeler && (
+        <SubProcessControls
+          bpmnReact={bpmnReactJs}
+          onCreateProcessFromSubProcess={(info) => {
+            setSubProcessInfo(info);
+            onOpenCreateFromSubProcess();
+          }}
+        />
+      )}
+
+      {/* Undo/Redo buttons */}
+      {bpmnReactJs.bpmnModeler && <UndoRedoButtons bpmnReact={bpmnReactJs} />}
+
       {/* Hidden components for legacy functionality */}
       {bpmnReactJs.bpmnModeler && (
         <ModelerSideBar
@@ -716,6 +930,16 @@ function CustomModeler() {
           onClose={onClosePublishModal}
         />
       </Modal>
+
+      {/* Create Process from SubProcess Modal */}
+      <CreateProcessFromSubProcessModal
+        isOpen={isCreateFromSubProcessOpen}
+        onClose={onCloseCreateFromSubProcess}
+        onConfirm={handleCreateProcessFromSubProcess}
+        subProcessName={subProcessInfo.name}
+        elementCount={subProcessInfo.elementCount}
+        hasNestedSubProcesses={subProcessInfo.hasNested}
+      />
     </BpmnModelerLayout>
   );
 }

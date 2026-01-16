@@ -22,6 +22,8 @@ import ConnectionTable from '@/components/Connection/ConnectionTable';
 import CreateNewConnectionModal from '@/components/Connection/CreateNewConnectionModal';
 import _ from 'lodash';
 import { ToolTipExplain } from '@/constants/description';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 export default function Service() {
   const router = useRouter();
@@ -183,3 +185,11 @@ export default function Service() {
     </div>
   );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+    },
+  };
+};
