@@ -116,18 +116,19 @@ export default function WorkspaceStudio() {
 
   const syncBackendToLocalStorage = () => {
     return (
-      allProcess &&
-      allProcess?.map((item: any) => {
-        return {
-          processID: item.id,
-          processName: item.name,
-          processDesc: item.description,
-          xml: "",
-          activities: [],
-          variables: [],
-          sharedByUser: item.sharedByUser,
-        };
-      })
+      allProcess && Array.isArray(allProcess)
+        ? allProcess.map((item: any) => {
+            return {
+              processID: item.id,
+              processName: item.name,
+              processDesc: item.description,
+              xml: "",
+              activities: [],
+              variables: [],
+              sharedByUser: item.sharedByUser,
+            };
+          })
+        : []
     );
   };
 
@@ -166,20 +167,21 @@ export default function WorkspaceStudio() {
   };
 
   const formatData =
-    allProcess &&
-    allProcess?.map((item: any) => {
-      return {
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        sharedBy: item.sharedByUser ? item.sharedByUser.name : "me",
-        last_modified: formatDateTime(item.updatedAt),
-        last_modified_timestamp: new Date(item.updatedAt).getTime(),
-        version: item.version,
-        status: item.status || "draft",
-        pinned: pinnedProcesses.includes(item.id),
-      };
-    });
+    allProcess && Array.isArray(allProcess)
+      ? allProcess.map((item: any) => {
+          return {
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            sharedBy: item.sharedByUser ? item.sharedByUser.name : "me",
+            last_modified: formatDateTime(item.updatedAt),
+            last_modified_timestamp: new Date(item.updatedAt).getTime(),
+            version: item.version,
+            status: item.status || "draft",
+            pinned: pinnedProcesses.includes(item.id),
+          };
+        })
+      : [];
 
   // Apply filters, search, and sort
   let filteredData = formatData ?? [];
@@ -387,7 +389,7 @@ export default function WorkspaceStudio() {
   };
 
   const handleDuplicateProcess = (processId: string) => {
-    const process = allProcess?.find((p: any) => p.id === processId);
+    const process = Array.isArray(allProcess) ? allProcess.find((p: any) => p.id === processId) : null;
     if (process) {
       setSelectedProcessId(processId);
       onDuplicateOpen();
@@ -397,7 +399,7 @@ export default function WorkspaceStudio() {
   const confirmDuplicate = () => {
     if (!selectedProcessId || !duplicateNameRef.current?.value) return;
 
-    const process = allProcess?.find((p: any) => p.id === selectedProcessId);
+    const process = Array.isArray(allProcess) ? allProcess.find((p: any) => p.id === selectedProcessId) : null;
     if (!process) return;
 
     const newProcessID = generateProcessID();
@@ -478,7 +480,7 @@ export default function WorkspaceStudio() {
   };
 
   const handleProcessSettings = (processId: string) => {
-    const process = allProcess?.find((p: any) => p.id === processId);
+    const process = Array.isArray(allProcess) ? allProcess.find((p: any) => p.id === processId) : null;
     if (process) {
       setSelectedProcessId(processId);
       onSettingsOpen();
@@ -599,7 +601,7 @@ export default function WorkspaceStudio() {
                       onChange={(e) => setOwnerFilter(e.target.value)}
                     >
                       <option value="all">All</option>
-                      {allProcess &&
+                      {allProcess && Array.isArray(allProcess) &&
                         Array.from(
                           new Set(
                             allProcess.map((p: any) =>
@@ -846,8 +848,9 @@ export default function WorkspaceStudio() {
                   <Input
                     ref={settingsNameRef}
                     defaultValue={
-                      allProcess?.find((p: any) => p.id === selectedProcessId)
-                        ?.name
+                      Array.isArray(allProcess)
+                        ? allProcess.find((p: any) => p.id === selectedProcessId)?.name
+                        : ''
                     }
                     placeholder="Process name"
                     borderColor="teal.500"
@@ -864,8 +867,9 @@ export default function WorkspaceStudio() {
                   <Input
                     ref={settingsDescRef}
                     defaultValue={
-                      allProcess?.find((p: any) => p.id === selectedProcessId)
-                        ?.description
+                      Array.isArray(allProcess)
+                        ? allProcess.find((p: any) => p.id === selectedProcessId)?.description
+                        : ''
                     }
                     placeholder="Description"
                     borderColor="teal.500"

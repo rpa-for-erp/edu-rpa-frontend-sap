@@ -1,7 +1,7 @@
 # Real-time Collaboration Design for Workspace
 
 ## Overview
-Thiết kế hệ thống cho phép nhiều users trong workspace có thể:
+Thiết kế hệ thống ch phép nhiều users trong workspace có thể:
 - Xem real-time khi có người đang edit process
 - Thấy cursor/selection của người khác
 - Nhận thông báo khi có thay đổi
