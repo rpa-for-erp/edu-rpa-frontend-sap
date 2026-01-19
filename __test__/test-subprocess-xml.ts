@@ -1,4 +1,4 @@
-import { convertJsonToBpmn } from "./src/utils/bpmn-parser/json-to-bpmn-xml.util";
+import { convertJsonToBpmn } from "../src/utils/bpmn-parser/json-to-bpmn-xml.util";
 
 const testData = {
   bpmn: {
