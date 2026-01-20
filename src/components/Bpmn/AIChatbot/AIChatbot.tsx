@@ -228,31 +228,6 @@ for assistance creating a new BPMN process and assign existing activity package 
     scrollToBottom();
   }, [messages]);
 
-  // Reset conversation when opened
-  useEffect(() => {
-    if (isOpen && !threadId) {
-      setMessages([
-        {
-          id: "welcome",
-          role: "assistant",
-          content: `Chat with the Chatbot RPA 
-for assistance creating a new BPMN process and assign existing activity package properly. For the best results:
-- Please provide your goal, the actors involved, the step-by-step actions, conditions/branches, and any systems or data used.
-- You can also mention existing activity packages so the assistant can map tasks correctly into your RPA library.`,
-          timestamp: Date.now(),
-        },
-      ]);
-      setCurrentStage("idle");
-      setCurrentInterrupt(null);
-      setFinalXml(null);
-      setFeedbackText("");
-      setSelectedNodeIds([]);
-      setSelectedNodesInfo([]);
-      setIsRejectMode(false);
-      setSimulatedLoadingStage(null);
-    }
-  }, [isOpen]);
-
   // Listen to BPMN modeler selection changes (for reject mode)
   useEffect(() => {
     if (!modelerRef?.bpmnModeler || !isRejectMode) return;
@@ -1081,23 +1056,44 @@ for assistance creating a new BPMN process and assign existing activity package 
         }, 100);
       }
 
-      const completionMessage: ChatMessage = {
-        id: `completed-${Date.now()}`,
-        role: "assistant",
-        content: `✅ Pipeline completed successfully! BPMN process has been generated and validated. You can now apply it to the canvas.`,
-        timestamp: Date.now(),
-      };
-      setMessages((prev) => [...prev, completionMessage]);
+      setMessages((prev) => {
+        // Remove any previous loading message
+        const filteredPrev = prev.filter(
+          (msg) =>
+            !msg.id.startsWith("loading-") &&
+            !/^[⚙️📝🎨🔍📦🔄✅]/.test(msg.content)
+        );
 
-      if (data.render_activities && data.render_activities.length > 0) {
-        const activitiesMessage: ChatMessage = {
-          id: `activities-${Date.now()}`,
-          role: "system",
-          content: `**Generated:**\n- XML: ✅\n- Activities: ${data.render_activities.length}\n- Ready to apply!`,
+        const newMessages = [...filteredPrev];
+
+        const completionMessage: ChatMessage = {
+          id: `completed-${Date.now()}`,
+          role: "assistant",
+          content: `✅ Pipeline completed successfully! BPMN process has been generated and validated. You can now apply it to the canvas.`,
           timestamp: Date.now(),
         };
-        setMessages((prev) => [...prev, activitiesMessage]);
-      }
+        newMessages.push(completionMessage);
+
+        if (data.render_activities && data.render_activities.length > 0) {
+          const activitiesMessage: ChatMessage = {
+            id: `activities-${Date.now()}`,
+            role: "system",
+            content: `**Generated:**\n- XML: ✅\n- Activities: ${data.render_activities.length}\n- Ready to apply!`,
+            timestamp: Date.now(),
+          };
+          newMessages.push(activitiesMessage);
+        }
+
+        const loadedMessage: ChatMessage = {
+          id: `loaded-${Date.now()}`,
+          role: "system",
+          content: "Message loaded",
+          timestamp: Date.now(),
+        };
+        newMessages.push(loadedMessage);
+
+        return newMessages;
+      });
     } else if (data.status === "running") {
       console.log("📦 [Pipeline] Running:", data);
       setCurrentStage("processing");
@@ -1150,124 +1146,89 @@ for assistance creating a new BPMN process and assign existing activity package 
       setMessages((prev) => [...prev, errorMessage]);
     }
   };
+  const updateLoadingState = (content: string, stage: string) => {
+    setSimulatedLoadingStage(stage as any);
+    setCurrentLoadingMessage(content);
+    setMessages((prev) => {
+      const lastMsg = prev[prev.length - 1];
+      const isLoader =
+        lastMsg?.id.startsWith("loading-") ||
+        (lastMsg?.role === "assistant" &&
+          /^[⚙️📝🎨🔍📦🔄✅]/.test(lastMsg.content));
+
+      if (isLoader && lastMsg.content === content) return prev;
+
+      const newMessage: ChatMessage = {
+        id: isLoader ? lastMsg.id : `loading-${Date.now()}`,
+        role: "assistant",
+        content,
+        timestamp: Date.now(),
+      };
+
+      return isLoader
+        ? [...prev.slice(0, -1), newMessage]
+        : [...prev, newMessage];
+    });
+  };
 
   const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
+    const content = inputValue.trim();
+    if (!content) return;
 
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      role: "user",
-      content: inputValue,
-      timestamp: Date.now(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
-    setCurrentStage("processing");
-    setSimulatedLoadingStage("user_input");
-    setCurrentLoadingMessage("📝 Handling user input...");
-
-    // Add loading message
-    const loadingMsg: ChatMessage = {
-      id: `loading-${Date.now()}`,
-      role: "assistant",
-      content: "📝 Handling user input...",
-      timestamp: Date.now(),
-    };
-
-    // Simulate 2s delay before generating BPMN
-    setTimeout(() => {
-      setMessages((prev) => [...prev, loadingMsg]);
-      setSimulatedLoadingStage("bpmn_generating");
-      setCurrentLoadingMessage("🎨 Generating BPMN structure...");
-
-      setMessages((prev) => {
-        const lastMsg = prev[prev.length - 1];
-        if (lastMsg && lastMsg.id.startsWith("loading-")) {
-          return [
-            ...prev.slice(0, -1),
-            {
-              ...lastMsg,
-              content: "🎨 Generating BPMN structure...",
-              timestamp: Date.now(),
-            },
-          ];
-        }
-        return [
-          ...prev,
-          {
-            id: `loading-${Date.now()}`,
-            role: "assistant",
-            content: "🎨 Generating BPMN structure...",
-            timestamp: Date.now(),
-          },
-        ];
-      });
-
-      // Then start actual pipeline
-      startPipelineMutation.mutate(inputValue);
-    }, 3000);
-
+    const timestamp = Date.now();
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `user-${timestamp}`,
+        role: "user",
+        content,
+        timestamp: timestamp,
+      },
+      {
+        id: `ack-${timestamp + 1}`,
+        role: "assistant",
+        content: `Certainly! I usually take around 50 seconds to handle your request.
+I don't always get it right, so please review the process and feel free to try again with a different prompt`,
+        timestamp: timestamp + 1,
+      },
+    ]);
     setInputValue("");
+    setCurrentStage("processing");
+
+    updateLoadingState("📝 Handling user input...", "user_input");
+
+    setTimeout(() => {
+      updateLoadingState("🎨 Generating BPMN structure...", "bpmn_generating");
+      startPipelineMutation.mutate(content);
+    }, 800);
   };
 
   const handleApproveBpmn = () => {
     if (!threadId) return;
 
-    const userMessage: ChatMessage = {
-      id: `user-approve-${Date.now()}`,
-      role: "user",
-      content: "✅ Approved BPMN structure",
-      timestamp: Date.now(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `approve-${Date.now()}`,
+        role: "user",
+        content: "✅ Approved BPMN structure",
+        timestamp: Date.now(),
+      },
+    ]);
     setCurrentStage("processing");
-    setSimulatedLoadingStage("retrieving");
-    setCurrentLoadingMessage("🔍 Retrieving activityPackage...");
 
-    // Add loading message
-    const loadingMsg: ChatMessage = {
-      id: `loading-${Date.now()}`,
-      role: "assistant",
-      content: "🔍 Retrieving activityPackage...",
-      timestamp: Date.now(),
-    };
-
+    updateLoadingState("🔍 Retrieving activityPackage...", "retrieving");
     submitFeedbackMutation.mutate({
       threadId,
       feedback: { user_decision: "approve" },
     });
-    // Simulate 3s delay before select_assign
+
     setTimeout(() => {
-      setMessages((prev) => [...prev, loadingMsg]);
-      setSimulatedLoadingStage("select_assign");
-      setCurrentLoadingMessage("📦 Select/Assign activityPackage...");
-
-      setMessages((prev) => {
-        const lastMsg = prev[prev.length - 1];
-        if (lastMsg && lastMsg.id.startsWith("loading-")) {
-          return [
-            ...prev.slice(0, -1),
-            {
-              ...lastMsg,
-              content: "📦 Select/Assign activityPackage...",
-              timestamp: Date.now(),
-            },
-          ];
-        }
-        return [
-          ...prev,
-          {
-            id: `loading-${Date.now()}`,
-            role: "assistant",
-            content: "📦 Select/Assign activityPackage...",
-            timestamp: Date.now(),
-          },
-        ];
-      });
-
-      // Then submit feedback
-    }, 3000);
+      updateLoadingState(
+        "📦 Select/Assign activityPackage...",
+        "select_assign"
+      );
+    }, 1200);
 
     setFeedbackText("");
     setIsRejectMode(false);
@@ -1550,50 +1511,102 @@ for assistance creating a new BPMN process and assign existing activity package 
       position="fixed"
       top={4}
       right={4}
-      pb={6}
-      width="500px"
-      height="650px"
+      pb={4}
+      width="520px"
+      height="680px"
       bg="white"
-      borderRadius="lg"
-      boxShadow="2xl"
+      borderRadius="2xl"
+      boxShadow="0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 128, 128, 0.1)"
       zIndex={1000}
       display="flex"
       flexDirection="column"
-      border="1px solid"
-      borderColor="gray.200"
+      overflow="hidden"
+      css={{
+        animation: "slideIn 0.3s ease-out",
+        "@keyframes slideIn": {
+          from: {
+            opacity: 0,
+            transform: "translateY(-10px) scale(0.98)",
+          },
+          to: {
+            opacity: 1,
+            transform: "translateY(0) scale(1)",
+          },
+        },
+        "@keyframes pulse": {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.5 },
+        },
+        "@keyframes bounce": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
+        "@keyframes typingDot": {
+          "0%, 60%, 100%": { transform: "translateY(0)", opacity: 0.4 },
+          "30%": { transform: "translateY(-4px)", opacity: 1 },
+        },
+      }}
     >
       {/* Header */}
       <Flex
         align="center"
         justify="space-between"
         px={4}
-        py={3}
-        borderBottom="1px solid"
-        borderColor="gray.200"
-        bg="teal.50"
-        borderTopRadius="lg"
+        py={2.5}
+        bgGradient="linear(to-r, teal.300, teal.400, cyan.300)"
+        borderTopRadius="2xl"
+        position="relative"
+        _before={{
+          content: '""',
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "1px",
+          bgGradient: "linear(to-r, transparent, whiteAlpha.400, transparent)",
+        }}
       >
-        <HStack spacing={3}>
-          <Avatar
-            size="sm"
-            bg="teal.500"
-            icon={<RiRobot2Fill size={20} color="white" />}
-          />
+        <HStack spacing={2.5}>
+          <Box
+            p={1.5}
+            bg="whiteAlpha.300"
+            borderRadius="lg"
+            backdropFilter="blur(10px)"
+            css={{
+              animation: "pulse 2s ease-in-out infinite",
+            }}
+          >
+            <Avatar
+              size="xs"
+              bg="white"
+              icon={<RiRobot2Fill size={14} color="#319795" />}
+            />
+          </Box>
           <Box>
-            <Text fontWeight="bold" fontSize="md">
+            <Text
+              fontWeight="semibold"
+              fontSize="sm"
+              color="white"
+              letterSpacing="tight"
+            >
               Chatbot RPA
             </Text>
             <Badge
-              colorScheme={
+              px={1.5}
+              py={0}
+              borderRadius="full"
+              fontSize="2xs"
+              fontWeight="medium"
+              bg={
                 currentStage === "idle"
-                  ? "gray"
+                  ? "whiteAlpha.400"
                   : currentStage === "processing"
-                  ? "yellow"
+                  ? "yellow.300"
                   : currentStage === "completed"
-                  ? "green"
-                  : "blue"
+                  ? "green.300"
+                  : "blue.300"
               }
-              fontSize="xs"
+              color={currentStage === "idle" ? "white" : "gray.700"}
             >
               {currentStage === "idle"
                 ? "Ready"
@@ -1610,14 +1623,21 @@ for assistance creating a new BPMN process and assign existing activity package 
         <HStack spacing={2}>
           <Link
             href="#"
-            fontSize="sm"
-            color="teal.600"
+            fontSize="xs"
+            color="whiteAlpha.900"
             fontWeight="medium"
-            _hover={{ textDecoration: "underline" }}
+            _hover={{ color: "white", textDecoration: "none" }}
+            transition="all 0.2s"
           >
             Docs
           </Link>
-          <CloseButton size="sm" onClick={onClose} />
+          <CloseButton
+            size="sm"
+            color="white"
+            _hover={{ bg: "whiteAlpha.300" }}
+            borderRadius="md"
+            onClick={onClose}
+          />
         </HStack>
       </Flex>
 
@@ -1627,90 +1647,163 @@ for assistance creating a new BPMN process and assign existing activity package 
         overflowY="auto"
         px={4}
         py={4}
-        spacing={4}
+        spacing={3}
         align="stretch"
-        bg="gray.50"
+        bgGradient="linear(to-b, gray.50, white)"
         css={{
           "&::-webkit-scrollbar": {
-            width: "8px",
+            width: "6px",
           },
           "&::-webkit-scrollbar-track": {
-            background: "#f1f1f1",
+            background: "transparent",
           },
           "&::-webkit-scrollbar-thumb": {
-            background: "#888",
-            borderRadius: "4px",
+            background: "linear-gradient(180deg, #81E6D9 0%, #319795 100%)",
+            borderRadius: "10px",
           },
           "&::-webkit-scrollbar-thumb:hover": {
-            background: "#555",
+            background: "linear-gradient(180deg, #4FD1C5 0%, #2C7A7B 100%)",
           },
         }}
       >
-        {messages.map((msg) => (
-          <Flex
-            key={msg.id}
-            justify={msg.role === "user" ? "flex-end" : "flex-start"}
-            width="100%"
-          >
-            {msg.role === "assistant" || msg.role === "system" ? (
-              <HStack align="start" maxW="85%" spacing={2}>
-                <Avatar
-                  size="xs"
-                  bg={msg.role === "system" ? "blue.500" : "teal.500"}
-                  icon={<RiRobot2Fill size={12} color="white" />}
-                  mt={1}
-                />
+        {messages
+          .filter((msg) => {
+            const isLoading =
+              startPipelineMutation.isPending ||
+              submitFeedbackMutation.isPending;
+            if (!isLoading) return true;
+
+            const isLoadingMessage =
+              msg.id.startsWith("loading-") ||
+              (msg.role === "assistant" &&
+                /^[⚙️📝🎨🔍📦🔄✅]/.test(msg.content));
+            return !isLoadingMessage;
+          })
+          .map((msg, index) => (
+            <Flex
+              key={msg.id}
+              justify={msg.role === "user" ? "flex-end" : "flex-start"}
+              width="100%"
+              css={{
+                animation: "fadeInUp 0.3s ease-out",
+                animationDelay: `${index * 0.05}s`,
+                animationFillMode: "backwards",
+                "@keyframes fadeInUp": {
+                  from: {
+                    opacity: 0,
+                    transform: "translateY(10px)",
+                  },
+                  to: {
+                    opacity: 1,
+                    transform: "translateY(0)",
+                  },
+                },
+              }}
+            >
+              {msg.role === "assistant" || msg.role === "system" ? (
+                <HStack align="start" maxW="88%" spacing={2}>
+                  <Box
+                    p={1}
+                    bg={msg.role === "system" ? "blue.100" : "teal.100"}
+                    borderRadius="full"
+                    flexShrink={0}
+                  >
+                    <Avatar
+                      size="xs"
+                      bg={msg.role === "system" ? "blue.500" : "teal.500"}
+                      icon={<RiRobot2Fill size={10} color="white" />}
+                    />
+                  </Box>
+                  <Box
+                    bg="white"
+                    px={4}
+                    py={3}
+                    borderRadius="2xl"
+                    borderTopLeftRadius="sm"
+                    boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
+                    border="1px solid"
+                    borderColor={
+                      msg.role === "system" ? "blue.100" : "gray.100"
+                    }
+                    transition="all 0.2s"
+                    _hover={{
+                      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+                      transform: "translateY(-1px)",
+                    }}
+                  >
+                    <Text
+                      fontSize="sm"
+                      whiteSpace="pre-wrap"
+                      color={msg.role === "system" ? "blue.700" : "gray.700"}
+                      lineHeight="1.6"
+                    >
+                      {msg.content}
+                    </Text>
+                  </Box>
+                </HStack>
+              ) : (
                 <Box
-                  bg="white"
+                  bgGradient="linear(to-r, teal.500, teal.400)"
+                  color="white"
                   px={4}
                   py={3}
-                  borderRadius="lg"
-                  boxShadow="sm"
-                  border="1px solid"
-                  borderColor="gray.200"
+                  borderRadius="2xl"
+                  borderTopRightRadius="sm"
+                  maxW="88%"
+                  boxShadow="0 2px 8px rgba(49, 151, 149, 0.3)"
+                  transition="all 0.2s"
+                  _hover={{
+                    boxShadow: "0 4px 16px rgba(49, 151, 149, 0.4)",
+                    transform: "translateY(-1px)",
+                  }}
                 >
-                  <Text
-                    fontSize="sm"
-                    whiteSpace="pre-wrap"
-                    color={msg.role === "system" ? "blue.700" : "gray.700"}
-                  >
+                  <Text fontSize="sm" whiteSpace="pre-wrap" lineHeight="1.6">
                     {msg.content}
                   </Text>
                 </Box>
-              </HStack>
-            ) : (
-              <Box
-                bg="teal.500"
-                color="white"
-                px={4}
-                py={3}
-                borderRadius="lg"
-                maxW="85%"
-                boxShadow="sm"
-              >
-                <Text fontSize="sm" whiteSpace="pre-wrap">
-                  {msg.content}
-                </Text>
-              </Box>
-            )}
-          </Flex>
-        ))}
+              )}
+            </Flex>
+          ))}
 
-        {/* Loading indicator */}
+        {/* Loading indicator with typing animation */}
         {(startPipelineMutation.isPending ||
           submitFeedbackMutation.isPending) && (
           <Flex justify="flex-start" width="100%">
             <HStack align="start" spacing={2}>
-              <Avatar
-                size="xs"
-                bg="teal.500"
-                icon={<RiRobot2Fill size={12} color="white" />}
-                mt={1}
-              />
-              <Box bg="white" px={4} py={3} borderRadius="lg" boxShadow="sm">
-                <HStack spacing={2}>
-                  <Spinner size="xs" color="teal.500" />
-                  <Text fontSize="sm" color="gray.500">
+              <Box p={1} bg="teal.100" borderRadius="full" flexShrink={0}>
+                <Avatar
+                  size="xs"
+                  bg="teal.500"
+                  icon={<RiRobot2Fill size={10} color="white" />}
+                />
+              </Box>
+              <Box
+                bg="white"
+                px={4}
+                py={3}
+                borderRadius="2xl"
+                borderTopLeftRadius="sm"
+                boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
+                border="1px solid"
+                borderColor="teal.100"
+              >
+                <HStack spacing={3}>
+                  <HStack spacing={1}>
+                    {[0, 1, 2].map((i) => (
+                      <Box
+                        key={i}
+                        w="6px"
+                        h="6px"
+                        bg="teal.400"
+                        borderRadius="full"
+                        css={{
+                          animation: "typingDot 1.4s ease-in-out infinite",
+                          animationDelay: `${i * 0.2}s`,
+                        }}
+                      />
+                    ))}
+                  </HStack>
+                  <Text fontSize="sm" color="gray.500" fontWeight="medium">
                     {currentLoadingMessage || "Processing..."}
                   </Text>
                 </HStack>
@@ -1722,21 +1815,32 @@ for assistance creating a new BPMN process and assign existing activity package 
         {/* Selected Nodes Display */}
         {isRejectMode && selectedNodeIds.length > 0 && (
           <Box
-            bg="yellow.50"
-            p={3}
-            borderRadius="md"
+            bgGradient="linear(to-r, yellow.50, orange.50)"
+            p={4}
+            borderRadius="xl"
             border="1px solid"
             borderColor="yellow.200"
+            boxShadow="0 2px 8px rgba(251, 211, 141, 0.3)"
           >
             <Text fontSize="xs" fontWeight="bold" mb={2} color="yellow.800">
               Selected Nodes for Feedback:
             </Text>
-            <HStack spacing={2} flexWrap="wrap">
+            <HStack spacing={2} flexWrap="wrap" gap={2}>
               {selectedNodeIds.map((nodeId) => {
                 const node = availableNodes.find((n) => n.id === nodeId);
                 return (
-                  <Tag key={nodeId} size="sm" colorScheme="yellow">
-                    <TagLabel>{node?.name || nodeId}</TagLabel>
+                  <Tag
+                    key={nodeId}
+                    size="sm"
+                    colorScheme="yellow"
+                    borderRadius="full"
+                    px={3}
+                    py={1}
+                    boxShadow="sm"
+                  >
+                    <TagLabel fontWeight="medium">
+                      {node?.name || nodeId}
+                    </TagLabel>
                   </Tag>
                 );
               })}
@@ -1752,30 +1856,55 @@ for assistance creating a new BPMN process and assign existing activity package 
         <Box
           px={4}
           py={3}
-          borderTop="2px solid"
-          borderColor="teal.300"
-          bg="teal.50"
+          borderTop="1px solid"
+          borderColor="teal.200"
+          bgGradient="linear(to-b, teal.50, cyan.50)"
+          css={{
+            animation: "slideUp 0.3s ease-out",
+            "@keyframes slideUp": {
+              from: { opacity: 0, transform: "translateY(10px)" },
+              to: { opacity: 1, transform: "translateY(0)" },
+            },
+          }}
         >
           <VStack spacing={3} align="stretch">
-            <HStack justify="space-between" align="start">
-              <Box flex={1}>
-                <HStack spacing={2} mb={1}>
-                  <Badge colorScheme="teal" fontSize="xs">
-                    AI Suggestion Activities
-                  </Badge>
-                  <Text fontWeight="bold" fontSize="sm" color="teal.800">
+            <HStack justify="space-between" align="center">
+              <HStack spacing={3} flex={1}>
+                <Box
+                  p={2}
+                  bg="teal.500"
+                  borderRadius="lg"
+                  boxShadow="0 2px 8px rgba(49, 151, 149, 0.3)"
+                >
+                  <RiRobot2Fill size={14} color="white" />
+                </Box>
+                <Box>
+                  <HStack spacing={2} mb={0.5}>
+                    <Badge
+                      colorScheme="teal"
+                      fontSize="xs"
+                      borderRadius="full"
+                      px={2}
+                      textTransform="none"
+                    >
+                      AI Suggestions
+                    </Badge>
+                  </HStack>
+                  <Text fontWeight="semibold" fontSize="sm" color="teal.800">
                     {selectedAutomaticNode.nodeName}
                   </Text>
-                </HStack>
-                <Text fontSize="xs" color="gray.600">
-                  {/* The system has recommended activities for this node. You can
-                  change the selection below: */}
-                </Text>
-              </Box>
+                </Box>
+              </HStack>
               <Button
                 size="xs"
-                variant="ghost"
-                colorScheme="teal"
+                variant="solid"
+                bg="white"
+                color="teal.600"
+                borderRadius="full"
+                px={3}
+                boxShadow="sm"
+                _hover={{ bg: "teal.50", transform: "scale(1.02)" }}
+                transition="all 0.2s"
                 onClick={() => setShowCandidates(!showCandidates)}
               >
                 {showCandidates ? "Hide" : "Show"}
@@ -1789,12 +1918,20 @@ for assistance creating a new BPMN process and assign existing activity package 
                 <VStack
                   spacing={2}
                   align="stretch"
-                  maxH="300px"
+                  maxH="250px"
                   overflowY="auto"
+                  pr={1}
+                  css={{
+                    "&::-webkit-scrollbar": { width: "4px" },
+                    "&::-webkit-scrollbar-track": { background: "transparent" },
+                    "&::-webkit-scrollbar-thumb": {
+                      background: "#81E6D9",
+                      borderRadius: "10px",
+                    },
+                  }}
                 >
                   {selectedAutomaticNode.mappingEntry.candidates
                     .filter((candidate: any) => {
-                      // Only show candidates with score > 0.7
                       const score = candidate.score || 0;
                       return score > 0.7;
                     })
@@ -1802,18 +1939,19 @@ for assistance creating a new BPMN process and assign existing activity package 
                       const isSelected =
                         candidate.activity_id ===
                         selectedAutomaticNode.mappingEntry.activity_id;
-
                       const score = candidate.score || 0;
 
                       return (
                         <Box
                           key={index}
                           p={3}
-                          bg={isSelected ? "teal.100" : "white"}
+                          bg={isSelected ? "white" : "whiteAlpha.700"}
                           border="2px solid"
-                          borderColor={isSelected ? "teal.500" : "gray.200"}
-                          borderRadius="md"
+                          borderColor={isSelected ? "teal.400" : "transparent"}
+                          borderRadius="xl"
                           cursor="pointer"
+                          position="relative"
+                          overflow="hidden"
                           onClick={() =>
                             handleCandidateChange(
                               selectedAutomaticNode.nodeId,
@@ -1821,50 +1959,93 @@ for assistance creating a new BPMN process and assign existing activity package 
                             )
                           }
                           _hover={{
-                            borderColor: isSelected ? "teal.600" : "teal.300",
-                            bg: isSelected ? "teal.200" : "gray.50",
+                            borderColor: "teal.300",
+                            bg: "white",
+                            transform: "translateX(4px)",
+                            boxShadow: "0 4px 12px rgba(49, 151, 149, 0.15)",
                           }}
-                          transition="all 0.2s"
+                          transition="all 0.2s ease-out"
+                          boxShadow={
+                            isSelected
+                              ? "0 4px 12px rgba(49, 151, 149, 0.2)"
+                              : "sm"
+                          }
+                          _before={
+                            isSelected
+                              ? {
+                                  content: '""',
+                                  position: "absolute",
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: "4px",
+                                  bgGradient:
+                                    "linear(to-b, teal.400, cyan.400)",
+                                  borderLeftRadius: "xl",
+                                }
+                              : undefined
+                          }
                         >
                           <HStack justify="space-between" align="start">
                             <VStack align="start" spacing={1} flex={1}>
                               <HStack>
                                 {isSelected && (
-                                  <CheckIcon color="teal.600" boxSize={3} />
+                                  <Box p={1} bg="teal.100" borderRadius="full">
+                                    <CheckIcon color="teal.600" boxSize={2.5} />
+                                  </Box>
                                 )}
                                 <Text
                                   fontSize="sm"
-                                  fontWeight={isSelected ? "bold" : "medium"}
-                                  color={isSelected ? "teal.800" : "gray.700"}
+                                  fontWeight={
+                                    isSelected ? "semibold" : "medium"
+                                  }
+                                  color={isSelected ? "teal.700" : "gray.700"}
                                 >
                                   {candidate.keyword || candidate.activity_id}
                                 </Text>
                               </HStack>
-                              <Text fontSize="xs" color="gray.500">
-                                ID: {candidate.activity_id}
+                              <Text fontSize="xs" color="gray.400">
+                                {candidate.activity_id}
                               </Text>
                               {candidate.pkg && (
                                 <Badge
                                   size="sm"
-                                  colorScheme="blue"
+                                  bg="blue.50"
+                                  color="blue.600"
                                   fontSize="xs"
+                                  borderRadius="full"
+                                  px={2}
                                 >
                                   {candidate.pkg}
                                 </Badge>
                               )}
                             </VStack>
-                            <Badge
-                              colorScheme={
+                            <Box
+                              px={2}
+                              py={1}
+                              borderRadius="full"
+                              bg={
                                 score >= 0.8
-                                  ? "green"
+                                  ? "green.100"
                                   : score >= 0.7
-                                  ? "yellow"
-                                  : "red"
+                                  ? "yellow.100"
+                                  : "red.100"
                               }
-                              fontSize="xs"
                             >
-                              {Math.round(score * 100)}%
-                            </Badge>
+                              <Text
+                                fontSize="xs"
+                                fontWeight="bold"
+                                color={
+                                  score >= 0.8
+                                    ? "green.600"
+                                    : score >= 0.7
+                                    ? "yellow.700"
+                                    : "red.600"
+                                }
+                              >
+                                {Math.round(score * 100)}%
+                              </Text>
+                            </Box>
                           </HStack>
                         </Box>
                       );
@@ -1878,19 +2059,30 @@ for assistance creating a new BPMN process and assign existing activity package 
       {/* Input Area - Unified for all stages */}
       <Box
         px={4}
-        // py={3}
-        borderTop="1px solid"
-        borderColor="gray.200"
+        py={3}
         bg="white"
-        borderBottomRadius="lg"
+        borderBottomRadius="2xl"
+        boxShadow="0 -4px 20px rgba(0, 0, 0, 0.03)"
       >
         {/* Approve/Reject Buttons - Above textarea */}
         {showFeedbackButtons && (
           <HStack spacing={3} mb={3} justify="center">
             <Button
               size="sm"
-              colorScheme="green"
+              bgGradient="linear(to-r, green.400, green.500)"
+              color="white"
               leftIcon={<CheckIcon />}
+              borderRadius="full"
+              px={5}
+              fontWeight="semibold"
+              boxShadow="0 4px 14px rgba(72, 187, 120, 0.3)"
+              _hover={{
+                bgGradient: "linear(to-r, green.500, green.600)",
+                transform: "translateY(-2px)",
+                boxShadow: "0 6px 20px rgba(72, 187, 120, 0.4)",
+              }}
+              _active={{ transform: "translateY(0)" }}
+              transition="all 0.2s"
               onClick={
                 currentStage === "bpmn_feedback"
                   ? handleApproveBpmn
@@ -1904,9 +2096,22 @@ for assistance creating a new BPMN process and assign existing activity package 
             </Button>
             <Button
               size="sm"
-              colorScheme="red"
-              variant="outline"
+              bg="white"
+              color="red.500"
+              border="2px solid"
+              borderColor="red.200"
               leftIcon={<CloseIcon />}
+              borderRadius="full"
+              px={5}
+              fontWeight="semibold"
+              _hover={{
+                bg: "red.50",
+                borderColor: "red.400",
+                transform: "translateY(-2px)",
+                boxShadow: "0 4px 14px rgba(245, 101, 101, 0.2)",
+              }}
+              _active={{ transform: "translateY(0)" }}
+              transition="all 0.2s"
               onClick={
                 currentStage === "bpmn_feedback"
                   ? handleRejectBpmn
@@ -1924,63 +2129,104 @@ for assistance creating a new BPMN process and assign existing activity package 
         {/* Reject Mode Instructions */}
         {isRejectMode && (
           <Box
-            bg="blue.50"
-            p={2}
-            borderRadius="md"
-            mb={2}
+            bgGradient="linear(to-r, blue.50, purple.50)"
+            p={3}
+            borderRadius="xl"
+            mb={3}
             border="1px solid"
             borderColor="blue.200"
+            css={{
+              animation: "fadeIn 0.3s ease-out",
+              "@keyframes fadeIn": {
+                from: { opacity: 0 },
+                to: { opacity: 1 },
+              },
+            }}
           >
-            <Text fontSize="xs" color="blue.800">
-              ⚠️ Please select node/element BPMN need feedback on the canvas,
-              then provide feedback text below.
-            </Text>
+            <HStack spacing={2}>
+              <Box p={1.5} bg="blue.100" borderRadius="lg">
+                <Text fontSize="xs">⚠️</Text>
+              </Box>
+              <Text fontSize="xs" color="blue.700" fontWeight="medium">
+                Select nodes on the canvas, then provide feedback below.
+              </Text>
+            </HStack>
           </Box>
         )}
 
         {/* Textarea - Unified input */}
-        <HStack spacing={1} align="flex-end">
-          <Textarea
-            placeholder={
-              currentStage === "idle"
-                ? "Enter a process description"
-                : isRejectMode
-                ? "Please provide feedback for selected nodes (required)"
-                : "Optional: Provide feedback if rejecting..."
-            }
-            value={currentStage === "idle" ? inputValue : feedbackText}
-            onChange={(e) => {
-              if (currentStage === "idle") {
-                setInputValue(e.target.value);
-              } else {
-                setFeedbackText(e.target.value);
+        <HStack spacing={2} align="center">
+          <Box flex={1} position="relative">
+            <Textarea
+              placeholder={
+                currentStage === "idle"
+                  ? "Describe your process workflow..."
+                  : isRejectMode
+                  ? "Provide feedback for selected nodes..."
+                  : "Optional feedback..."
               }
-            }}
-            onKeyPress={handleKeyPress}
-            size="sm"
-            bg="gray.50"
-            borderColor={isRejectMode ? "red.200" : "teal.100"}
-            _focus={{
-              borderColor: isRejectMode ? "red.500" : "teal.500",
-              boxShadow: "0 0 0 1px #319795",
-            }}
-            rows={currentStage === "idle" ? 3 : 2}
-            isDisabled={
-              (currentStage !== "idle" &&
-                currentStage !== "bpmn_feedback" &&
-                currentStage !== "mapping_feedback") ||
-              startPipelineMutation.isPending ||
-              submitFeedbackMutation.isPending ||
-              isApplying
-            }
-            isRequired={isRejectMode}
-          />
+              value={currentStage === "idle" ? inputValue : feedbackText}
+              onChange={(e) => {
+                if (currentStage === "idle") {
+                  setInputValue(e.target.value);
+                } else {
+                  setFeedbackText(e.target.value);
+                }
+              }}
+              onKeyPress={handleKeyPress}
+              size="sm"
+              bg="gray.50"
+              border="2px solid"
+              borderColor={isRejectMode ? "red.200" : "gray.200"}
+              borderRadius="xl"
+              _focus={{
+                borderColor: isRejectMode ? "red.400" : "teal.400",
+                bg: "white",
+                boxShadow: isRejectMode
+                  ? "0 0 0 3px rgba(245, 101, 101, 0.1)"
+                  : "0 0 0 3px rgba(49, 151, 149, 0.1)",
+              }}
+              _hover={{
+                borderColor: isRejectMode ? "red.300" : "gray.300",
+              }}
+              transition="all 0.2s"
+              rows={currentStage === "idle" ? 2 : 2}
+              resize="none"
+              py={3}
+              px={4}
+              fontSize="sm"
+              isDisabled={
+                (currentStage !== "idle" &&
+                  currentStage !== "bpmn_feedback" &&
+                  currentStage !== "mapping_feedback") ||
+                startPipelineMutation.isPending ||
+                submitFeedbackMutation.isPending ||
+                isApplying
+              }
+              isRequired={isRejectMode}
+            />
+          </Box>
           {currentStage === "idle" && (
             <IconButton
               aria-label="Send message"
               icon={<ArrowForwardIcon />}
-              colorScheme="teal"
+              bgGradient="linear(to-r, teal.500, teal.400)"
+              color="white"
               size="md"
+              borderRadius="xl"
+              boxShadow="0 4px 14px rgba(49, 151, 149, 0.3)"
+              _hover={{
+                bgGradient: "linear(to-r, teal.600, teal.500)",
+                transform: "translateY(-2px) scale(1.02)",
+                boxShadow: "0 6px 20px rgba(49, 151, 149, 0.4)",
+              }}
+              _active={{ transform: "translateY(0) scale(0.98)" }}
+              _disabled={{
+                bgGradient: "linear(to-r, gray.300, gray.400)",
+                cursor: "not-allowed",
+                boxShadow: "none",
+              }}
+              transition="all 0.2s"
               onClick={handleSendMessage}
               isDisabled={
                 !inputValue.trim() ||
@@ -1994,17 +2240,25 @@ for assistance creating a new BPMN process and assign existing activity package 
         </HStack>
 
         {/* Reset Chat Button */}
-        <Button
-          size="xs"
-          variant="ghost"
-          onClick={handleResetChat}
-          mt={2}
-          isDisabled={
-            startPipelineMutation.isPending || submitFeedbackMutation.isPending
-          }
-        >
-          Reset chat
-        </Button>
+        <Flex justify="center" mt={2}>
+          <Button
+            size="xs"
+            variant="ghost"
+            color="gray.400"
+            fontWeight="medium"
+            borderRadius="full"
+            px={4}
+            _hover={{ color: "gray.600", bg: "gray.100" }}
+            transition="all 0.2s"
+            onClick={handleResetChat}
+            isDisabled={
+              startPipelineMutation.isPending ||
+              submitFeedbackMutation.isPending
+            }
+          >
+            Reset conversation
+          </Button>
+        </Flex>
       </Box>
     </Box>
   );

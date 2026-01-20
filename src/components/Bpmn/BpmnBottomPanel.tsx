@@ -8,13 +8,12 @@ import {
   TabPanels,
   TabPanel,
   IconButton,
-  Collapse,
   Text,
 } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import VariablesPanel from "./VariablesPanel/VariablesPanel";
 
-interface BpmnBottomPanelProps {
+interface BpmnBottomPanelProps {  
   processID: string;
 }
 
@@ -164,14 +163,36 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
 
         <IconButton
           aria-label={isOpen ? "Collapse panel" : "Expand panel"}
-          icon={isOpen ? <ChevronDownIcon /> : <ChevronUpIcon />}
+          icon={
+            <Box
+              as="span"
+              transform={isOpen ? "rotate(180deg)" : "rotate(0deg)"}
+              transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <ChevronUpIcon />
+            </Box>
+          }
           size="sm"
           variant="ghost"
+          _hover={{ bg: "gray.100" }}
         />
       </Flex>
 
-      {/* Panel Content */}
-      <Collapse in={isOpen} animateOpacity>
+      {/* Panel Content - Custom smooth animation */}
+      <Box
+        overflow="hidden"
+        height={isOpen ? `${panelHeight}px` : "0px"}
+        opacity={isOpen ? 1 : 0}
+        transition={
+          isResizing
+            ? "none"
+            : "height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-in-out"
+        }
+        willChange="height, opacity"
+      >
         {/* Resize Handle */}
         <Box
           ref={resizeRef}
@@ -191,7 +212,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
           zIndex={10}
         />
         <Box
-          height={`${panelHeight}px`}
+          height="100%"
           overflowY="auto"
           borderTop="1px solid"
           borderColor="gray.200"
@@ -232,7 +253,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
             </TabPanels>
           </Tabs>
         </Box>
-      </Collapse>
+      </Box>
     </Box>
   );
 }

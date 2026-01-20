@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Table,
   Thead,
@@ -10,15 +10,22 @@ import {
   Input,
   Select,
   Switch,
+  IconButton,
+  Text,
+  Box,
 } from '@chakra-ui/react';
+import { AddIcon } from '@chakra-ui/icons';
 import { Variable, VariableType } from '@/types/variable';
 import { useDispatch } from 'react-redux';
 import { isSavedChange } from '@/redux/slice/bpmnSlice';
 import DynamicInputValue from './DynamicInputValue';
+import { getProcessFromLocalStorage } from '@/utils/processService';
+import { Activity } from '@/types/activity';
 
 interface VariableTableProps {
   variableList: Variable[];
   setVariableList: (value: Variable[]) => void;
+  processID?: string;
 }
 
 const DynamicVariableTable = (props: VariableTableProps) => {
@@ -39,17 +46,65 @@ const DynamicVariableTable = (props: VariableTableProps) => {
     VariableType.String
   );
 
+  // Get activities that use each variable
+  const variableUsageMap = useMemo(() => {
+    const usageMap: Record<string, string[]> = {};
+    
+    if (!props.processID) return usageMap;
+    
+    const process = getProcessFromLocalStorage(props.processID);
+    if (!process?.activities) return usageMap;
+    
+    // Check each activity's properties for variable references
+    process.activities.forEach((activity: Activity) => {
+      const activityName = activity.activityName || activity.activityID;
+      const properties = activity.properties as Record<string, any>;
+      
+      if (!properties) return;
+      
+      // Search for variable references in properties (format: ${variableName} or $variableName)
+      const searchForVariables = (obj: any, varNames: string[]) => {
+        if (typeof obj === 'string') {
+          varNames.forEach((varName) => {
+            // Check for ${varName} or $varName patterns
+            if (obj.includes(`\${${varName}}`) || obj.includes(`$${varName}`) || obj === varName) {
+              if (!usageMap[varName]) {
+                usageMap[varName] = [];
+              }
+              if (!usageMap[varName].includes(activityName)) {
+                usageMap[varName].push(activityName);
+              }
+            }
+          });
+        } else if (typeof obj === 'object' && obj !== null) {
+          Object.values(obj).forEach((value) => searchForVariables(value, varNames));
+        }
+      };
+      
+      const varNames = props.variableList.map((v) => v.name).filter(Boolean);
+      searchForVariables(properties, varNames);
+    });
+    
+    return usageMap;
+  }, [props.processID, props.variableList]);
+
   const handleAddRow = () => {
     const defaultTypeValue = defaultValue[VariableType.String] ?? '';
     const newRow: Variable = {
-      id: props.variableList.length + 1,
+      id: 1,
       name: '',
       value: defaultTypeValue,
       isArgument: false,
       type: VariableType.String,
     };
 
-    props.setVariableList([...props.variableList, newRow]);
+    // Add new row at the beginning and update all IDs
+    const updatedList = [newRow, ...props.variableList].map((row, index) => ({
+      ...row,
+      id: index + 1,
+    }));
+
+    props.setVariableList(updatedList);
     dispatch(isSavedChange(false));
   };
 
@@ -87,48 +142,57 @@ const DynamicVariableTable = (props: VariableTableProps) => {
   };
 
   return (
-    <div>
-      <Button colorScheme="teal" onClick={handleAddRow} mb={4}>
+    <Box>
+      {/* Add Variable Button */}
+      <Button
+        leftIcon={<AddIcon />}
+        size="sm"
+        colorScheme="teal"
+        variant="ghost"
+        height="26px"
+        ml={2}
+        onClick={handleAddRow}
+      
+      >
         Add Variable
       </Button>
-      <Table variant="simple">
+      <Table variant="simple" >
         <Thead>
           <Tr>
-            <Th>ID</Th>
-            <Th>Name</Th>
-            <Th>Value</Th>
-            <Th>Type</Th>
-            <Th>Is Argument</Th>
-            <Th>Actions</Th>
+            <Th py={2}>Name</Th>
+            <Th py={2}>Value</Th>
+            <Th py={2}>Type</Th>
+            <Th py={2}>Is Argument</Th>
+            <Th py={2}>Activity/Package</Th>
+            <Th py={2}>Actions</Th>
           </Tr>
         </Thead>
         <Tbody>
           {props.variableList.map((row, index) => (
             <Tr key={row.id}>
-              <Td>{row.id}</Td>
-              <Td>
+              <Td py={1.5}>
                 <Input
+                  size="sm"
                   value={row.name}
                   onChange={(e) => {
                     handleEditRow(index, 'name', e.target.value);
                   }}
                 />
               </Td>
-              <Td>
-                  <DynamicInputValue
-                    row = {row}
-                    onChange={(template: string, label? : string) => {
-                      // console.log(dataTemplate, label)
-                      handleEditRow(index, 'value', String(template));
-                      if(label) {
-                        handleEditRow(index, 'label', String(label));
-                      }
-                    }}
-                  >
-                  </DynamicInputValue>
+              <Td py={1.5}>
+                <DynamicInputValue 
+                  row={row}
+                  onChange={(template: string, label?: string) => {
+                    handleEditRow(index, 'value', String(template));
+                    if (label) {
+                      handleEditRow(index, 'label', String(label));
+                    }
+                  }}
+                />
               </Td>
-              <Td>
+              <Td py={1.5}>
                 <Select
+                  size="sm"
                   value={row.type}
                   onChange={(e) => {
                     handleTypeChange(index, e.target.value as VariableType);
@@ -144,16 +208,22 @@ const DynamicVariableTable = (props: VariableTableProps) => {
                   <option value={VariableType.DocumentTemplate}>DocumentTemplate</option>
                 </Select>
               </Td>
-              <Td>
+              <Td py={1.5}>
                 <Switch
                   colorScheme="teal"
+               
                   isChecked={row.isArgument}
                   onChange={(e) => {
                     handleEditRow(index, 'isArgument', e.target.checked);
                   }}
                 />
               </Td>
-              <Td>
+              <Td py={1.5}>
+                <Text fontSize="sm" color={variableUsageMap[row.name]?.length ? 'gray.700' : 'gray.400'}>
+                  {variableUsageMap[row.name]?.join(', ') || ''}
+                </Text>
+              </Td>
+              <Td py={1.5}>
                 <Button
                   colorScheme="red"
                   size="sm"
@@ -165,7 +235,7 @@ const DynamicVariableTable = (props: VariableTableProps) => {
           ))}
         </Tbody>
       </Table>
-    </div>
+    </Box>
   );
 };
 

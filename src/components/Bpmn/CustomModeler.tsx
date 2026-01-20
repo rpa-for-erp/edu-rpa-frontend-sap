@@ -122,20 +122,14 @@ function CustomModeler() {
   // sync data from api to localStorage
   useEffect(() => {
     if (!processDetailByID) return;
-    console.log("Process Detail By ID", processDetailByID);
-    console.log("Process Detail  XML", processDetailByID.xml);
-    console.log("Process Detail Variables", processDetailByID.variables);
-    console.log("Process Detail Activities", processDetailByID.activities);
 
     const currentprocessID = getProcessFromLocalStorage(processID as string);
-    console.log("Current Process ID", currentprocessID);
     const updateStorageByID = {
       ...currentprocessID,
       xml: processDetailByID.xml,
       variables: processDetailByID.variables,
       activities: processDetailByID.activities,
     };
-    console.log("Update Storage By ID", updateStorageByID);
     const replaceStorageSnapshot = updateProcessInProcessList(
       processID as string,
       updateStorageByID
@@ -167,11 +161,6 @@ function CustomModeler() {
       );
     }
 
-    // Dispatch custom event to notify VariablesPanel to refresh
-    console.log(
-      "📢 [CustomModeler] Dispatching variables-updated event for:",
-      processID
-    );
     window.dispatchEvent(
       new CustomEvent("variables-updated", {
         detail: { processID },
@@ -226,9 +215,6 @@ function CustomModeler() {
           const newLocalStorage = updateLocalStorage(updatedProcess);
           setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-          console.log(
-            "📦 [CreateVersion] Synced modeler state to localStorage"
-          );
         } catch (syncError) {
           console.error("Failed to sync modeler state:", syncError);
           throw new Error(
@@ -301,7 +287,6 @@ function CustomModeler() {
         const newLocalStorage = updateLocalStorage(updatedProcess);
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-        console.log("📦 [Save] Synced modeler state to localStorage");
       } catch (syncError) {
         console.error("Failed to sync modeler state:", syncError);
         toast({
@@ -343,7 +328,7 @@ function CustomModeler() {
       const bpmnParser = new BpmnParser();
       const processProperties = getProcessFromLocalStorage(processID as string);
       const variableList = getVariableItemFromLocalStorage(processID as string);
-      console.log("Process Properties", processProperties.xml);
+      // console.log("Process Properties", processProperties.xml);
       const robotCode = bpmnParser.parse(
         processProperties.xml,
         processProperties.activities,
@@ -536,11 +521,11 @@ function CustomModeler() {
           .slice(1);
 
         // Log for debugging
-        console.log("📦 [Sync] Current XML from modeler:", xmlResult.xml);
-        console.log(
-          "📦 [Sync] Current activities from modeler:",
-          activityList.map((a: any) => a.activityID)
-        );
+        // console.log("📦 [Sync] Current XML from modeler:", xmlResult.xml);
+        // console.log(
+        //   "📦 [Sync] Current activities from modeler:",
+        //   activityList.map((a: any) => a.activityID)
+        // );
 
         const currentProcess = getProcessFromLocalStorage(processID as string);
         const updatedProcess = {
@@ -551,7 +536,6 @@ function CustomModeler() {
         const newLocalStorage = updateLocalStorage(updatedProcess);
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-        console.log("📦 Synced modeler state to localStorage before compiling");
       } catch (syncError) {
         console.error("Failed to sync modeler state:", syncError);
         toast({
@@ -570,27 +554,19 @@ function CustomModeler() {
 
   // Listen to element click events
   useEffect(() => {
-    console.log("=== 🔍 CUSTOM MODELER useEffect ===");
-    console.log("bpmnReactJs", bpmnReactJs.bpmnModeler);
+
     if (!bpmnReactJs.bpmnModeler) return;
 
     const handleElementClick = (event: any) => {
-      console.log("=== 🎯 ELEMENT CLICK ===");
-      console.log("Event:", event);
+
 
       // Get element from event
       const element = event.element;
       if (!element || !element.businessObject) {
-        console.log("❌ No valid element - ignoring");
         return;
       }
 
       const eventInfo = element.businessObject;
-      console.log("✅ Clicked element:", {
-        id: eventInfo.id,
-        name: eventInfo.name,
-        type: eventInfo.$type,
-      });
 
       // Ignore sequence flows and labels
       // const ignoredTypes = ["bpmn:SequenceFlow", "label"];
@@ -606,19 +582,10 @@ function CustomModeler() {
         keyword: "",
         properties: {},
       };
-
-      console.log("📝 Setting activityItem:", currentActivity);
       setActivityItem(currentActivity);
-      console.log("✅ activityItem state updated");
-
       if (!isOpen) {
-        console.log("🔓 Opening sidebar (was closed)");
         onOpen();
-      } else {
-        console.log("ℹ️ Sidebar already open");
       }
-
-      console.log("=== END ELEMENT CLICK ===\n");
     };
 
     const handleDoubleClick = (event: any) => {
@@ -627,15 +594,7 @@ function CustomModeler() {
       }
     };
 
-    const eventBus = bpmnReactJs.bpmnModeler.get("eventBus");
-    console.log("✅ EventBus obtained:", eventBus);
-
-    // Listen to element.click instead of selection.changed
-    eventBus.on("element.click", handleElementClick);
-    eventBus.on("element.dblclick", handleDoubleClick);
-
-    console.log("✅ Events registered: element.click, element.dblclick");
-
+    const eventBus = bpmnReactJs.bpmnModeler.get("eventBus");     
     return () => {
       console.log("🧹 Cleaning up event listeners");
       eventBus.off("element.click", handleElementClick);
