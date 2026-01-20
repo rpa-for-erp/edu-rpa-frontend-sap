@@ -313,47 +313,6 @@ for assistance creating a new BPMN process and assign existing activity package 
     };
   }, [modelerRef, isRejectMode]);
 
-  // Update selectedAutomaticNode when storedMappingData changes (to maintain UI after reject/approve)
-  useEffect(() => {
-    if (!storedMappingData) return;
-
-    // Only update if there's a currently selected node
-    setSelectedAutomaticNode((prevSelected) => {
-      if (!prevSelected) return null;
-
-      // Parse mapping entries
-      const mappingEntries: any[] = Array.isArray(storedMappingData)
-        ? storedMappingData.flatMap((item: any) => Object.values(item))
-        : Object.values(storedMappingData);
-
-      // Find mapping for the currently selected node
-      const updatedMappingEntry = mappingEntries.find(
-        (entry: any) => entry?.node_id === prevSelected.nodeId
-      );
-
-      if (
-        updatedMappingEntry &&
-        updatedMappingEntry.candidates &&
-        updatedMappingEntry.candidates.length > 0
-      ) {
-        console.log(
-          `🔄 [Chatbot] Updating selected node ${prevSelected.nodeId} with new mapping data:`,
-          updatedMappingEntry
-        );
-        return {
-          ...prevSelected,
-          mappingEntry: updatedMappingEntry,
-        };
-      } else {
-        // If node no longer has candidates, clear selection
-        console.log(
-          `⚠️ [Chatbot] Node ${prevSelected.nodeId} no longer has candidates in new mapping`
-        );
-        return null;
-      }
-    });
-  }, [storedMappingData]);
-
   // Listen to BPMN modeler selection changes (for automatic node candidates)
   useEffect(() => {
     if (!modelerRef?.bpmnModeler || !storedMappingData) return;
@@ -897,12 +856,13 @@ for assistance creating a new BPMN process and assign existing activity package 
         setMessages((prev) => [...prev, bpmnMessage]);
 
         try {
-          const result = convertJsonToProcess({ bpmn: bpmnInfo });
+          const mappingData = data.state?.mapping || data.mapping;
+          const result = convertJsonToProcess({
+            bpmn: bpmnInfo,
+            mapping: mappingData,
+          });
           if (result.success && result.xml) {
-            const automaticIds = extractAutomaticNodeIds(
-              data.state?.mapping || data.mapping,
-              bpmnInfo
-            );
+            const automaticIds = extractAutomaticNodeIds(mappingData, bpmnInfo);
             void applyAutoLayoutAndSetState(
               result.xml,
               result.activities || null,
@@ -956,12 +916,14 @@ for assistance creating a new BPMN process and assign existing activity package 
         }
 
         if (data.interrupt.bpmn) {
-          // Have new BPMN - apply XML
           const nodes = extractAvailableNodes(data.interrupt.bpmn);
           setAvailableNodes(nodes);
 
           try {
-            const result = convertJsonToProcess({ bpmn: data.interrupt.bpmn });
+            const result = convertJsonToProcess({
+              bpmn: data.interrupt.bpmn,
+              mapping: data.interrupt.mapping,
+            });
             if (result.success && result.xml) {
               const automaticIds = extractAutomaticNodeIds(
                 data.interrupt.mapping,
@@ -983,19 +945,6 @@ for assistance creating a new BPMN process and assign existing activity package 
               e
             );
           }
-        } else if (
-          data.interrupt.type === "mapping_feedback" &&
-          data.interrupt.mapping
-        ) {
-          // No new BPMN but have new mapping - auto-assign activities directly
-          console.log(
-            "🔄 [AIChatbot] No new BPMN, but mapping changed - auto-assigning activities..."
-          );
-          // Small delay to ensure state is updated
-          const mappingToAssign = data.interrupt.mapping;
-          setTimeout(() => {
-            autoAssignActivities(mappingToAssign);
-          }, 100);
         }
       }
     } else if (data.status === "completed") {
@@ -1005,18 +954,12 @@ for assistance creating a new BPMN process and assign existing activity package 
       const completedMapping = data.mapping || data.state?.mapping;
       const completedBpmn = data.bpmn || data.state?.bpmn;
 
-      // Always store mapping if available
-      if (completedMapping) {
-        setStoredMappingData(completedMapping);
-        console.log(
-          "📝 [AIChatbot] Stored mapping for candidate selection (completed)"
-        );
-      }
-
       if (completedBpmn) {
-        // Have BPMN - apply XML
         try {
-          const result = convertJsonToProcess({ bpmn: completedBpmn });
+          const result = convertJsonToProcess({
+            bpmn: completedBpmn,
+            mapping: completedMapping,
+          });
           if (result.success && result.xml) {
             const automaticIds = extractAutomaticNodeIds(
               completedMapping,
@@ -1031,6 +974,10 @@ for assistance creating a new BPMN process and assign existing activity package 
             // Store mapping for auto-assign after XML is applied
             if (completedMapping) {
               setPendingMapping(completedMapping);
+              setStoredMappingData(completedMapping);
+              console.log(
+                "📝 [AIChatbot] Stored mapping for auto-assign and candidate selection (completed)"
+              );
             }
           } else {
             setFinalXml(null);
@@ -1046,14 +993,10 @@ for assistance creating a new BPMN process and assign existing activity package 
           setPendingActivities(null);
           setAutomaticNodeIds([]);
         }
-      } else if (completedMapping) {
-        // No BPMN but have mapping - auto-assign directly
-        console.log(
-          "🔄 [AIChatbot] No BPMN in completed, but have mapping - auto-assigning activities..."
-        );
-        setTimeout(() => {
-          autoAssignActivities(completedMapping);
-        }, 100);
+      } else {
+        setFinalXml(null);
+        setPendingActivities(null);
+        setAutomaticNodeIds([]);
       }
 
       setMessages((prev) => {

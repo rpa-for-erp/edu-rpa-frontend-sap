@@ -61,7 +61,47 @@ const BpmnJsModeler: ForwardRefRenderFunction<
     });
     useBpmnJsReact?.setBpmnModeler(newModeler);
     setBpmnEditor(newModeler);
-    return () => bpmnEditor?.destroy();
+
+    // Setup keyboard shortcuts for Undo/Redo
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!newModeler) return;
+
+      const commandStack = newModeler.get("commandStack") as any;
+
+      // Undo: Ctrl+Z (Windows/Linux) or Cmd+Z (Mac)
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key === "z" &&
+        !event.shiftKey
+      ) {
+        event.preventDefault();
+        if (commandStack?.canUndo()) {
+          commandStack.undo();
+        }
+        return;
+      }
+
+      // Redo: Ctrl+Y (Windows/Linux) or Cmd+Shift+Z (Mac) or Ctrl+Shift+Z
+      if (
+        ((event.ctrlKey || event.metaKey) && event.key === "y") ||
+        ((event.ctrlKey || event.metaKey) &&
+          event.shiftKey &&
+          event.key === "z")
+      ) {
+        event.preventDefault();
+        if (commandStack?.canRedo()) {
+          commandStack.redo();
+        }
+        return;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      bpmnEditor?.destroy();
+    };
   }, []);
 
   useEffect(() => {

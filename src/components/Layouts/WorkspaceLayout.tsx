@@ -28,23 +28,23 @@ const getWorkspaceSidebarItems = (workspaceId: string) => [
     name: 'Dashboard',
     icon: MdDashboard,
   },
-  // {
-  //   path: `/workspace/${workspaceId}/studio`,
-  //   name: 'Studio',
-  //   icon: RiFlowChart,
-  // },
-  // { path: `/workspace/${workspaceId}/robot`, name: 'Robot', icon: FaRobot },
-  // {
-  //   path: `/workspace/${workspaceId}/integration-service`,
-  //   name: 'Integration Service',
-  //   icon: IoIosRocket,
-  // },
-  // { path: `/workspace/${workspaceId}/storage`, name: 'Storage', icon: FaFile },
-  // {
-  //   path: `/workspace/${workspaceId}/document-template`,
-  //   name: 'Document Template',
-  //   icon: FaFileInvoice,
-  // },
+  {
+    path: `/workspace/${workspaceId}/studio`,
+    name: 'Studio',
+    icon: RiFlowChart,
+  },
+  { path: `/workspace/${workspaceId}/robot`, name: 'Robot', icon: FaRobot },
+  {
+    path: `/workspace/${workspaceId}/integration-service`,
+    name: 'Integration Service',
+    icon: IoIosRocket,
+  },
+  { path: `/workspace/${workspaceId}/storage`, name: 'Storage', icon: FaFile },
+  {
+    path: `/workspace/${workspaceId}/document-template`,
+    name: 'Document Template',
+    icon: FaFileInvoice,
+  },
   {
     path: `/workspace/${workspaceId}/members`,
     name: 'Member',
