@@ -13,14 +13,18 @@ import {
   IconButton,
   Text,
   Box,
+  Tooltip,
+  Tag,
+  TagLabel,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 import { Variable, VariableType } from '@/types/variable';
 import { useDispatch } from 'react-redux';
 import { isSavedChange } from '@/redux/slice/bpmnSlice';
 import DynamicInputValue from './DynamicInputValue';
-import { getProcessFromLocalStorage } from '@/utils/processService';
-import { Activity } from '@/types/activity';
+import { useVariableUsage, formatVariableUsage } from '@/hooks/useVariableUsage';
 
 interface VariableTableProps {
   variableList: Variable[];
@@ -46,47 +50,15 @@ const DynamicVariableTable = (props: VariableTableProps) => {
     VariableType.String
   );
 
-  // Get activities that use each variable
-  const variableUsageMap = useMemo(() => {
-    const usageMap: Record<string, string[]> = {};
-    
-    if (!props.processID) return usageMap;
-    
-    const process = getProcessFromLocalStorage(props.processID);
-    if (!process?.activities) return usageMap;
-    
-    // Check each activity's properties for variable references
-    process.activities.forEach((activity: Activity) => {
-      const activityName = activity.activityName || activity.activityID;
-      const properties = activity.properties as Record<string, any>;
-      
-      if (!properties) return;
-      
-      // Search for variable references in properties (format: ${variableName} or $variableName)
-      const searchForVariables = (obj: any, varNames: string[]) => {
-        if (typeof obj === 'string') {
-          varNames.forEach((varName) => {
-            // Check for ${varName} or $varName patterns
-            if (obj.includes(`\${${varName}}`) || obj.includes(`$${varName}`) || obj === varName) {
-              if (!usageMap[varName]) {
-                usageMap[varName] = [];
-              }
-              if (!usageMap[varName].includes(activityName)) {
-                usageMap[varName].push(activityName);
-              }
-            }
-          });
-        } else if (typeof obj === 'object' && obj !== null) {
-          Object.values(obj).forEach((value) => searchForVariables(value, varNames));
-        }
-      };
-      
-      const varNames = props.variableList.map((v) => v.name).filter(Boolean);
-      searchForVariables(properties, varNames);
-    });
-    
-    return usageMap;
-  }, [props.processID, props.variableList]);
+  // Get variable names for tracking usage
+  const variableNames = useMemo(
+    () => props.variableList.map((v) => v.name).filter(Boolean),
+    [props.variableList]
+  );
+
+  // Use the hook to track variable usage across activities
+  // This will automatically update when properties-updated event is dispatched
+  const variableUsageMap = useVariableUsage(props.processID, variableNames);
 
   const handleAddRow = () => {
     const defaultTypeValue = defaultValue[VariableType.String] ?? '';
@@ -162,7 +134,7 @@ const DynamicVariableTable = (props: VariableTableProps) => {
             <Th  py={2}>Name</Th>
             <Th py={2}>Value</Th>
             <Th py={2}>Type</Th>
-            <Th py={2}>Is Argument</Th>
+            <Th width={"150px"} py={2}>Is Argument</Th>
             <Th py={2}>Activity/Package</Th>
             <Th py={2}>Actions</Th>
           </Tr>
@@ -218,10 +190,32 @@ const DynamicVariableTable = (props: VariableTableProps) => {
                   }}
                 />
               </Td>
-              <Td py={1.5}>
-                <Text fontSize="sm" color={variableUsageMap[row.name]?.length ? 'gray.700' : 'gray.400'}>
-                  {variableUsageMap[row.name]?.join(', ') || ''}
-                </Text>
+              <Td  py={1.5} maxWidth="150px">
+                {variableUsageMap[row.name]?.length > 0 ? (
+                  <Wrap spacing={1}>
+                    {variableUsageMap[row.name].map((usage, idx) => (
+                      <WrapItem key={`${usage.activityId}-${idx}`}>
+                        <Tooltip
+                          label={`Activity: ${usage.activityName}\nPackage: ${usage.packageName || 'N/A'}`}
+                          placement="top"
+                          hasArrow
+                        >
+                          <Tag size="sm" colorScheme="teal" variant="subtle">
+                            <TagLabel fontSize="sm">
+                              {usage.activityName
+                                ? `${usage.packageName}.${usage.activityName.replaceAll(' ', '')}`
+                                : usage.packageName}
+                            </TagLabel>
+                          </Tag>
+                        </Tooltip>
+                      </WrapItem>
+                    ))}
+                  </Wrap>
+                ) : (
+                  <Text fontSize="xs" color="gray.400">
+                    -
+                  </Text>
+                )}
               </Td>
               <Td py={1.5}>
                 <Button
