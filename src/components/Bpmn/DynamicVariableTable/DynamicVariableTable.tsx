@@ -159,7 +159,7 @@ const DynamicVariableTable = (props: VariableTableProps) => {
       <Table variant="simple" >
         <Thead>
           <Tr>
-            <Th py={2}>Name</Th>
+            <Th  py={2}>Name</Th>
             <Th py={2}>Value</Th>
             <Th py={2}>Type</Th>
             <Th py={2}>Is Argument</Th>
@@ -171,7 +171,7 @@ const DynamicVariableTable = (props: VariableTableProps) => {
           {props.variableList.map((row, index) => (
             <Tr key={row.id}>
               <Td py={1.5}>
-                <Input
+                <Input 
                   size="sm"
                   value={row.name}
                   onChange={(e) => {

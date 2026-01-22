@@ -86,7 +86,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
         align="center"
         justify="space-between"
         px={4}
-        py={2}
+        py={1}
         cursor="pointer"
         onClick={() => setIsOpen(!isOpen)}
         _hover={{ bg: "gray.50" }}

@@ -88,7 +88,7 @@ const getLoadingMessage = (nodeName?: string): string => {
 };
 
 // Parse activity_id to find package and activity
-const parseActivityId = (
+const getPackageAndActivityFromActivityId = (
   activityId: string
 ): {
   packageName: string;
@@ -96,71 +96,15 @@ const parseActivityId = (
   activityTemplate: any;
 } | null => {
   if (!activityId) return null;
-
-  // Activity ID format: "package_prefix.activity_name"
-  // Examples: "gmail.send_email", "drive.upload_file", "sheet.create_spreadsheet"
-
-  // Map activity prefix to package display name
-  const prefixToPackageMap: Record<string, string> = {
-    gmail: "Gmail",
-    drive: "Google Drive",
-    google_drive: "Google Drive",
-    sheet: "Google Sheet",
-    google_sheets: "Google Sheet",
-    google_classroom: "Google Classroom",
-    google_form: "Google Form",
-    control: "Control",
-    browser_automation: "Browser automation",
-    browser: "Browser automation",
-    document_automation: "Document automation",
-    document: "Document automation",
-    data_manipulation: "Data manipulation",
-    data: "Data manipulation",
-    file_storage: "File storage",
-    file: "File storage",
-    sap_mock: "SAP MOCK",
-    sap: "SAP MOCK",
-    erpnext: "ERPNext",
-    erp: "ERPNext",
-    moodle: "Moodle",
-  };
-
-  // Try to split the activity ID
-  const parts = activityId.split(".");
-  if (parts.length < 2) return null;
-
-  const prefix = parts[0];
-  const activityName = parts.slice(1).join(".");
-
   // Find the package
-  const packageDisplayName = prefixToPackageMap[prefix];
-  if (!packageDisplayName) {
-    console.warn(`[AIChatbot] Unknown package prefix: ${prefix}`);
-    return null;
-  }
-
-  // Find the package in ActivityPackages
-  const activityPackage = ActivityPackages.find(
-    (pkg) => pkg.displayName === packageDisplayName
-  );
-
-  if (!activityPackage) {
-    console.warn(`[AIChatbot] Package not found: ${packageDisplayName}`);
-    return null;
-  }
-
   // Find the activity template by templateId
-  const activityTemplate = activityPackage.activityTemplates.find(
-    (template: any) => template.templateId === activityId
+  const activityPackage = ActivityPackages.find(
+    (pkg) => {return pkg.activityTemplates.find((template: any) => template.templateId === activityId)}
   );
-
-  if (!activityTemplate) {
-    console.warn(`[AIChatbot] Activity template not found: ${activityId}`);
-    return null;
-  }
+  const activityTemplate = activityPackage?.activityTemplates.find((template: any) => template.templateId === activityId);
 
   return {
-    packageName: packageDisplayName,
+    packageName: activityPackage?.displayName,
     activityDisplayName: activityTemplate.displayName,
     activityTemplate,
   };
@@ -542,7 +486,7 @@ for assistance creating a new BPMN process and assign existing activity package 
     );
 
     // Parse the new activity ID
-    const parsedActivity = parseActivityId(newActivityId);
+    const parsedActivity = getPackageAndActivityFromActivityId(newActivityId);
     if (!parsedActivity) {
       console.warn(
         `❌ [Chatbot] Failed to parse activity ID: ${newActivityId}`
@@ -690,7 +634,7 @@ for assistance creating a new BPMN process and assign existing activity package 
       );
 
       // Parse the activity ID to get package and activity info
-      const parsedActivity = parseActivityId(activity_id);
+      const parsedActivity = getPackageAndActivityFromActivityId(activity_id);
       if (!parsedActivity) {
         console.warn(
           `❌ [AIChatbot] Failed to parse activity ID: ${activity_id}`
@@ -945,6 +889,31 @@ for assistance creating a new BPMN process and assign existing activity package 
               e
             );
           }
+        } else if (
+
+          data.interrupt.type === "mapping_feedback" &&
+
+          data.interrupt.mapping
+
+        ) {
+
+          // No new BPMN but have new mapping - auto-assign activities directly
+
+          console.log(
+
+            "🔄 [AIChatbot] No new BPMN, but mapping changed - auto-assigning activities..."
+
+          );
+
+          // Small delay to ensure state is updated
+
+          const mappingToAssign = data.interrupt.mapping;
+
+          setTimeout(() => {
+
+            autoAssignActivities(mappingToAssign);
+
+          }, 100);
         }
       }
     } else if (data.status === "completed") {
@@ -1794,60 +1763,35 @@ for assistance creating a new BPMN process and assign existing activity package 
         <div ref={messagesEndRef} />
       </VStack>
 
-      {/* Automatic Node Candidate Selection */}
-      {selectedAutomaticNode && (
+       {/* Automatic Node Candidate Selection */}
+       {selectedAutomaticNode && (
         <Box
           px={4}
           py={3}
-          borderTop="1px solid"
-          borderColor="teal.200"
-          bgGradient="linear(to-b, teal.50, cyan.50)"
-          css={{
-            animation: "slideUp 0.3s ease-out",
-            "@keyframes slideUp": {
-              from: { opacity: 0, transform: "translateY(10px)" },
-              to: { opacity: 1, transform: "translateY(0)" },
-            },
-          }}
+          borderTop="2px solid"
+          borderColor="teal.300"
+          bg="teal.50"
         >
           <VStack spacing={3} align="stretch">
-            <HStack justify="space-between" align="center">
-              <HStack spacing={3} flex={1}>
-                <Box
-                  p={2}
-                  bg="teal.500"
-                  borderRadius="lg"
-                  boxShadow="0 2px 8px rgba(49, 151, 149, 0.3)"
-                >
-                  <RiRobot2Fill size={14} color="white" />
-                </Box>
-                <Box>
-                  <HStack spacing={2} mb={0.5}>
-                    <Badge
-                      colorScheme="teal"
-                      fontSize="xs"
-                      borderRadius="full"
-                      px={2}
-                      textTransform="none"
-                    >
-                      AI Suggestions
-                    </Badge>
-                  </HStack>
-                  <Text fontWeight="semibold" fontSize="sm" color="teal.800">
+            <HStack justify="space-between" align="start">
+              <Box flex={1}>
+                <HStack spacing={2} mb={1}>
+                  <Badge colorScheme="teal" fontSize="xs">
+                    AI Suggestion Activities
+                  </Badge>
+                  <Text fontWeight="bold" fontSize="sm" color="teal.800">
                     {selectedAutomaticNode.nodeName}
                   </Text>
-                </Box>
-              </HStack>
+                </HStack>
+                <Text fontSize="xs" color="gray.600">
+                  {/* The system has recommended activities for this node. You can
+                  change the selection below: */}
+                </Text>
+              </Box>
               <Button
                 size="xs"
-                variant="solid"
-                bg="white"
-                color="teal.600"
-                borderRadius="full"
-                px={3}
-                boxShadow="sm"
-                _hover={{ bg: "teal.50", transform: "scale(1.02)" }}
-                transition="all 0.2s"
+                variant="ghost"
+                colorScheme="teal"
                 onClick={() => setShowCandidates(!showCandidates)}
               >
                 {showCandidates ? "Hide" : "Show"}
@@ -1859,22 +1803,14 @@ for assistance creating a new BPMN process and assign existing activity package 
               selectedAutomaticNode.mappingEntry.candidates &&
               selectedAutomaticNode.mappingEntry.candidates.length > 0 && (
                 <VStack
-                  spacing={2}
+                  spacing={1.5}
                   align="stretch"
-                  maxH="250px"
+                  maxH="320px"
                   overflowY="auto"
-                  pr={1}
-                  css={{
-                    "&::-webkit-scrollbar": { width: "4px" },
-                    "&::-webkit-scrollbar-track": { background: "transparent" },
-                    "&::-webkit-scrollbar-thumb": {
-                      background: "#81E6D9",
-                      borderRadius: "10px",
-                    },
-                  }}
                 >
                   {selectedAutomaticNode.mappingEntry.candidates
                     .filter((candidate: any) => {
+                      // Only show candidates with score > 0.7
                       const score = candidate.score || 0;
                       return score > 0.7;
                     })
@@ -1882,19 +1818,18 @@ for assistance creating a new BPMN process and assign existing activity package 
                       const isSelected =
                         candidate.activity_id ===
                         selectedAutomaticNode.mappingEntry.activity_id;
+
                       const score = candidate.score || 0;
 
                       return (
                         <Box
                           key={index}
-                          p={3}
-                          bg={isSelected ? "white" : "whiteAlpha.700"}
+                          p={1.5}
+                          bg={isSelected ? "teal.100" : "white"}
                           border="2px solid"
-                          borderColor={isSelected ? "teal.400" : "transparent"}
-                          borderRadius="xl"
+                          borderColor={isSelected ? "teal.500" : "gray.200"}
+                          borderRadius="sm"
                           cursor="pointer"
-                          position="relative"
-                          overflow="hidden"
                           onClick={() =>
                             handleCandidateChange(
                               selectedAutomaticNode.nodeId,
@@ -1902,93 +1837,52 @@ for assistance creating a new BPMN process and assign existing activity package 
                             )
                           }
                           _hover={{
-                            borderColor: "teal.300",
-                            bg: "white",
-                            transform: "translateX(4px)",
-                            boxShadow: "0 4px 12px rgba(49, 151, 149, 0.15)",
+                            borderColor: isSelected ? "teal.600" : "teal.300",
+                            bg: isSelected ? "teal.200" : "gray.50",
                           }}
-                          transition="all 0.2s ease-out"
-                          boxShadow={
-                            isSelected
-                              ? "0 4px 12px rgba(49, 151, 149, 0.2)"
-                              : "sm"
-                          }
-                          _before={
-                            isSelected
-                              ? {
-                                  content: '""',
-                                  position: "absolute",
-                                  left: 0,
-                                  top: 0,
-                                  bottom: 0,
-                                  width: "4px",
-                                  bgGradient:
-                                    "linear(to-b, teal.400, cyan.400)",
-                                  borderLeftRadius: "xl",
-                                }
-                              : undefined
-                          }
+                          transition="all 0.2s"
                         >
                           <HStack justify="space-between" align="start">
                             <VStack align="start" spacing={1} flex={1}>
                               <HStack>
                                 {isSelected && (
-                                  <Box p={1} bg="teal.100" borderRadius="full">
-                                    <CheckIcon color="teal.600" boxSize={2.5} />
-                                  </Box>
+                                  <CheckIcon color="teal.600" boxSize={3} />
                                 )}
                                 <Text
                                   fontSize="sm"
-                                  fontWeight={
-                                    isSelected ? "semibold" : "medium"
-                                  }
-                                  color={isSelected ? "teal.700" : "gray.700"}
+                                  fontWeight={isSelected ? "bold" : "medium"}
+                                  color={isSelected ? "teal.800" : "gray.700"}
                                 >
                                   {candidate.keyword || candidate.activity_id}
                                 </Text>
                               </HStack>
-                              <Text fontSize="xs" color="gray.400">
-                                {candidate.activity_id}
+                              <HStack justify="space-between" align="center" width="100%">
+                              <Text fontSize="xs" color="gray.500">
+                                ID: {candidate.activity_id}
                               </Text>
                               {candidate.pkg && (
-                                <Badge
+                                <Badge 
                                   size="sm"
-                                  bg="blue.50"
-                                  color="blue.600"
+                                  colorScheme="blue"
                                   fontSize="xs"
-                                  borderRadius="full"
-                                  px={2}
                                 >
                                   {candidate.pkg}
                                 </Badge>
                               )}
+                              </HStack>
                             </VStack>
-                            <Box
-                              px={2}
-                              py={1}
-                              borderRadius="full"
-                              bg={
+                            <Badge
+                              colorScheme={
                                 score >= 0.8
-                                  ? "green.100"
+                                  ? "green"
                                   : score >= 0.7
-                                  ? "yellow.100"
-                                  : "red.100"
+                                  ? "yellow"
+                                  : "red"
                               }
+                              fontSize="xs"
                             >
-                              <Text
-                                fontSize="xs"
-                                fontWeight="bold"
-                                color={
-                                  score >= 0.8
-                                    ? "green.600"
-                                    : score >= 0.7
-                                    ? "yellow.700"
-                                    : "red.600"
-                                }
-                              >
-                                {Math.round(score * 100)}%
-                              </Text>
-                            </Box>
+                              {Math.round(score * 100)}%
+                            </Badge>
                           </HStack>
                         </Box>
                       );
@@ -1997,7 +1891,7 @@ for assistance creating a new BPMN process and assign existing activity package 
               )}
           </VStack>
         </Box>
-      )}
+      )} 
 
       {/* Input Area - Unified for all stages */}
       <Box
