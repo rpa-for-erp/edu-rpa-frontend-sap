@@ -2,10 +2,14 @@ import React from 'react';
 
 const LoadingIndicator = () => {
   return (
-    <div className="fixed top-0 left-0 w-full h-full z-50 flex justify-center items-center bg-white">
-      <div className="animate-spin rounded-full border-t-4 border-b-4 border-teal-500 h-16 w-16"></div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/70 backdrop-blur-sm animate-fadeIn">
+      <div className="relative w-16 h-16">
+        <div className="absolute inset-0 rounded-full border-4 border-teal-200"></div>
+        <div className="absolute inset-0 rounded-full border-4 border-teal-500 border-t-transparent animate-spin"></div>
+      </div>
     </div>
   );
 };
+
 
 export default LoadingIndicator;

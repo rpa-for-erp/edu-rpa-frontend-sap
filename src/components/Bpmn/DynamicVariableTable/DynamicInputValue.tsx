@@ -18,7 +18,8 @@ export default function DynamicInputValue(props: DynamicInputValueParams) {
             )
         default:
             return(
-                <Input
+                <Input 
+                    size="sm"
                     value={row.value}
                     onChange={(e) => onChange(e.target.value)}
                 />

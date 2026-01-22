@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Button, Flex } from '@chakra-ui/react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { Box } from '@chakra-ui/react';
 import DynamicVariableTable from '@/components/Bpmn/DynamicVariableTable/DynamicVariableTable';
 import { Variable } from '@/types/variable';
 import {
@@ -29,29 +29,19 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
 
   // Listen for variables-updated event from CustomModeler
   useEffect(() => {
-    console.log('🎨 [VariablesPanel] Setting up for processID:', processID);
-    
     const handleVariablesUpdate = (event: CustomEvent) => {
-      console.log('📢 [VariablesPanel] Received variables-updated event:', event.detail);
-      // Only refresh if the event is for this process
       if (event.detail.processID === processID) {
         const updatedStorage = getVariableItemFromLocalStorage(processID);
-        console.log('📦 [VariablesPanel] Updated storage from event:', updatedStorage);
         if (updatedStorage && updatedStorage.variables) {
-          console.log('✅ [VariablesPanel] Setting variables from event:', updatedStorage.variables);
           setVariableList(updatedStorage.variables);
         }
       }
     };
 
-    // Check immediately on mount (in case event already fired)
+    // Check immediately on mount
     const initialStorage = getVariableItemFromLocalStorage(processID);
-    console.log('🔍 [VariablesPanel] Initial storage on mount:', initialStorage);
     if (initialStorage && initialStorage.variables && initialStorage.variables.length > 0) {
-      console.log('✅ [VariablesPanel] Setting initial variables:', initialStorage.variables);
       setVariableList(initialStorage.variables);
-    } else {
-      console.warn('⚠️ [VariablesPanel] No variables found in localStorage');
     }
 
     window.addEventListener('variables-updated', handleVariablesUpdate as EventListener);
@@ -61,23 +51,16 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
     };
   }, [processID]);
 
-  useEffect(() => {
-    if (variableList.length > 0) {
-      setVariableList((prevVariableList) => {
-        if (prevVariableList !== variableList) {
-          return variableList;
-        }
-        return prevVariableList;
-      });
-    }
-  }, [variableList]);
-
-  const handleSave = () => {
+  // Auto-save when variableList changes
+  const saveVariables = useCallback(() => {
     const currentVariable = {
       processID: processID,
       variables: variableList,
     };
-    if (!initialStorage) {
+    
+    const existingStorage = getVariableItemFromLocalStorage(processID);
+    
+    if (!existingStorage) {
       setLocalStorageObject(LocalStorage.VARIABLE_LIST, [
         ...getLocalStorageObject(LocalStorage.VARIABLE_LIST),
         currentVariable,
@@ -85,11 +68,9 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
     } else {
       const newStorage = replaceVariableStorage(processID, currentVariable);
       setLocalStorageObject(LocalStorage.VARIABLE_LIST, newStorage);
+      
       const variableListByID = getVariableItemFromLocalStorage(processID);
-
-      setVariableList(variableListByID.variables);
       const processProperties = getProcessFromLocalStorage(processID as string);
-
       const refactoredVariables = convertToRefactoredObject(variableListByID);
 
       const updateStorageByID = {
@@ -102,18 +83,21 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
       );
       setLocalStorageObject(LocalStorage.PROCESS_LIST, replaceStorageSnapshot);
     }
-  };
+  }, [processID, variableList]);
+
+  // Auto-save when variableList changes (with debounce effect)
+  useEffect(() => {
+    if (variableList.length > 0) {
+      saveVariables();
+    }
+  }, [variableList, saveVariables]);
 
   return (
-    <Box p={4}>
-      <Flex justify="space-between" align="center" mb={4}>
-        <Button colorScheme="teal" size="sm" onClick={handleSave}>
-          Save Variables
-        </Button>
-      </Flex>
+    <Box px={3} py={2}>
       <DynamicVariableTable
         variableList={variableList}
         setVariableList={setVariableList}
+        processID={processID}
       />
     </Box>
   );
