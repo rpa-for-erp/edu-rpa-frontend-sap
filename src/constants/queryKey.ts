@@ -19,4 +19,6 @@ export const QUERY_KEY = {
   ROBOT_STATUS: 'robot-status',
   RUN_ROBOT: 'run-robot',
   STOP_ROBOT: 'stop-robot',
+  WORKSPACE_CONNECTIONS: 'workspace-connections',
+  WORKSPACE_CONNECTION_DETAIL: 'workspace-connection-detail',
 };

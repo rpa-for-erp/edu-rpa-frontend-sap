@@ -21,9 +21,10 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  workspaceId?: string;
 }
 
-const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
+const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, workspaceId }) => {
   const user = useSelector(userSelector);
   const {
     isOpen: isMoodleModalOpen,
@@ -32,16 +33,23 @@ const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess 
   } = useDisclosure();
 
   const handleCreateNewConnection = (provider: typeof providerData[0]) => {
-    // If it's Moodle, open the custom modal
     if (provider.name === AuthorizationProvider.MOODLE) {
-      onClose(); // Close the provider selection modal
-      onMoodleModalOpen(); // Open Moodle connection modal
+      onClose();
+      onMoodleModalOpen();
     } else {
-      // For OAuth providers (Google, etc.), use the existing flow
-      window.open(
-        `${process.env.NEXT_PUBLIC_DEV_API}/auth/${provider.slug}?fromUser=${user.id}`,
-        "_self"
-      );
+      if (workspaceId) {
+        // Workspace OAuth flow - use workspace-specific endpoints
+        window.open(
+          `${process.env.NEXT_PUBLIC_DEV_API}/auth/workspace/${workspaceId}/${provider.slug}?fromUser=${user.id}&reconnect=false`,
+          "_self"
+        );
+      } else {
+        // User OAuth flow - keep original behavior
+        window.open(
+          `${process.env.NEXT_PUBLIC_DEV_API}/auth/${provider.slug}?fromUser=${user.id}`,
+          "_self"
+        );
+      }
     }
   };
 
@@ -86,6 +94,7 @@ const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess 
         isOpen={isMoodleModalOpen}
         onClose={onMoodleModalClose}
         onSuccess={handleMoodleSuccess}
+        workspaceId={workspaceId}
       />
     </>
   );

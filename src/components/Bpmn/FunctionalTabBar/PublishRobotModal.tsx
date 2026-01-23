@@ -28,6 +28,7 @@ import { useEffect, useState, useRef } from "react";
 import { toastSuccess } from "@/utils/common";
 import { useRouter } from "next/router";
 import robotApi from "@/apis/robotApi";
+import workspaceApi from "@/apis/workspaceApi";
 import { BpmnParseError, BpmnParseErrorCode } from "@/utils/bpmn-parser/error";
 import { dryrun, handleCheckDryrunError } from "@/apis/robotCodeValidateApi";
 import {
@@ -76,7 +77,6 @@ export const PublishRobotModal = (props: Props) => {
     credentials: string[];
   }>(() => {
     const result = props.genRobotCode(props.processID);
-    console.log("Robot code generation result:", result);
     if (!result?.code || !result.credentials) {
       throw new BpmnParseError(BpmnParseErrorCode["Unknown"], "");
     }
@@ -91,18 +91,15 @@ export const PublishRobotModal = (props: Props) => {
 
   // Handler for publish button click
   const handlePublishClick = (option: boolean = true) => {
-    console.log("🎬 [Publish] Button clicked, resetting state...");
     setPublishClicked(option);
     setActiveStep(0);
     setError(null);
-    isExecutingRef.current = false; // Reset execution flag
+    isExecutingRef.current = false;
   };
 
   // Function to simulate API call for the current step
   const simulateAPICallForCurrentStep = async () => {
-    // Prevent duplicate calls
     if (isExecutingRef.current) {
-      console.log("⚠️ [Publish] Already executing, skipping duplicate call");
       return;
     }
 
@@ -112,34 +109,13 @@ export const PublishRobotModal = (props: Props) => {
     try {
       switch (activeStep) {
         case 0:
-          // TEMPORARY: Skip validation for faster development
-          console.log('⚠️ Skipping validation step (disabled for development)');
-          
-          // Check if code uses RPA.Moodle
-          // const codeString = JSON.stringify(result?.code);
-          // const usesMoodle = codeString.includes('RPA.Moodle');
-          
-          // if (usesMoodle) {
-          //   // Skip validation for Moodle - library not yet installed on validation server
-          //   console.log('⚠️ Skipping validation for Moodle robot');
-          //   break;
-          // }
-          
-          // const response = await dryrun(result?.code);
-          // const isErrorReponse = handleCheckDryrunError(response);
-          // if (isErrorReponse) {
-          //   throw new ValidationError("Validation Error", response);
-          // }
-          // console.log("✅ [Publish Step 0] Validation successful");
           break;
 
         case 1:
-          console.log("📋 [Publish Step 1] Checking connections...");
           let connections = await connectionApi.getConnectionsByConnectionKey(
             result.credentials.map((k: any) => k.connectionKey)
           );
 
-          // Filter out Moodle connections - they don't need refresh check
           let nonMoodleConnections = connections.filter(
             (conn) => conn.provider !== 'Moodle'
           );
@@ -167,11 +143,9 @@ export const PublishRobotModal = (props: Props) => {
               expiredConnections
             );
           }
-          console.log("✅ [Publish Step 1] Connections verified");
           break;
 
         case 2:
-          console.log("📋 [Publish Step 2] Publishing robot...");
           try {
             const publishPayload = {
               name: robotName,
@@ -180,17 +154,25 @@ export const PublishRobotModal = (props: Props) => {
               providers: result.credentials,
               triggerType: triggerType,
             };
-
-            console.log('🔍 Robot credentials:', result.credentials);
-            console.log('📤 Publishing robot with payload:', publishPayload);
             
-            await robotApi.createRobot(publishPayload);
-
-            toastSuccess(toast, "Create robot successfully!");
-            console.log("✅ [Publish Step 2] Robot created successfully");
-
-            // Redirect to robot page
-            router.push("/robot");
+            // Check if we're in workspace context
+            const workspaceId = router.query.workspaceId as string;
+            
+            if (workspaceId) {
+              // Publish to WORKSPACE
+              await workspaceApi.createWorkspaceRobot(workspaceId, publishPayload);
+              toastSuccess(toast, "Robot published to workspace successfully!");
+              
+              // Redirect to workspace robot page
+              router.push(`/workspace/${workspaceId}/robot`);
+            } else {
+              // Publish to USER (old behavior)
+              await robotApi.createRobot(publishPayload);
+              toastSuccess(toast, "Create robot successfully!");
+              
+              // Redirect to user robot page
+              router.push("/robot");
+            }
           } catch (error) {
             throw new RobotCreationError(error.message, error.response);
           }
@@ -200,16 +182,12 @@ export const PublishRobotModal = (props: Props) => {
           break;
       }
 
-      // If "API call" is successful, proceed to the next step
-      console.log(`✅ [Publish Step ${activeStep}] Moving to next step...`);
       setActiveStep((prevStep) => prevStep + 1);
     } catch (error) {
-      console.error(`❌ [Publish Step ${activeStep}] Error:`, error);
       setError(error);
     } finally {
       setLoading(false);
       isExecutingRef.current = false;
-      console.log(`🏁 [Publish Step ${activeStep}] Execution finished`);
     }
   };
 
@@ -217,20 +195,9 @@ export const PublishRobotModal = (props: Props) => {
   const max = steps.length - 1;
   const progressPercent = (activeStep / max) * 100;
 
-  // This effect will automatically simulate API call for the current step when the component mounts or when the active step changes
   useEffect(() => {
-    console.log(
-      "📊 [useEffect] Triggered - publishClicked:",
-      publishClicked,
-      "activeStep:",
-      activeStep
-    );
-
     if (publishClicked && activeStep < steps.length) {
-      console.log(`🚀 [useEffect] Triggering step ${activeStep}...`);
       simulateAPICallForCurrentStep();
-    } else if (activeStep >= steps.length) {
-      console.log("✅ [useEffect] All steps completed!");
     }
   }, [publishClicked, activeStep]);
 

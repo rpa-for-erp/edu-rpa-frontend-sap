@@ -105,7 +105,7 @@ export default function WorkspaceStudio() {
   });
 
   // TODO: update pagination
-  const limit = countProcess ?? 0;
+  const limit = countProcess ?? 20;
   const page = 1;
 
   const { data: allProcess, isLoading: isLoadingProcess } = useQuery({
@@ -168,7 +168,8 @@ export default function WorkspaceStudio() {
 
   const formatData =
     allProcess && Array.isArray(allProcess)
-      ? allProcess.map((item: any) => {
+      ? 
+      allProcess.map((item: any) => {
           return {
             id: item.id,
             name: item.name,

@@ -296,15 +296,15 @@ const getWorkspaceProcesses = async (
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes?limit=${limit}&page=${page}`
     )
-    .then((res: any) => res.data);
-};
+    .then((res: any) => res.data.data);
+};  
 
 const getWorkspaceProcessCount = async (workspaceId: string) => {
   return await apiBase
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/count`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const getWorkspaceProcessById = async (
@@ -315,7 +315,7 @@ const getWorkspaceProcessById = async (
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/${processId}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const createWorkspaceProcess = async (workspaceId: string, payload: any) => {
@@ -324,7 +324,7 @@ const createWorkspaceProcess = async (workspaceId: string, payload: any) => {
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const updateWorkspaceProcess = async (
@@ -337,7 +337,7 @@ const updateWorkspaceProcess = async (
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/${processId}`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const deleteWorkspaceProcess = async (
@@ -348,7 +348,7 @@ const deleteWorkspaceProcess = async (
     .delete(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/${processId}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const saveWorkspaceProcess = async (
@@ -361,7 +361,7 @@ const saveWorkspaceProcess = async (
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/${processId}/save`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const shareWorkspaceProcess = async (
@@ -374,7 +374,7 @@ const shareWorkspaceProcess = async (
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/${processId}/share`,
       { emails }
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const getWorkspaceProcessShared = async (
@@ -385,7 +385,7 @@ const getWorkspaceProcessShared = async (
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/processes/${processId}/shared`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 // ==================== Workspace Robot APIs ====================
@@ -398,7 +398,7 @@ const getWorkspaceRobots = async (
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots?limit=${limit}&page=${page}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const getWorkspaceRobotCount = async (workspaceId: string) => {
@@ -406,7 +406,7 @@ const getWorkspaceRobotCount = async (workspaceId: string) => {
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/count`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const getWorkspaceRobotById = async (
@@ -417,7 +417,7 @@ const getWorkspaceRobotById = async (
     .get(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const createWorkspaceRobot = async (workspaceId: string, payload: any) => {
@@ -426,7 +426,7 @@ const createWorkspaceRobot = async (workspaceId: string, payload: any) => {
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const updateWorkspaceRobot = async (
@@ -439,7 +439,7 @@ const updateWorkspaceRobot = async (
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}`,
       payload
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
 };
 
 const deleteWorkspaceRobot = async (
@@ -450,7 +450,177 @@ const deleteWorkspaceRobot = async (
     .delete(
       `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}`
     )
-    .then((res: any) => res.data);
+    .then((res: any) => res.data.data);
+};
+
+// Run workspace robot
+const runWorkspaceRobot = async (
+  workspaceId: string,
+  robotKey: string,
+  runParams?: any
+) => {
+  return await apiBase
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/run`,
+      runParams || {}
+    )
+    .then((res: any) => res.data.data);
+};
+
+// Stop workspace robot
+const stopWorkspaceRobot = async (
+  workspaceId: string,
+  robotKey: string
+) => {
+  return await apiBase
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/stop`
+    )
+    .then((res: any) => res.data.data);
+};
+
+// Get workspace robot logs
+const getWorkspaceRobotLogs = async (
+  workspaceId: string,
+  robotKey: string,
+  logGroup: string,
+  options?: {
+    limit?: number;
+    startTime?: number;
+    endTime?: number;
+  }
+) => {
+  const params = new URLSearchParams({ logGroup });
+  if (options?.limit) params.append('limit', options.limit.toString());
+  if (options?.startTime) params.append('startTime', options.startTime.toString());
+  if (options?.endTime) params.append('endTime', options.endTime.toString());
+
+  return await apiBase
+    .get(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/logs?${params.toString()}`
+    )
+    .then((res: any) => res.data.data);
+};
+
+// Get workspace robot schedule
+const getWorkspaceRobotSchedule = async (
+  workspaceId: string,
+  robotKey: string
+) => {
+  return await apiBase
+    .get(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/schedule`
+    )
+    .then((res: any) => res.data.data);
+};
+
+// Create or update workspace robot schedule
+const createOrUpdateWorkspaceRobotSchedule = async (
+  workspaceId: string,
+  robotKey: string,
+  scheduleDto: any
+) => {
+  return await apiBase
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/schedule`,
+      scheduleDto
+    )
+    .then((res: any) => res.data.data);
+};
+
+// Delete workspace robot schedule
+const deleteWorkspaceRobotSchedule = async (
+  workspaceId: string,
+  robotKey: string
+) => {
+  return await apiBase
+    .delete(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/schedule`
+    )
+    .then((res: any) => res.data.data);
+};
+
+const getWorkspaceRobotConnections = async (
+  workspaceId: string,
+  robotKey: string
+) => {
+  return await apiBase
+    .get(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/robots/${robotKey}/connections`
+    )
+    .then((res: any) => res.data.data);
+};
+
+// ==================== Workspace Connection APIs ====================
+const getWorkspaceConnections = async (
+  workspaceId: string,
+  provider?: string
+) => {
+  const params = provider ? { provider } : {};
+  return await apiBase
+    .get(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/connections`,
+      { params }
+    )
+    .then((res: any) => res.data.data);
+};
+
+const getWorkspaceConnection = async (
+  workspaceId: string,
+  provider: string,
+  name: string
+) => {
+  return await apiBase
+    .get(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/connections/${encodeURIComponent(provider)}/${encodeURIComponent(name)}`
+    )
+    .then((res: any) => res.data.data);
+};
+
+const createWorkspaceConnection = async (
+  workspaceId: string,
+  payload: {
+    name: string;
+    provider: string;
+    accessToken: string;
+    refreshToken: string;
+  }
+) => {
+  return await apiBase
+    .post(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/connections`,
+      payload
+    )
+    .then((res: any) => res.data.data);
+};
+
+const updateWorkspaceConnection = async (
+  workspaceId: string,
+  provider: string,
+  name: string,
+  payload: {
+    accessToken?: string;
+    refreshToken?: string;
+  }
+) => {
+  return await apiBase
+    .put(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/connections/${encodeURIComponent(provider)}/${encodeURIComponent(name)}`,
+      payload
+    )
+    .then((res: any) => res.data.data);
+};
+
+const deleteWorkspaceConnection = async (
+  workspaceId: string,
+  provider: string,
+  name: string
+) => {
+  return await apiBase
+    .delete(
+      `${process.env.NEXT_PUBLIC_DEV_API}/workspace/${workspaceId}/connections/${encodeURIComponent(provider)}/${encodeURIComponent(name)}`
+    )
+    .then((res: any) => res.data.data);
 };
 
 const workspaceApi = {
@@ -505,13 +675,27 @@ const workspaceApi = {
   shareWorkspaceProcess,
   getWorkspaceProcessShared,
 
-  // Workspace Robot
+  // Workspace Robot (separate from user robots)
   getWorkspaceRobots,
   getWorkspaceRobotCount,
   getWorkspaceRobotById,
   createWorkspaceRobot,
   updateWorkspaceRobot,
   deleteWorkspaceRobot,
+  runWorkspaceRobot,
+  stopWorkspaceRobot,
+  getWorkspaceRobotLogs,
+  getWorkspaceRobotSchedule,
+  createOrUpdateWorkspaceRobotSchedule,
+  deleteWorkspaceRobotSchedule,
+  getWorkspaceRobotConnections,
+
+  // Workspace Connections
+  getWorkspaceConnections,
+  getWorkspaceConnection,
+  createWorkspaceConnection,
+  updateWorkspaceConnection,
+  deleteWorkspaceConnection,
 };
 
 export default workspaceApi;

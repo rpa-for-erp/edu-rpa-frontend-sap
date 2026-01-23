@@ -67,10 +67,22 @@ const getMoodleCredentials = async (
     });
 };
 
+const createWorkspaceMoodleConnection = async (
+  workspaceId: string,
+  data: CreateMoodleConnectionDto
+): Promise<MoodleConnectionResponse> => {
+  return await apiBase
+    .post(`${process.env.NEXT_PUBLIC_DEV_API}/auth/workspace/${workspaceId}/moodle`, data)
+    .then((res: any) => {
+      return res.data;
+    });
+};
+
 const moodleConnectionApi = {
   createMoodleConnection,
   testMoodleConnection,
   getMoodleCredentials,
+  createWorkspaceMoodleConnection,
 };
 
 export default moodleConnectionApi;

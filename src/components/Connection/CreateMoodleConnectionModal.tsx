@@ -26,12 +26,14 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  workspaceId?: string;
 }
 
 const CreateMoodleConnectionModal: React.FC<Props> = ({
   isOpen,
   onClose,
   onSuccess,
+  workspaceId,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
@@ -63,14 +65,21 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
           token: values.token,
         };
 
-        // Only add name if it's not empty
         if (values.name.trim()) {
           payload.name = values.name;
         }
 
-        const response = await moodleConnectionApi.createMoodleConnection(
-          payload
-        );
+        let response;
+        if (workspaceId) {
+          // Workspace Moodle connection
+          response = await moodleConnectionApi.createWorkspaceMoodleConnection(
+            workspaceId,
+            payload
+          );
+        } else {
+          // User Moodle connection
+          response = await moodleConnectionApi.createMoodleConnection(payload);
+        }
 
         toast({
           title: 'Success!',
