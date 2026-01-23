@@ -58,6 +58,7 @@ import versionApi from "@/apis/versionApi";
 import { convertJsonToProcess } from "@/utils/bpmn-parser/json-to-bpmn-xml.util";
 import { PublishRobotModal } from "./FunctionalTabBar/PublishRobotModal";
 import { Modal, ModalOverlay } from "@chakra-ui/react";
+import UnsavedChangesModal from "./UnsavedChangesModal";
 
 interface OriginalObject {
   [key: string]: {
@@ -92,8 +93,14 @@ function CustomModeler() {
     onOpen: onOpenCreateFromSubProcess,
     onClose: onCloseCreateFromSubProcess,
   } = useDisclosure();
+  const {
+    isOpen: isUnsavedChangesModalOpen,
+    onOpen: onOpenUnsavedChangesModal,
+    onClose: onCloseUnsavedChangesModal,
+  } = useDisclosure();
   const [errorTrace, setErrorTrace] = useState<string>("");
   const [showRobotCode, setShowRobotCode] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
   const [subProcessInfo, setSubProcessInfo] = useState<{
     name: string;
     elementCount: number;
@@ -106,7 +113,10 @@ function CustomModeler() {
     properties: {},
   });
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
+  const [tokenSimulation, setTokenSimulation] = useState(false);
   const isSavedChanges = useSelector(bpmnSelector);
+  const shouldBlockNavigationRef = useRef(false);
+  const allowNavigationRef = useRef(false);
 
   const processName = router?.query?.name as string;
   const version = router?.query?.version as string;
@@ -161,6 +171,9 @@ function CustomModeler() {
       updateStorageByID
     );
     setLocalStorageObject(LocalStorage.PROCESS_LIST, replaceStorageSnapshot);
+    
+    // Reset isSaved to true when loading process data
+    dispatch(isSavedChange(true));
   }, [processDetailByID]);
 
   useEffect(() => {
@@ -301,59 +314,107 @@ function CustomModeler() {
   });
 
   const handleSaveAll = async () => {
-    // First, sync XML and activities from modeler to localStorage
-    // This ensures we save the latest canvas state including node names
-    if (bpmnReactJs.bpmnModeler) {
-      try {
-        const xmlResult = await bpmnReactJs.saveXML();
-        const activityList = bpmnReactJs
-          .getElementList(processID as string)
-          .slice(1);
+    return new Promise<void>((resolve, reject) => {
+      // First, sync XML and activities from modeler to localStorage
+      // This ensures we save the latest canvas state including node names
+      if (bpmnReactJs.bpmnModeler) {
+        (async () => {
+          try {
+            const xmlResult = await bpmnReactJs.saveXML();
+            const activityList = bpmnReactJs
+              .getElementList(processID as string)
+              .slice(1);
 
-        const currentProcess = getProcessFromLocalStorage(processID as string);
-        const updatedProcess = {
-          ...currentProcess,
-          xml: xmlResult.xml,
-          activities: activityList,
-        };
-        const newLocalStorage = updateLocalStorage(updatedProcess);
-        setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
+            const currentProcess = getProcessFromLocalStorage(processID as string);
+            const updatedProcess = {
+              ...currentProcess,
+              xml: xmlResult.xml,
+              activities: activityList,
+            };
+            const newLocalStorage = updateLocalStorage(updatedProcess);
+            setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-        console.log("📦 [Save] Synced modeler state to localStorage");
-      } catch (syncError) {
-        console.error("Failed to sync modeler state:", syncError);
-        toast({
-          title: "Failed to sync canvas state",
-          status: "warning",
-          position: "top-right",
-          duration: 2000,
-          isClosable: true,
-        });
+            console.log("📦 [Save] Synced modeler state to localStorage");
+
+            // Now get the updated data from localStorage
+            const processProperties = getProcessFromLocalStorage(processID as string);
+            if (!processProperties) {
+              toast({
+                title: "There are some errors, please refresh the page!",
+                status: "error",
+                position: "top-right",
+                duration: 1000,
+                isClosable: true,
+              });
+              reject(new Error("Process properties not found"));
+              return;
+            }
+
+            const variableListByID = getVariableItemFromLocalStorage(
+              processID as string
+            );
+            const refactoredVariables = convertToRefactoredObject(variableListByID);
+            const payload = {
+              xml: processProperties.xml,
+              activities: processProperties.activities,
+              variables: refactoredVariables ?? {},
+            };
+
+            // Use mutateAsync to get a promise
+            mutateSaveAll.mutateAsync(payload)
+              .then(() => {
+                resolve();
+              })
+              .catch((error) => {
+                reject(error);
+              });
+          } catch (syncError) {
+            console.error("Failed to sync modeler state:", syncError);
+            toast({
+              title: "Failed to sync canvas state",
+              status: "warning",
+              position: "top-right",
+              duration: 2000,
+              isClosable: true,
+            });
+            reject(syncError);
+          }
+        })();
+      } else {
+        reject(new Error("Modeler not initialized"));
       }
-    }
+    });
+  };
 
-    // Now get the updated data from localStorage
-    const processProperties = getProcessFromLocalStorage(processID as string);
-    if (!processProperties) {
-      toast({
-        title: "There are some errors, please refresh the page!",
-        status: "error",
-        position: "top-right",
-        duration: 1000,
-        isClosable: true,
-      });
-    } else {
-      const variableListByID = getVariableItemFromLocalStorage(
-        processID as string
-      );
-      const refactoredVariables = convertToRefactoredObject(variableListByID);
-      const payload = {
-        xml: processProperties.xml,
-        activities: processProperties.activities,
-        variables: refactoredVariables ?? {},
-      };
-      mutateSaveAll.mutate(payload);
+  const handleSaveAndExit = async () => {
+    try {
+      await handleSaveAll();
+      // Allow navigation after save completes
+      allowNavigationRef.current = true;
+      if (pendingNavigation) {
+        onCloseUnsavedChangesModal();
+        router.push(pendingNavigation);
+        setPendingNavigation(null);
+      }
+    } catch (error) {
+      // Error is already handled by mutation onError
+      console.error("Failed to save:", error);
     }
+  };
+
+  const handleExit = () => {
+    // Allow navigation without saving
+    allowNavigationRef.current = true;
+    if (pendingNavigation) {
+      onCloseUnsavedChangesModal();
+      router.push(pendingNavigation);
+      setPendingNavigation(null);
+    }
+  };
+
+  const handleCancelNavigation = () => {
+    setPendingNavigation(null);
+    onCloseUnsavedChangesModal();
   };
 
   const compileRobotCode = (processID: string) => {
@@ -592,6 +653,29 @@ function CustomModeler() {
     setIsChatbotOpen(!isChatbotOpen);
   };
 
+  const handleTokenSimulationChange = (enabled: boolean) => {
+    setTokenSimulation(enabled);
+    
+    if (bpmnReactJs.bpmnModeler) {
+      try {
+        const toggleMode = bpmnReactJs.bpmnModeler.get("toggleMode") as any;
+        if (toggleMode) {
+          toggleMode.toggleMode(enabled);
+          console.log(`🎮 Token simulation ${enabled ? "enabled" : "disabled"}`);
+        }
+      } catch (error) {
+        console.error("Failed to toggle token simulation:", error);
+        toast({
+          title: "Failed to toggle simulation mode",
+          status: "error",
+          position: "top-right",
+          duration: 2000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
   const handleApplyXml = async (
     xml: string,
     activities?: any[],
@@ -763,6 +847,57 @@ function CustomModeler() {
     compileRobotCode(processID as string);
   };
 
+  // Intercept route changes when there are unsaved changes
+  useEffect(() => {
+    const handleRouteChangeStart = (url: string) => {
+      // Allow navigation if explicitly allowed (e.g., after save and exit)
+      if (allowNavigationRef.current) {
+        allowNavigationRef.current = false;
+        return;
+      }
+      if (isSavedChanges.isSaved) {
+        shouldBlockNavigationRef.current = false;
+        return;
+      }
+      // Don't intercept if it's the same route (query params change)
+      const currentPath = router.asPath.split("?")[0];
+      const newPath = url.split("?")[0];
+      if (currentPath === newPath) {
+        return;
+      }
+      // Block navigation and show modal
+      shouldBlockNavigationRef.current = true;
+      setPendingNavigation(url);
+      onOpenUnsavedChangesModal();
+      throw "Route change aborted by user";
+    };
+
+    const handleRouteChangeError = (err: any, url: string) => {
+      if (err === "Route change aborted by user") {
+        // This is expected, don't log as error
+        return;
+      }
+    };
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (!isSavedChanges.isSaved) {
+        e.preventDefault();
+        e.returnValue = "";
+        return "";
+      }
+    };
+
+    // Listen to route change events
+    router.events.on("routeChangeStart", handleRouteChangeStart);
+    router.events.on("routeChangeError", handleRouteChangeError);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChangeStart);
+      router.events.off("routeChangeError", handleRouteChangeError);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [router, isSavedChanges.isSaved, onOpenUnsavedChangesModal]);
+
   // Listen to element click events
   useEffect(() => {
     console.log("=== 🔍 CUSTOM MODELER useEffect ===");
@@ -857,6 +992,8 @@ function CustomModeler() {
       isChatbotOpen={isChatbotOpen}
       onToggleChatbot={handleToggleChatbot}
       onApplyXml={handleApplyXml}
+      tokenSimulation={tokenSimulation}
+      onTokenSimulationChange={handleTokenSimulationChange}
       rightSidebar={
         <BpmnRightSidebar
           processID={processID as string}
@@ -939,6 +1076,15 @@ function CustomModeler() {
         subProcessName={subProcessInfo.name}
         elementCount={subProcessInfo.elementCount}
         hasNestedSubProcesses={subProcessInfo.hasNested}
+      />
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={isUnsavedChangesModalOpen}
+        onClose={handleCancelNavigation}
+        onSaveAndExit={handleSaveAndExit}
+        onExit={handleExit}
+        isLoading={mutateSaveAll.isPending}
       />
     </BpmnModelerLayout>
   );

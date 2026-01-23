@@ -31,6 +31,9 @@ interface BpmnModelerLayoutProps {
     activities?: any[],
     automaticNodeIds?: string[]
   ) => Promise<void>;
+  // Token Simulation props
+  tokenSimulation?: boolean;
+  onTokenSimulationChange?: (enabled: boolean) => void;
 }
 
 export default function BpmnModelerLayout({
@@ -50,6 +53,8 @@ export default function BpmnModelerLayout({
   isChatbotOpen = false,
   onToggleChatbot,
   onApplyXml,
+  tokenSimulation = false,
+  onTokenSimulationChange,
 }: BpmnModelerLayoutProps) {
   return (
     <Flex direction="column" height="100vh" overflow="hidden">
@@ -65,6 +70,8 @@ export default function BpmnModelerLayout({
         onRobotCode={onRobotCode}
         onCreateVersion={onCreateVersion}
         onShowVersions={onShowVersions}
+        tokenSimulation={tokenSimulation}
+        onTokenSimulationChange={onTokenSimulationChange}
       />
 
       {/* Main Content Area */}
