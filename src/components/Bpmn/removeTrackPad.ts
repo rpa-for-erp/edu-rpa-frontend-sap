@@ -15,17 +15,20 @@ const removeUnsupportedBpmnFunctions = () => {
     private bpmnReplace: any;
     private translate: any;
     private modeling: any;
+    private overlays: any;
     static $inject: string[];
 
     constructor(
       contextPad: any,
       bpmnReplace: any,
       translate: any,
-      modeling: any
+      modeling: any,
+      overlays: any
     ) {
       this.bpmnReplace = bpmnReplace;
       this.translate = translate;
       this.modeling = modeling;
+      this.overlays = overlays;
       contextPad.registerProvider(this);
     }
 
@@ -33,6 +36,7 @@ const removeUnsupportedBpmnFunctions = () => {
       const bpmnReplace = this.bpmnReplace;
       const translate = this.translate;
       const modeling = this.modeling;
+      const overlays = this.overlays;
 
       return function (entries: any) {
         const customizesEntries = entries;
@@ -230,6 +234,36 @@ const removeUnsupportedBpmnFunctions = () => {
           }
         }
 
+        // Add comment entry for FlowNodes (Tasks, Events, Gateways, SubProcesses)
+        if (businessObject.$instanceOf && businessObject.$instanceOf("bpmn:FlowNode")) {
+          customizesEntries["toggle-comments"] = {
+            group: "edit",
+            className: "bpmn-icon-comments",
+            title: translate("Comments"),
+            action: {
+              click: function () {
+                // Toggle the embedded-comments overlay
+                const commentOverlays = overlays.get({
+                  element: element,
+                  type: "comments",
+                });
+                if (commentOverlays && commentOverlays.length > 0) {
+                  const $overlay = commentOverlays[0].html;
+                  if ($overlay) {
+                    // Toggle expanded class using jQuery (since embedded-comments uses jQuery)
+                    if ($overlay.hasClass("expanded")) {
+                      $overlay.removeClass("expanded");
+                    } else {
+                      $overlay.addClass("expanded");
+                      $overlay.find("textarea").focus();
+                    }
+                  }
+                }
+              },
+            },
+          };
+        }
+
         return customizesEntries;
       };
     }
@@ -240,6 +274,7 @@ const removeUnsupportedBpmnFunctions = () => {
     "bpmnReplace",
     "translate",
     "modeling",
+    "overlays",
   ];
 
   return CustomContextPadProvider;
