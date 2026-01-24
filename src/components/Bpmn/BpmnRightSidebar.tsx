@@ -69,6 +69,10 @@ export default function BpmnRightSidebar({
     };
   }, [isResizing]);
 
+  // Extract selected element info from activityItem
+  const selectedElementId = activityItem?.activityID;
+  const selectedElementName = activityItem?.activityName;
+
   return (
     <Box position="relative" display="flex" height="100%">
       {/* Sidebar Content */}
@@ -144,7 +148,11 @@ export default function BpmnRightSidebar({
               />
             </TabPanel>
             <TabPanel p={0} height="100%">
-              <CommentsPanel processID={processID} />
+              <CommentsPanel
+                processID={processID}
+                selectedElementId={selectedElementId}
+                selectedElementName={selectedElementName}
+              />
             </TabPanel>
           </TabPanels>
         </Tabs>
