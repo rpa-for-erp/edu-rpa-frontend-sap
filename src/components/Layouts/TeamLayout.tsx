@@ -6,49 +6,43 @@ import {
   useDisclosure,
 } from '@chakra-ui/react';
 
-import { FaHome, FaRobot, FaFileInvoice } from 'react-icons/fa';
+import { FaRobot } from 'react-icons/fa';
 import { RiFlowChart } from 'react-icons/ri';
 import { IoIosRocket } from 'react-icons/io';
-import { FaFile } from 'react-icons/fa6';
-import { MdGroups, MdPeople, MdSettings, MdDashboard } from 'react-icons/md';
+import { MdPeople, MdSettings, MdDashboard } from 'react-icons/md';
 import { usePathname } from 'next/navigation';
 import Navbar from '../Header/Navbar';
 import SidebarList from '../Sidebar/SidebarList';
 import { useSelector, useDispatch } from 'react-redux';
 import { homeSelector } from '@/redux/selector';
-import {
-  setCurrentWorkspace,
-  clearCurrentWorkspace,
-} from '@/redux/slice/homeSlice';
+import { setCurrentWorkspace } from '@/redux/slice/homeSlice';
 import { useEffect, useMemo } from 'react';
 
-const getWorkspaceSidebarItems = (workspaceId: string) => [
+const getTeamSidebarItems = (workspaceId: string, teamId: string) => [
   {
-    path: `/workspace/${workspaceId}`,
+    path: `/workspace/${workspaceId}/teams/${teamId}`,
     name: 'Dashboard',
     icon: MdDashboard,
   },
   {
-    path: `/workspace/${workspaceId}/studio`,
+    path: `/workspace/${workspaceId}/teams/${teamId}/studio`,
     name: 'Studio',
     icon: RiFlowChart,
   },
-  { path: `/workspace/${workspaceId}/robot`, name: 'Robot', icon: FaRobot },
   {
-    path: `/workspace/${workspaceId}/integration-service`,
+    path: `/workspace/${workspaceId}/teams/${teamId}/robot`,
+    name: 'Robot',
+    icon: FaRobot,
+  },
+  {
+    path: `/workspace/${workspaceId}/teams/${teamId}/integration-service`,
     name: 'Integration Service',
     icon: IoIosRocket,
   },
   {
-    path: `/workspace/${workspaceId}/members`,
-    name: 'Member',
+    path: `/workspace/${workspaceId}/teams/${teamId}/members`,
+    name: 'Members',
     icon: MdPeople,
-  },
-  { path: `/workspace/${workspaceId}/teams`, name: 'Teams', icon: MdGroups },
-  {
-    path: `/workspace/${workspaceId}/settings`,
-    name: 'Settings',
-    icon: MdSettings,
   },
 ];
 
@@ -58,11 +52,7 @@ interface Props {
   children?: React.ReactNode;
 }
 
-const WorkspaceLayout = ({
-  align = 'center',
-  pt = '80px',
-  children,
-}: Props) => {
+const TeamLayout = ({ align = 'center', pt = '80px', children }: Props) => {
   const { isOpen, onClose } = useDisclosure();
   const pathName = usePathname();
   const dispatch = useDispatch();
@@ -78,14 +68,20 @@ const WorkspaceLayout = ({
         dispatch(setCurrentWorkspace(workspaceIdFromUrl));
       }
     }
-  }, [pathName, dispatch]);
+  }, [pathName, dispatch, currentWorkspaceId]);
 
-  // Workspace sidebar items
+  // Extract teamId from URL
+  const teamId = useMemo(() => {
+    const teamMatch = pathName?.match(/\/teams\/([^\/]+)/);
+    return teamMatch ? teamMatch[1] : null;
+  }, [pathName]);
+
+  // Team sidebar items
   const sidebarItems = useMemo(() => {
-    return currentWorkspaceId
-      ? getWorkspaceSidebarItems(currentWorkspaceId)
+    return currentWorkspaceId && teamId
+      ? getTeamSidebarItems(currentWorkspaceId, teamId)
       : [];
-  }, [currentWorkspaceId]);
+  }, [currentWorkspaceId, teamId]);
 
   return (
     <Box
@@ -125,4 +121,4 @@ const WorkspaceLayout = ({
   );
 };
 
-export default WorkspaceLayout;
+export default TeamLayout;

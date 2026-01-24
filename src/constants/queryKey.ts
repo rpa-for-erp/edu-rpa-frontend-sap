@@ -21,4 +21,13 @@ export const QUERY_KEY = {
   STOP_ROBOT: 'stop-robot',
   WORKSPACE_CONNECTIONS: 'workspace-connections',
   WORKSPACE_CONNECTION_DETAIL: 'workspace-connection-detail',
+  
+  // Team query keys
+  TEAM_PROCESSES: 'team-processes',
+  TEAM_PROCESS_DETAIL: 'team-process',
+  TEAM_ROBOTS: 'team-robots',
+  TEAM_ROBOT_DETAIL: 'team-robot',
+  TEAM_ROBOT_CONNECTIONS: 'team-robot-connections',
+  TEAM_CONNECTIONS: 'team-connections',
+  TEAM_CONNECTION_DETAIL: 'team-connection',
 };

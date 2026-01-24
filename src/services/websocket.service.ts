@@ -15,22 +15,59 @@ class WorkspaceWebSocketService {
   private ydoc: Y.Doc | null = null;
   private provider: WebsocketProvider | null = null;
   private listeners: Map<string, Function[]> = new Map();
+  private userId: string | null = null;
+  private workspaceId: string | null = null;
+  private isConnecting: boolean = false;
 
   connect(workspaceId: string, userId: string, userName: string) {
-    // Connect to Socket.IO server
-    this.socket = io(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080', {
-      auth: {
-        token: typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null,
-      },
-      query: {
-        workspaceId,
-        userId,
-        userName,
-      },
-      transports: ['websocket', 'polling'],
-    });
+    // Prevent duplicate connections to same workspace
+    if (this.socket?.connected && this.workspaceId === workspaceId) {
+      console.log('✅ Already connected to workspace:', workspaceId);
+      return this.socket;
+    }
 
-    // Setup event listeners
+    if (this.isConnecting) {
+      console.log('⏳ Connection already in progress...');
+      return this.socket;
+    }
+
+    // Disconnect existing connection if any
+    if (this.socket) {
+      console.log('🔄 Disconnecting existing socket before reconnecting...');
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.isConnecting = true;
+    console.log(
+      '🔌 Creating new WebSocket connection to workspace:',
+      workspaceId
+    );
+
+    // Store for later use
+    this.userId = userId;
+    this.workspaceId = workspaceId;
+
+    // Connect to Socket.IO server
+    this.socket = io(
+      process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8080',
+      {
+        auth: {
+          token:
+            typeof window !== 'undefined'
+              ? localStorage.getItem('accessToken')
+              : null,
+        },
+        query: {
+          workspaceId,
+          userId,
+          userName,
+        },
+        transports: ['websocket', 'polling'],
+      }
+    );
+
+    // Setup event listeners (includes connect handler that sets isConnecting = false)
     this.setupEventListeners();
 
     return this.socket;
@@ -42,11 +79,21 @@ class WorkspaceWebSocketService {
       return;
     }
 
-    this.socket.emit('join-process', { processId });
+    console.log('📤 Sending join-process:', {
+      processId,
+      userId: this.userId,
+      workspaceId: this.workspaceId,
+    });
+
+    this.socket.emit('join-process', {
+      processId,
+      userId: this.userId,
+      workspaceId: this.workspaceId,
+    });
 
     // Initialize Yjs document for collaborative editing
     this.ydoc = new Y.Doc();
-    
+
     // Note: For production, use actual WebSocket server
     // For now, we'll use local awareness without y-websocket server
     console.log(`Joined process room: ${processId}`);
@@ -74,17 +121,20 @@ class WorkspaceWebSocketService {
     // Connection events
     this.socket.on('connect', () => {
       console.log('✅ WebSocket connected');
+      this.isConnecting = false;
       this.emit('connect');
     });
 
     this.socket.on('disconnect', () => {
       console.log('❌ WebSocket disconnected');
+      this.isConnecting = false;
       this.emit('disconnect');
     });
 
     // User events
     this.socket.on('user-joined', (data: any) => {
       console.log('👤 User joined:', data);
+      console.log('👥 activeUsers in user-joined event:', data.activeUsers);
       this.emit('user-joined', data);
     });
 
@@ -192,17 +242,24 @@ class WorkspaceWebSocketService {
   // Request lock for editing
   requestLock(processId: string, elementId: string): Promise<any> {
     if (!this.socket) {
-      return Promise.reject({ success: false, message: 'Socket not connected' });
+      return Promise.reject({
+        success: false,
+        message: 'Socket not connected',
+      });
     }
 
     return new Promise((resolve, reject) => {
-      this.socket!.emit('request-lock', { processId, elementId }, (response: any) => {
-        if (response.success) {
-          resolve(response);
-        } else {
-          reject(response);
+      this.socket!.emit(
+        'request-lock',
+        { processId, elementId },
+        (response: any) => {
+          if (response.success) {
+            resolve(response);
+          } else {
+            reject(response);
+          }
         }
-      });
+      );
     });
   }
 
@@ -215,7 +272,17 @@ class WorkspaceWebSocketService {
 
   // Send process update
   sendProcessUpdate(processId: string, changes: any) {
-    if (!this.socket) return;
+    if (!this.socket) {
+      console.warn('⚠️ [WebSocket] Cannot send update - socket not connected');
+      return;
+    }
+
+    console.log('📤 [WebSocket] Sending process update:', {
+      processId,
+      connected: this.socket.connected,
+      xmlLength: changes.xml?.length || 0,
+      activitiesCount: changes.activities?.length || 0,
+    });
 
     this.socket.emit('process-update', {
       processId,
@@ -234,6 +301,7 @@ class WorkspaceWebSocketService {
   }
 
   disconnect() {
+    console.log('🔌 Disconnecting WebSocket...');
     if (this.provider) {
       this.provider.destroy();
     }
@@ -242,8 +310,11 @@ class WorkspaceWebSocketService {
     }
     if (this.socket) {
       this.socket.disconnect();
+      this.socket = null;
     }
+    this.isConnecting = false;
     this.listeners.clear();
+    console.log('✅ WebSocket disconnected and cleaned up');
   }
 }
 

@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react';
 import { SearchIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
-import WorkspaceLayout from '@/components/Layouts/WorkspaceLayout';
+import TeamLayout from '@/components/Layouts/TeamLayout';
 import { Team, TeamMember, Role } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
 import activityPackageApi from '@/apis/activityPackageApi';
@@ -316,7 +316,7 @@ const TeamDetailPage: React.FC = () => {
   };
 
   return (
-    <WorkspaceLayout>
+    <TeamLayout>
       <Container maxW="container.xl" py={5}>
         <Breadcrumb
           spacing="8px"
@@ -757,7 +757,7 @@ const TeamDetailPage: React.FC = () => {
         onClose={onDeletePackageClose}
         onConfirm={confirmDeletePackage}
       />
-    </WorkspaceLayout>
+    </TeamLayout>
   );
 };
 

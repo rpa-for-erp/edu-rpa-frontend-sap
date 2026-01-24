@@ -1,4 +1,4 @@
-import { TriggerType } from "@/interfaces/robot";
+import { TriggerType } from '@/interfaces/robot';
 import {
   ModalContent,
   ModalHeader,
@@ -23,24 +23,24 @@ import {
   ModalOverlay,
   Container,
   Heading,
-} from "@chakra-ui/react";
-import { useEffect, useState, useRef } from "react";
-import { toastSuccess } from "@/utils/common";
-import { useRouter } from "next/router";
-import robotApi from "@/apis/robotApi";
-import workspaceApi from "@/apis/workspaceApi";
-import { BpmnParseError, BpmnParseErrorCode } from "@/utils/bpmn-parser/error";
-import { dryrun, handleCheckDryrunError } from "@/apis/robotCodeValidateApi";
+} from '@chakra-ui/react';
+import { useEffect, useState, useRef } from 'react';
+import { toastSuccess } from '@/utils/common';
+import { useRouter } from 'next/router';
+import robotApi from '@/apis/robotApi';
+import workspaceApi from '@/apis/workspaceApi';
+import { BpmnParseError, BpmnParseErrorCode } from '@/utils/bpmn-parser/error';
+import { dryrun, handleCheckDryrunError } from '@/apis/robotCodeValidateApi';
 import {
   RobotCreationError,
   UserCredentialError,
   ValidationError,
-} from "@/apis/ErrorMessage";
-import RobotExecutionComponent from "./DisplayError/DisplayValidationError";
-import connectionApi from "@/apis/connectionApi";
-import { AxiosError } from "axios";
-import ConnectionTable from "@/components/Connection/ConnectionTable";
-import _ from "lodash";
+} from '@/apis/ErrorMessage';
+import RobotExecutionComponent from './DisplayError/DisplayValidationError';
+import connectionApi from '@/apis/connectionApi';
+import { AxiosError } from 'axios';
+import ConnectionTable from '@/components/Connection/ConnectionTable';
+import _ from 'lodash';
 
 interface Props {
   processID: string;
@@ -54,13 +54,13 @@ const delay = async (delay) => {
 };
 
 const steps = [
-  { description: "Validate..." },
-  { description: "Check Connection ..." },
-  { description: "Publishing ..." },
+  { description: 'Validate...' },
+  { description: 'Check Connection ...' },
+  { description: 'Publishing ...' },
 ];
 
 export const PublishRobotModal = (props: Props) => {
-  const [robotName, setRobotName] = useState("");
+  const [robotName, setRobotName] = useState('');
   const [triggerType, setTriggerType] = useState<TriggerType>(
     TriggerType.MANUAL
   );
@@ -75,31 +75,62 @@ export const PublishRobotModal = (props: Props) => {
   const [result, setResult] = useState<{
     code: any;
     credentials: string[];
-  }>(() => {
-    const result = props.genRobotCode(props.processID);
-    if (!result?.code || !result.credentials) {
-      throw new BpmnParseError(BpmnParseErrorCode["Unknown"], "");
-    }
-    return result;
-  });
+  } | null>(null); // Initialize as null
 
   const [activeStep, setActiveStep] = useState(0); // Initialize active step to 0
   const [loading, setLoading] = useState(false); // State to track loading status of API call
   const [publishClicked, setPublishClicked] = useState(false); // State to track whether publish button is clicked
-  const activeStepText = steps[activeStep]?.description ?? "Done !!!";
+  const activeStepText = steps[activeStep]?.description ?? 'Done !!!';
   const [error, setError] = useState(null); // State to track errors
 
   // Handler for publish button click
-  const handlePublishClick = (option: boolean = true) => {
-    setPublishClicked(option);
-    setActiveStep(0);
-    setError(null);
-    isExecutingRef.current = false;
+  const handlePublishClick = async (option: boolean = true) => {
+    console.log(
+      '🚀 [PublishRobotModal] Publish clicked, generating robot code...'
+    );
+
+    try {
+      // Generate robot code when user clicks publish (handle async)
+      const generatedResult = await props.genRobotCode(props.processID);
+
+      console.log('✅ [PublishRobotModal] Robot code generated:', {
+        hasCode: !!generatedResult?.code,
+        hasCredentials: !!generatedResult?.credentials,
+        credentialsCount: generatedResult?.credentials?.length || 0,
+      });
+
+      if (!generatedResult?.code || !generatedResult.credentials) {
+        throw new BpmnParseError(
+          BpmnParseErrorCode['Unknown'],
+          'Failed to generate robot code'
+        );
+      }
+
+      setResult(generatedResult);
+      setPublishClicked(option);
+      setActiveStep(0);
+      setError(null);
+      isExecutingRef.current = false;
+    } catch (err) {
+      console.error(
+        '❌ [PublishRobotModal] Failed to generate robot code:',
+        err
+      );
+      setError(err);
+      // Don't set publishClicked to true if code generation fails
+    }
   };
 
   // Function to simulate API call for the current step
   const simulateAPICallForCurrentStep = async () => {
     if (isExecutingRef.current) {
+      return;
+    }
+
+    // Ensure result is available before proceeding
+    if (!result) {
+      console.error('❌ [simulateAPICallForCurrentStep] Result is null!');
+      setError(new Error('Robot code not generated. Please try again.'));
       return;
     }
 
@@ -120,14 +151,16 @@ export const PublishRobotModal = (props: Props) => {
             (conn) => conn.provider !== 'Moodle'
           );
 
-          let refreshConnectionPromises = nonMoodleConnections.map(async (conn) => {
-            try {
-              await connectionApi.refreshConnection(conn.provider, conn.name);
-              return true;
-            } catch (error) {
-              return false;
+          let refreshConnectionPromises = nonMoodleConnections.map(
+            async (conn) => {
+              try {
+                await connectionApi.refreshConnection(conn.provider, conn.name);
+                return true;
+              } catch (error) {
+                return false;
+              }
             }
-          });
+          );
 
           let connectionExpiredMask = await Promise.all(
             refreshConnectionPromises
@@ -139,7 +172,7 @@ export const PublishRobotModal = (props: Props) => {
 
           if (expiredConnections.length) {
             throw new UserCredentialError(
-              "Connection expired",
+              'Connection expired',
               expiredConnections
             );
           }
@@ -154,24 +187,38 @@ export const PublishRobotModal = (props: Props) => {
               providers: result.credentials,
               triggerType: triggerType,
             };
-            
-            // Check if we're in workspace context
+
+            // Check context priority: team > workspace > user
+            const teamId = router.query.teamId as string;
             const workspaceId = router.query.workspaceId as string;
-            
-            if (workspaceId) {
+
+            console.log('🚀 [Publish] Context:', { teamId, workspaceId });
+
+            if (teamId) {
+              // Publish to TEAM
+              const teamApi = (await import('@/apis/teamApi')).default;
+              await teamApi.createTeamRobot(teamId, publishPayload);
+              toastSuccess(toast, 'Robot published to team successfully!');
+
+              // Redirect to team robot page
+              router.push(`/workspace/${workspaceId}/teams/${teamId}/robot`);
+            } else if (workspaceId) {
               // Publish to WORKSPACE
-              await workspaceApi.createWorkspaceRobot(workspaceId, publishPayload);
-              toastSuccess(toast, "Robot published to workspace successfully!");
-              
+              await workspaceApi.createWorkspaceRobot(
+                workspaceId,
+                publishPayload
+              );
+              toastSuccess(toast, 'Robot published to workspace successfully!');
+
               // Redirect to workspace robot page
               router.push(`/workspace/${workspaceId}/robot`);
             } else {
               // Publish to USER (old behavior)
               await robotApi.createRobot(publishPayload);
-              toastSuccess(toast, "Create robot successfully!");
-              
+              toastSuccess(toast, 'Create robot successfully!');
+
               // Redirect to user robot page
-              router.push("/robot");
+              router.push('/robot');
             }
           } catch (error) {
             throw new RobotCreationError(error.message, error.response);
@@ -222,9 +269,9 @@ export const PublishRobotModal = (props: Props) => {
             <strong>Error:</strong> {error.errorResponse.data.error}
           </p>
           <p>
-            <strong>Message:</strong>{" "}
+            <strong>Message:</strong>{' '}
             {Array.isArray(error?.errorResponse?.data?.message)
-              ? error.errorResponse.data.message.join(", ")
+              ? error.errorResponse.data.message.join(', ')
               : error?.errorResponse?.data?.message}
           </p>
         </Box>
@@ -232,14 +279,14 @@ export const PublishRobotModal = (props: Props) => {
     } else if (error instanceof UserCredentialError) {
       const tableProps = {
         header: [
-          "Service",
-          "Connection name",
-          "Created at",
-          "Status",
-          "Action",
+          'Service',
+          'Connection name',
+          'Created at',
+          'Status',
+          'Action',
         ],
         data: _.map(error.expiredConnectionList, (conn) =>
-          _.omit(conn, ["connectionKey", "refreshToken", "accessToken"])
+          _.omit(conn, ['connectionKey', 'refreshToken', 'accessToken'])
         ),
       };
       return <ConnectionTable {...tableProps}></ConnectionTable>;
@@ -255,10 +302,10 @@ export const PublishRobotModal = (props: Props) => {
           <strong>Error:</strong> {error.response.data.error}
         </p>
         <p>
-          <strong>Message:</strong>{" "}
+          <strong>Message:</strong>{' '}
           {error.response.data
-            ? "Unknown Error"
-            : error.response.data.message.join(", ")}
+            ? 'Unknown Error'
+            : error.response.data.message.join(', ')}
         </p>
       </Box>;
     }
@@ -309,7 +356,7 @@ export const PublishRobotModal = (props: Props) => {
           <Box position="relative">
             <Stepper
               size="sm"
-              colorScheme={error ? "red" : "green"}
+              colorScheme={error ? 'red' : 'green'}
               index={activeStep}
               gap="0"
             >
@@ -331,12 +378,12 @@ export const PublishRobotModal = (props: Props) => {
             </Stepper>
             {error ? (
               <div>
-                <b style={{ color: "red", display: "block" }}>
+                <b style={{ color: 'red', display: 'block' }}>
                   Error: {error.message}
                 </b>
                 <Button
                   size="sm"
-                  style={{ display: "block" }}
+                  style={{ display: 'block' }}
                   onClick={() => setIsOpenErrorDetail(true)}
                 >
                   Show Detail
@@ -344,7 +391,7 @@ export const PublishRobotModal = (props: Props) => {
                 <Modal
                   isOpen={isOpenErrorDetail}
                   onClose={onClose}
-                  size={activeStep == 0 ? "full" : "xl"}
+                  size={activeStep == 0 ? 'full' : 'xl'}
                 >
                   <ModalOverlay />
                   <ModalContent>
@@ -360,7 +407,7 @@ export const PublishRobotModal = (props: Props) => {
                 </Modal>
               </div>
             ) : (
-              <div style={{ color: "red" }}>
+              <div style={{ color: 'red' }}>
                 Step {activeStep + 1}: <b>{activeStepText}</b>
               </div>
             )}

@@ -6,24 +6,20 @@ import React, {
   useImperativeHandle,
   useRef,
   useState,
-} from "react";
-import CamundaBpmnModeler from "bpmn-js/lib/Modeler";
+} from 'react';
+import CamundaBpmnModeler from 'bpmn-js/lib/Modeler';
 import {
   BpmnJsReactHandle,
   BpmnJsReactProps,
-} from "@/interfaces/bpmnJsReact.interface";
+} from '@/interfaces/bpmnJsReact.interface';
 //@ts-ignore
-import BpmnColorPickerModule from "bpmn-js-color-picker";
-import minimapModule from "diagram-js-minimap";
+import BpmnColorPickerModule from 'bpmn-js-color-picker';
+import minimapModule from 'diagram-js-minimap';
 //@ts-ignore
-import gridModule from "diagram-js-grid";
-import "bpmn-js/dist/assets/diagram-js.css";
-import "bpmn-font/dist/css/bpmn-embedded.css";
-import { useParams } from "next/navigation";
-import { QUERY_KEY } from "@/constants/queryKey";
-import processApi from "@/apis/processApi";
-import { useQuery } from "@tanstack/react-query";
-import CustomContextPadProvider from "./CustomContextPadProvider";
+import gridModule from 'diagram-js-grid';
+import 'bpmn-js/dist/assets/diagram-js.css';
+import 'bpmn-font/dist/css/bpmn-embedded.css';
+import CustomContextPadProvider from './CustomContextPadProvider';
 
 const BpmnJsModeler: ForwardRefRenderFunction<
   BpmnJsReactHandle,
@@ -32,22 +28,17 @@ const BpmnJsModeler: ForwardRefRenderFunction<
   {
     useBpmnJsReact,
     height,
+    xml,
     onError = () => {},
     onShown = () => {},
   }: BpmnJsReactProps,
   ref
 ) => {
-  const params = useParams();
   const [bpmnEditor, setBpmnEditor] = useState<CamundaBpmnModeler | null>(null);
-
-  const { data: processDetail, isLoading } = useQuery({
-    queryKey: [QUERY_KEY.PROCESS_DETAIL],
-    queryFn: () => processApi.getProcessByID(params.id as string),
-  });
 
   useEffect(() => {
     const newModeler = new CamundaBpmnModeler({
-      container: "#bpmnview",
+      container: '#bpmnview',
       keyboard: {
         bindTo: window,
       },
@@ -57,7 +48,7 @@ const BpmnJsModeler: ForwardRefRenderFunction<
         gridModule,
         minimapModule,
       ],
-      height: "100%",
+      height: '100%',
     });
     useBpmnJsReact?.setBpmnModeler(newModeler);
     setBpmnEditor(newModeler);
@@ -66,12 +57,12 @@ const BpmnJsModeler: ForwardRefRenderFunction<
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!newModeler) return;
 
-      const commandStack = newModeler.get("commandStack") as any;
+      const commandStack = newModeler.get('commandStack') as any;
 
       // Undo: Ctrl+Z (Windows/Linux) or Cmd+Z (Mac)
       if (
         (event.ctrlKey || event.metaKey) &&
-        event.key === "z" &&
+        event.key === 'z' &&
         !event.shiftKey
       ) {
         event.preventDefault();
@@ -83,10 +74,10 @@ const BpmnJsModeler: ForwardRefRenderFunction<
 
       // Redo: Ctrl+Y (Windows/Linux) or Cmd+Shift+Z (Mac) or Ctrl+Shift+Z
       if (
-        ((event.ctrlKey || event.metaKey) && event.key === "y") ||
+        ((event.ctrlKey || event.metaKey) && event.key === 'y') ||
         ((event.ctrlKey || event.metaKey) &&
           event.shiftKey &&
-          event.key === "z")
+          event.key === 'z')
       ) {
         event.preventDefault();
         if (commandStack?.canRedo()) {
@@ -96,34 +87,42 @@ const BpmnJsModeler: ForwardRefRenderFunction<
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown);
       bpmnEditor?.destroy();
     };
   }, []);
 
   useEffect(() => {
-    if (isLoading && !processDetail) return;
-    bpmnEditor?.importXML(processDetail?.xml as string);
-    bpmnEditor?.on("import.done", (event: any) => {
-      const { error, warning } = event;
-      if (error) {
-        return onError(error);
-      }
-      zoomFit();
-      onShown(warning);
-    });
-  }, [bpmnEditor]);
+    if (!bpmnEditor || !xml) return;
+
+    console.log(
+      '📦 [BpmnJsModeler] Importing XML:',
+      xml?.substring(0, 100) + '...'
+    );
+
+    bpmnEditor
+      .importXML(xml)
+      .then(() => {
+        console.log('✅ [BpmnJsModeler] XML imported successfully');
+        zoomFit();
+        onShown();
+      })
+      .catch((error) => {
+        console.error('❌ [BpmnJsModeler] Failed to import XML:', error);
+        onError(error);
+      });
+  }, [bpmnEditor, xml]);
 
   const zoomFit = () => {
-    (bpmnEditor as any).get("canvas").zoom("fit-viewport");
+    (bpmnEditor as any).get('canvas').zoom('fit-viewport');
   };
 
   return (
-    <div className="bpmn-wrapper" style={{ width: "100%", height: "100%" }}>
-      <div id="bpmnview" style={{ width: "100%", height: "100%" }}></div>
+    <div className="bpmn-wrapper" style={{ width: '100%', height: '100%' }}>
+      <div id="bpmnview" style={{ width: '100%', height: '100%' }}></div>
     </div>
   );
 };
