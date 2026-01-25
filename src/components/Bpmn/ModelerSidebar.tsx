@@ -86,19 +86,23 @@ export default function ModelerSideBar(props: ModelerSideBarProps) {
         dispatch(isSavedChange(false));
       }
     );
-
-    props.modeler.bpmnModeler.on('element.dblclick', async (event: any) => {
-      props.onOpen();
-    });
+    props.modeler.bpmnModeler.on("commandStack.changed", 
+      async (event: any) => {
+        dispatch(isSavedChange(false));
+      }
+    );
+    // props.modeler.bpmnModeler.on('element.dblclick', async (event: any) => {
+    //   props.onOpen();
+    // });
   }, [activityItem]);
 
   return (
     <div>
-      <PropertiesSideBar
+      {/* <PropertiesSideBar
         isOpen={props.isOpen}
         onClose={props.onClose}
         activityItem={activityItem}
-      />
+      /> */}
     </div>
   );
 }

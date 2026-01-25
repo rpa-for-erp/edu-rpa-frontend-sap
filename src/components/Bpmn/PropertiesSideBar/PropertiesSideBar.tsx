@@ -46,6 +46,7 @@ import { Variable } from "@/types/variable";
 import { AuthorizationProvider } from "@/interfaces/enums/provider.enum";
 import ConnectionOptions from "./ConnectionSelect";
 import ConditionList from "./Condition/ConditionList";
+import { dispatchPropertiesUpdated } from "@/hooks/useVariableUsage";
 
 interface PropertiesSideBarProps {
   isOpen: boolean;
@@ -207,6 +208,9 @@ export default function PropertiesSideBar({
     });
 
     setLocalStorageObject(LocalStorage.PROCESS_LIST, updateProcess);
+    
+    // Dispatch event to notify VariablesPanel about property changes
+    dispatchPropertiesUpdated(processID);
   };
 
   const headerIcon =

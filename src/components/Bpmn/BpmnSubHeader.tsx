@@ -16,6 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
 import { FaSave } from "react-icons/fa";
+import { useSaveShortcut } from "@/hooks/useSaveShortCut";
 
 interface BpmnSubHeaderProps {
   isSaved: boolean;
@@ -25,6 +26,8 @@ interface BpmnSubHeaderProps {
   onRobotCode: () => void;
   onCreateVersion?: () => void;
   onShowVersions?: () => void;
+  tokenSimulation?: boolean;
+  onTokenSimulationChange?: (enabled: boolean) => void;
 }
 
 export default function BpmnSubHeader({
@@ -35,9 +38,17 @@ export default function BpmnSubHeader({
   onRobotCode,
   onCreateVersion,
   onShowVersions,
+  tokenSimulation = false,
+  onTokenSimulationChange,
 }: BpmnSubHeaderProps) {
   const [activeTab, setActiveTab] = useState(0);
-  const [tokenSimulation, setTokenSimulation] = useState(false);
+
+  const handleChangeToSimulateTab = () => {
+    setActiveTab(1);
+    onTokenSimulationChange?.(false);
+  }
+  // Add Ctrl+S shortcut support
+  useSaveShortcut(onSaveAll);
 
   return (
     <Box
@@ -74,6 +85,7 @@ export default function BpmnSubHeader({
                   borderBottom: "2px solid",
                   borderColor: "teal.600",
                 }}
+                onClick={handleChangeToSimulateTab}
                 fontWeight="medium"
                 pb={2}
               >
@@ -83,14 +95,14 @@ export default function BpmnSubHeader({
           </Tabs>
 
           {/* Token Simulation Toggle */}
-          {activeTab === 1 && (
+          {activeTab === 0 && (
             <Flex align="center" gap={2}>
               <Switch
-                colorScheme="teal"
-                isChecked={tokenSimulation}
-                onChange={(e) => setTokenSimulation(e.target.checked)}
-                size="sm"
-              />
+              colorScheme="teal"
+              isChecked={tokenSimulation}
+              onChange={(e) => onTokenSimulationChange?.(e.target.checked)}
+              size="sm"
+            />
               <Text fontSize="sm" color="gray.700">
                 Token simulation
               </Text>
@@ -100,15 +112,19 @@ export default function BpmnSubHeader({
 
         {/* Right Section: Actions */}
         <Flex align="center" gap={3}>
-          {/* Save indicator */}
-          {!isSaved && (
-            <Flex align="center" gap={2}>
-              <Box w={2} h={2} borderRadius="full" bg="orange.400" />
-              <Text fontSize="sm" color="gray.600">
-                Unsaved changes
-              </Text>
-            </Flex>
-          )}
+          {/* Save Button */}
+          <Button
+            size="sm"
+            leftIcon={<FaSave />}
+            colorScheme={isSaved ? "gray" : "orange"}
+            variant={isSaved ? "outline" : "solid"}
+            onClick={onSaveAll}
+            fontWeight="medium"
+            px={4}
+            isDisabled={isSaved}
+          >
+            {isSaved ? "Saved" : "Save"}
+          </Button>
 
           {/* Version Dropdown */}
           <Menu>

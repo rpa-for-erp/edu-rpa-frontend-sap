@@ -40,6 +40,7 @@ import { Variable } from "@/types/variable";
 import { AuthorizationProvider } from "@/interfaces/enums/provider.enum";
 import ConnectionOptions from "../PropertiesSideBar/ConnectionSelect";
 import ConditionList from "../PropertiesSideBar/Condition/ConditionList";
+import { dispatchPropertiesUpdated } from "@/hooks/useVariableUsage";
 
 interface PropertiesPanelProps {
   processID: string;
@@ -244,6 +245,9 @@ export default function PropertiesPanel({
     });
 
     setLocalStorageObject(LocalStorage.PROCESS_LIST, updateProcess);
+    
+    // Dispatch event to notify VariablesPanel about property changes
+    dispatchPropertiesUpdated(processID);
   };
 
   useEffect(() => {
@@ -255,10 +259,6 @@ export default function PropertiesPanel({
     sideBarState.packageName,
     sideBarState.activityName,
   ]);
-
-  const headerIcon =
-    getServiceIcon(sideBarState.serviceName) ||
-    getPackageIcon(sideBarState.packageName);
 
   const handleKeywordRobotFramework = (varName: string, varType: string) => {
     let prefix = "${";
