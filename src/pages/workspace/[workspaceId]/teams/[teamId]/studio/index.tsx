@@ -126,12 +126,6 @@ export default function TeamStudioPage() {
     const xml = defaultXML(processID);
 
     try {
-      console.log('🚀 Creating team process:', {
-        teamId,
-        processID,
-        name: processName,
-      });
-
       const result = await createMutation.mutateAsync({
         id: processID,
         name: processName,
@@ -140,8 +134,6 @@ export default function TeamStudioPage() {
         activities: [],
         variables: {},
       });
-
-      console.log('✅ Process created successfully:', result);
 
       toast({
         title: 'Process created successfully!',

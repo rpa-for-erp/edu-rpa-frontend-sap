@@ -203,10 +203,11 @@ export default function TeamRobotPage() {
         processId: item.processId,
         processVersion: item.processVersion,
         createdAt: formatDateTime(item.createdAt),
-        triggerType: item.triggerType || 'Manual',
+        triggerType: item.triggerType || 'manual',
         robotKey: item.robotKey,
       };
     }) || [];
+  console.log('Formatted Robot Data:', formatData);
 
   const tableProps = {
     header: [
@@ -321,8 +322,8 @@ export default function TeamRobotPage() {
           </div>
 
           <div className="w-90 mx-auto my-[30px]">
-            <div className="flex justify-between items-center">
-              <InputGroup width="30vw">
+            <div className="flex items-center">
+              <InputGroup width="30vw" mr={4}>
                 <InputLeftElement pointerEvents="none">
                   <SearchIcon color="gray.500" />
                 </InputLeftElement>
@@ -340,11 +341,6 @@ export default function TeamRobotPage() {
                   icon={<RepeatIcon />}
                   onClick={fetchData}
                 />
-                {canCreateRobot && (
-                  <Button colorScheme="teal" onClick={handleCreateRobot}>
-                    Create Robot
-                  </Button>
-                )}
               </div>
             </div>
           </div>
@@ -416,105 +412,6 @@ export default function TeamRobotPage() {
         size="xl"
       >
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Create Team Robot</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <FormControl isRequired>
-              <FormLabel>Robot Name</FormLabel>
-              <Input
-                ref={nameRef}
-                placeholder="Enter robot name"
-                value={robotName}
-                onChange={(e) => setRobotName(e.target.value)}
-                bg="white"
-              />
-              <FormHelperText>
-                Give your robot a descriptive name
-              </FormHelperText>
-            </FormControl>
-
-            <FormControl mt={4} isRequired>
-              <FormLabel>Select Process</FormLabel>
-              {isLoadingProcesses ? (
-                <Flex justify="center" py={4}>
-                  <Spinner size="md" color="teal.500" />
-                </Flex>
-              ) : (
-                <Select
-                  placeholder="Choose a process"
-                  value={selectedProcessId}
-                  onChange={(e) => {
-                    setSelectedProcessId(e.target.value);
-                    const process = processesData?.processes?.find(
-                      (p: any) => p.id === e.target.value
-                    );
-                    if (process) {
-                      setSelectedProcessVersion(
-                        process.version?.toString() || ''
-                      );
-                    }
-                  }}
-                  bg="white"
-                >
-                  {processesData?.processes?.map((process: any) => (
-                    <option key={process.id} value={process.id}>
-                      {process.name} (v{process.version})
-                    </option>
-                  ))}
-                </Select>
-              )}
-              <FormHelperText>
-                Select which team process this robot will execute
-              </FormHelperText>
-            </FormControl>
-
-            {selectedProcessVersion && (
-              <FormControl mt={4}>
-                <FormLabel>Process Version</FormLabel>
-                <Input
-                  value={`Version ${selectedProcessVersion}`}
-                  isReadOnly
-                  bg="gray.50"
-                />
-                <FormHelperText>
-                  Robot will use the selected process version
-                </FormHelperText>
-              </FormControl>
-            )}
-
-            {connections && connections.length > 0 && (
-              <Alert status="info" borderRadius="md" mt={4}>
-                <AlertIcon />
-                <Box>
-                  <Text fontWeight="bold">Available Connections</Text>
-                  <Text fontSize="sm">
-                    {connections.length} connection(s) will be available to this
-                    robot
-                  </Text>
-                </Box>
-              </Alert>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              colorScheme="teal"
-              variant="outline"
-              mr={3}
-              onClick={onCreateClose}
-              isDisabled={createMutation.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              colorScheme="teal"
-              onClick={handleCreateRobotSubmit}
-              isLoading={createMutation.isPending}
-            >
-              Create Robot
-            </Button>
-          </ModalFooter>
-        </ModalContent>
       </Modal>
     </TeamLayout>
   );

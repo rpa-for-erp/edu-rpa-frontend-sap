@@ -17,15 +17,8 @@ import BpmnColorPickerModule from 'bpmn-js-color-picker';
 import minimapModule from 'diagram-js-minimap';
 //@ts-ignore
 import gridModule from 'diagram-js-grid';
-//@ts-ignore
-import TokenSimulationModule from 'bpmn-js-token-simulation';
 import 'bpmn-js/dist/assets/diagram-js.css';
 import 'bpmn-font/dist/css/bpmn-embedded.css';
-import 'bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css';
-import { useParams } from 'next/navigation';
-import { QUERY_KEY } from '@/constants/queryKey';
-import processApi from '@/apis/processApi';
-import { useQuery } from '@tanstack/react-query';
 import CustomContextPadProvider from './CustomContextPadProvider';
 
 const BpmnJsModeler: ForwardRefRenderFunction<
@@ -54,7 +47,6 @@ const BpmnJsModeler: ForwardRefRenderFunction<
         BpmnColorPickerModule,
         gridModule,
         minimapModule,
-        TokenSimulationModule,
       ],
       height: '100%',
     });
@@ -130,12 +122,6 @@ const BpmnJsModeler: ForwardRefRenderFunction<
 
   return (
     <div className="bpmn-wrapper" style={{ width: '100%', height: '100%' }}>
-      {/* Hide the default token simulation toggle button on canvas */}
-      <style>{`
-        .bts-toggle-mode {
-          display: none !important;
-        }
-      `}</style>
       <div id="bpmnview" style={{ width: '100%', height: '100%' }}></div>
     </div>
   );

@@ -374,7 +374,7 @@ const CustomTable = (props: TableProps) => {
                     )}
                   </HStack>
                   <Modal isOpen={isOpen} onClose={onClose}>
-                    <ModalOverlay />
+                    <ModalOverlay bg="blackAlpha.300" />
                     <ModalContent>
                       <ModalHeader>Confirmation Delete</ModalHeader>
                       <ModalCloseButton />

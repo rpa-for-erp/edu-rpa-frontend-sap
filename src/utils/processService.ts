@@ -94,7 +94,14 @@ const getIndexByProcessID = (processID: string) => {
 const updateProcessInProcessList = (processID: string, newObj: Process) => {
   const index = getIndexByProcessID(processID);
   const currLocalStorage = getLocalStorageObject(LocalStorage.PROCESS_LIST);
-  currLocalStorage[index] = newObj;
+  
+  // If process not found in list (index === -1), add it to the end
+  if (index === -1) {
+    currLocalStorage.push(newObj);
+  } else {
+    currLocalStorage[index] = newObj;
+  }
+  
   return currLocalStorage;
 };
 
