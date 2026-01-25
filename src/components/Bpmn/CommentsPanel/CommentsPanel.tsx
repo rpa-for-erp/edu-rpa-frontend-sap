@@ -6,7 +6,6 @@ import {
   Text,
   Avatar,
   Textarea,
-  Button,
   Divider,
   useToast,
   Badge,
@@ -14,7 +13,7 @@ import {
   IconButton,
   Tooltip,
 } from '@chakra-ui/react';
-import { MdRefresh, MdCheck } from 'react-icons/md';
+import { MdRefresh, MdCheck, MdSend } from 'react-icons/md';
 import { useSelector } from 'react-redux';
 import { getCommentsForProcess } from '@/apis/commentsApi';
 import { useCommentSocket } from '@/hooks/useCommentSocket';
@@ -51,6 +50,9 @@ export default function CommentsPanel({
   
   // Track pending comments by tempId for matching with server response
   const pendingCommentsRef = useRef<Map<string, OptimisticComment>>(new Map());
+  
+  // Ref for auto-scrolling to bottom
+  const commentsEndRef = useRef<HTMLDivElement>(null);
 
   // Handle new comment from WebSocket - update pending comment or add new
   const handleCommentAdded = useCallback((comment: Comment) => {
@@ -155,6 +157,15 @@ export default function CommentsPanel({
     return comments.filter((c) => c.elementId === selectedElementId);
   }, [comments, selectedElementId]);
 
+  // Auto-scroll to bottom when comments change
+  const scrollToBottom = useCallback(() => {
+    commentsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [filteredComments, scrollToBottom]);
+
   // Handle adding a new comment with optimistic update
   const handleAddComment = () => {
     if (!newComment.trim()) return;
@@ -247,9 +258,9 @@ export default function CommentsPanel({
   };
 
   return (
-    <Box p={4} height="100%" display="flex" flexDirection="column">
+    <Box py={2} px={4} height="100%" display="flex" flexDirection="column">
       {/* Header with element info and connection status */}
-      <HStack mb={4} justify="space-between">
+      <HStack mb={2} justify="space-between">
         <HStack spacing={2}>
           {selectedElementId ? (
             <Badge colorScheme="teal" fontSize="xs">
@@ -261,7 +272,7 @@ export default function CommentsPanel({
             </Text>
           )}
         </HStack>
-        <HStack spacing={2}>
+        {/* <HStack spacing={2}>
           <Tooltip label={socketState.isConnected ? 'Real-time connected' : 'Offline'}>
             <Badge
               colorScheme={socketState.isConnected ? 'green' : 'gray'}
@@ -280,16 +291,16 @@ export default function CommentsPanel({
               isLoading={isLoading}
             />
           </Tooltip>
-        </HStack>
+        </HStack> */}
       </HStack>
 
       {/* Comments List */}
       <VStack
         flex={1}
-        spacing={4}
+        spacing={3}
         align="stretch"
         overflowY="auto"
-        mb={4}
+        mb={2}
         pr={2}
         className="custom-scrollbar"
       >
@@ -341,11 +352,7 @@ export default function CommentsPanel({
                         <Text fontWeight="medium" fontSize="sm" color={isMe ? 'teal.700' : 'gray.800'}>
                           {isMe ? 'You' : comment.createdBy.name}
                         </Text>
-                        {isMe && !comment.isPending && (
-                          <Badge colorScheme="teal" fontSize="xs" variant="subtle">
-                            me
-                          </Badge>
-                        )}
+                  
                         {comment.isPending && (
                           <Spinner size="xs" color="gray.400" />
                         )}
@@ -373,48 +380,70 @@ export default function CommentsPanel({
             );
           })
         )}
+        {/* Invisible element to scroll to */}
+        <div ref={commentsEndRef} />
       </VStack>
 
       {/* Add Comment Form */}
-      <Box borderTop="1px solid" borderColor="gray.200" pt={4}>
-        {selectedElementId && (
-          <Text fontSize="xs" color="gray.500" mb={2}>
-            Commenting on: {selectedElementName || selectedElementId}
-          </Text>
-        )}
-        <VStack spacing={3}>
+      <Box borderTop="1px solid" borderColor="gray.200" pt={3}>
+        <HStack spacing={2} align="center">
           <Textarea
             placeholder={
               selectedElementId
-                ? `Add a comment on "${selectedElementName || selectedElementId}"...`
+                ? `Comment on "${selectedElementName || selectedElementId}"...`
                 : 'Select an element to comment...'
             }
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             size="sm"
-            resize="vertical"
-            minH="80px"
+            resize="none"
+            rows={2}
+            minH="unset"
+            borderRadius="lg"
+            bg="gray.50"
+            border="1px solid"
+            borderColor="gray.200"
+            _hover={{ borderColor: 'gray.300', bg: 'white' }}
+            _focus={{ 
+              borderColor: 'teal.400', 
+              bg: 'white',
+              boxShadow: '0 0 0 1px var(--chakra-colors-teal-400)'
+            }}
             isDisabled={!selectedElementId}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 handleAddComment();
               }
             }}
           />
-          <HStack w="100%" justify="space-between">
-            <Text fontSize="xs" color="gray.400">
-              Ctrl+Enter to send
-            </Text>
-            <Button
+          <Tooltip 
+            label={
+              !socketState.isConnected 
+                ? 'Not connected' 
+                : !selectedElementId 
+                  ? 'Select an element' 
+                  : 'Send (Enter)'
+            }
+            placement="top"
+          >
+            <IconButton
+              aria-label="Send comment"
+              icon={<MdSend size={18} />}
               colorScheme="teal"
-              size="sm"
+              size="md"
+              borderRadius="full"
               onClick={handleAddComment}
               isDisabled={!newComment.trim() || !selectedElementId || !socketState.isConnected}
-            >
-              Add Comment
-            </Button>
-          </HStack>
-        </VStack>
+              _hover={{ transform: 'scale(1.05)' }}
+              _active={{ transform: 'scale(0.95)' }}
+              transition="all 0.15s ease"
+            />
+          </Tooltip>
+        </HStack>
+        <Text fontSize="xs" color="gray.400" mt={1} textAlign="right">
+          Shift+Enter for new line
+        </Text>
       </Box>
     </Box>
   );

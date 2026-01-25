@@ -183,7 +183,7 @@ export function useCommentSocket({
   // Send a new comment
   const sendComment = useCallback(
     (commentText: string, nodeId?: string) => {
-      console.log('[CommentSocket] Sending comment:', { commentText, nodeId, processId });
+      console.log('[CommentSocket] Sending comment:', { commentText, nodeId, processId, currentUser });
       
       if (!socketRef.current?.connected) {
         console.warn('[CommentSocket] Cannot send comment - not connected');
