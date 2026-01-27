@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Modal,
   ModalOverlay,
@@ -21,7 +21,8 @@ import {
   AlertDescription,
   Box,
   Code,
-} from "@chakra-ui/react";
+} from '@chakra-ui/react';
+import { useTranslation } from 'next-i18next';
 
 interface CreateProcessFromSubProcessModalProps {
   isOpen: boolean;
@@ -44,12 +45,13 @@ const CreateProcessFromSubProcessModal: React.FC<
   hasNestedSubProcesses,
   isLoading = false,
 }) => {
-  const [processName, setProcessName] = useState(subProcessName || "");
+  const { t } = useTranslation('studio');
+  const [processName, setProcessName] = useState(subProcessName || '');
 
   // Reset processName when modal opens with new subProcessName
   React.useEffect(() => {
     if (isOpen) {
-      setProcessName(subProcessName || "");
+      setProcessName(subProcessName || '');
     }
   }, [isOpen, subProcessName]);
 
@@ -73,7 +75,7 @@ const CreateProcessFromSubProcessModal: React.FC<
     >
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Create Process from SubProcess</ModalHeader>
+        <ModalHeader>{t('createProcessModal.title')}</ModalHeader>
         {!isLoading && <ModalCloseButton />}
 
         <ModalBody>
@@ -82,44 +84,51 @@ const CreateProcessFromSubProcessModal: React.FC<
               <Alert status="info" borderRadius="md">
                 <AlertIcon />
                 <Box>
-                  <AlertTitle>Nested SubProcess Detected</AlertTitle>
+                  <AlertTitle>
+                    {t('createProcessModal.nestedDetected')}
+                  </AlertTitle>
                   <AlertDescription>
-                    This subprocess contains nested subprocesses. Creating a
-                    separate process will make it easier to manage.
+                    {t('createProcessModal.nestedDetectedDesc')}
                   </AlertDescription>
                 </Box>
               </Alert>
             )}
 
             <FormControl isRequired>
-              <FormLabel>Process Name</FormLabel>
+              <FormLabel>{t('createProcessModal.processName')}</FormLabel>
               <Input
-                placeholder="Enter process name"
+                placeholder={t('createProcessModal.enterProcessName')}
                 value={processName}
                 onChange={(e) => setProcessName(e.target.value)}
                 isDisabled={isLoading}
               />
               <FormHelperText>
-                This will be the name of the new process
+                {t('createProcessModal.helperText')}
               </FormHelperText>
             </FormControl>
 
             <Box>
               <Text fontSize="sm" fontWeight="semibold" mb={2}>
-                SubProcess Information:
+                {t('createProcessModal.subprocessInfo')}
               </Text>
               <VStack align="stretch" spacing={1} fontSize="sm">
                 <HStack>
-                  <Text color="gray.600">Current Name:</Text>
+                  <Text color="gray.600">{t('subprocess.currentName')}:</Text>
                   <Code>{subProcessName}</Code>
                 </HStack>
                 <HStack>
-                  <Text color="gray.600">Elements:</Text>
+                  <Text color="gray.600">{t('subprocess.elements')}:</Text>
                   <Text>{elementCount}</Text>
                 </HStack>
                 <HStack>
-                  <Text color="gray.600">Nested SubProcesses:</Text>
-                  <Text>{hasNestedSubProcesses ? "Yes" : "No"}</Text>
+                  <Text color="gray.600">
+                    {t('subprocess.nestedSubProcesses')}:
+                  </Text>
+                  <Text>
+                    {hasNestedSubProcesses
+                      ? t('subprocess.yes')
+                      : t('subprocess.no')}
+                  </Text>
                 </HStack>
               </VStack>
             </Box>
@@ -128,8 +137,7 @@ const CreateProcessFromSubProcessModal: React.FC<
               <AlertIcon />
               <Box fontSize="sm">
                 <AlertDescription>
-                  A new process will be created with the content of this
-                  subprocess. You can find it in the process list.
+                  {t('createProcessModal.warningMessage')}
                 </AlertDescription>
               </Box>
             </Alert>
@@ -143,16 +151,16 @@ const CreateProcessFromSubProcessModal: React.FC<
             onClick={handleClose}
             isDisabled={isLoading}
           >
-            Cancel
+            {t('buttons.cancel')}
           </Button>
           <Button
             colorScheme="blue"
             onClick={handleConfirm}
             isLoading={isLoading}
-            loadingText="Creating..."
+            loadingText={t('buttons.create') + '...'}
             isDisabled={!processName.trim() || isLoading}
           >
-            Create Process
+            {t('buttons.create')}
           </Button>
         </ModalFooter>
       </ModalContent>

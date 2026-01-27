@@ -1,5 +1,6 @@
 import { CreateDocumentTemplateDto } from '@/dtos/documentTemplateDto';
 import { DocumentTemplateType } from '@/interfaces/enums/document-template-type';
+import { useTranslation } from 'next-i18next';
 import {
   Modal,
   ModalOverlay,
@@ -29,6 +30,7 @@ const CreateDocumentTemplateModal: React.FC<Props> = ({
   onClose,
   handleCreateNewDocumentTemplate,
 }) => {
+  const { t } = useTranslation('document-template');
   const [createDocumentTemplate, setCreateDocumentTemplate] =
     useState<CreateDocumentTemplateDto>({
       name: '',
@@ -40,13 +42,13 @@ const CreateDocumentTemplateModal: React.FC<Props> = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Create new document template</ModalHeader>
+        <ModalHeader>{t('modals.create.title')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl>
-            <FormLabel>Document template name</FormLabel>
+            <FormLabel>{t('modals.create.nameLabel')}</FormLabel>
             <Input
-              placeholder="Document template name"
+              placeholder={t('modals.create.namePlaceholder')}
               value={createDocumentTemplate.name}
               onChange={(e) =>
                 setCreateDocumentTemplate({
@@ -57,9 +59,9 @@ const CreateDocumentTemplateModal: React.FC<Props> = ({
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t('modals.create.descriptionLabel')}</FormLabel>
             <Input
-              placeholder="Description"
+              placeholder={t('modals.create.descriptionPlaceholder')}
               value={createDocumentTemplate.description}
               onChange={(e) =>
                 setCreateDocumentTemplate({
@@ -70,7 +72,7 @@ const CreateDocumentTemplateModal: React.FC<Props> = ({
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Type</FormLabel>
+            <FormLabel>{t('modals.create.typeLabel')}</FormLabel>
             <Select
               value={createDocumentTemplate.type}
               onChange={(e) =>
@@ -78,8 +80,11 @@ const CreateDocumentTemplateModal: React.FC<Props> = ({
                   ...createDocumentTemplate,
                   type: e.target.value as DocumentTemplateType,
                 })
-              }>
-              <option value={DocumentTemplateType.IMAGE}>Image</option>
+              }
+            >
+              <option value={DocumentTemplateType.IMAGE}>
+                {t('modals.create.typeImage')}
+              </option>
             </Select>
           </FormControl>
         </ModalBody>
@@ -89,11 +94,12 @@ const CreateDocumentTemplateModal: React.FC<Props> = ({
             mr={3}
             onClick={() =>
               handleCreateNewDocumentTemplate(createDocumentTemplate)
-            }>
-            Create
+            }
+          >
+            {t('buttons.create')}
           </Button>
           <Button variant="outline" colorScheme="teal" onClick={onClose}>
-            Cancel
+            {t('buttons.cancel')}
           </Button>
         </ModalFooter>
       </ModalContent>

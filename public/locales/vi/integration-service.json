@@ -1,0 +1,71 @@
+{
+  "page": {
+    "title": "Danh sách kết nối",
+    "search": "Tìm kiếm...",
+    "allServices": "Tất cả dịch vụ",
+    "newConnection": "Kết nối mới",
+    "noConnections": "Không có kết nối",
+    "noConnectionsDescription": "Tạo kết nối mới để tích hợp với các dịch vụ khác"
+  },
+  "table": {
+    "service": "Dịch vụ",
+    "connectionName": "Tên kết nối",
+    "createdAt": "Ngày tạo",
+    "status": "Trạng thái",
+    "action": "Hành động"
+  },
+  "toast": {
+    "error": "Lỗi",
+    "success": "Thành công",
+    "listRefreshed": "Đã làm mới danh sách kết nối",
+    "refreshNotImplemented": "Chức năng làm mới chưa được triển khai"
+  },
+  "detail": {
+    "title": "Chi tiết kết nối",
+    "provider": "Nhà cung cấp",
+    "email": "Email",
+    "searchByRobotName": "Tìm kiếm theo tên robot",
+    "refresh": "Làm mới",
+    "noRobots": "Không có robot nào",
+    "noRobotsDescription": "Xuất bản robot từ các quy trình hiện có của bạn.",
+    "robotName": "Tên robot",
+    "processId": "Mã quy trình",
+    "processVersion": "Phiên bản quy trình",
+    "createdAt": "Ngày tạo",
+    "triggerType": "Loại kích hoạt",
+    "status": "Trạng thái",
+    "actions": "Hành động"
+  },
+  "modal": {
+    "createNewConnection": "Tạo kết nối mới",
+    "cancel": "Hủy",
+    "moodle": {
+      "title": "Tạo kết nối Moodle",
+      "description": "Kết nối với trang Moodle của bạn sử dụng Token dịch vụ Web. Bạn có thể tạo token này từ trang quản trị của Moodle.",
+      "baseUrl": "URL Moodle",
+      "baseUrlPlaceholder": "https://moodle.example.com",
+      "token": "Token dịch vụ Web",
+      "tokenPlaceholder": "Nhập token dịch vụ web Moodle của bạn",
+      "tokenHelp": "Token này sẽ được lưu trữ và mã hóa an toàn",
+      "name": "Tên kết nối",
+      "nameOptional": "(Tùy chọn)",
+      "namePlaceholder": "Trang Moodle của tôi",
+      "nameHelp": "Để trống để tự động nhận diện từ trang Moodle của bạn",
+      "required": "*",
+      "creating": "Đang tạo...",
+      "createConnection": "Tạo kết nối",
+      "success": "Thành công!",
+      "successDescription": "Kết nối Moodle \"{{name}}\" đã được tạo thành công",
+      "error": "Lỗi",
+      "errorDefault": "Không thể tạo kết nối Moodle",
+      "validation": {
+        "urlInvalid": "Phải là URL hợp lệ (ví dụ: https://moodle.example.com)",
+        "urlProtocol": "URL phải bắt đầu bằng http:// hoặc https://",
+        "urlRequired": "URL Moodle là bắt buộc",
+        "tokenMin": "Token phải có ít nhất 10 ký tự",
+        "tokenRequired": "Token dịch vụ Web là bắt buộc",
+        "nameMax": "Tên phải ít hơn 100 ký tự"
+      }
+    }
+  }
+}

@@ -22,6 +22,7 @@ import {
 } from '@/redux/slice/scheduleSlice';
 import ScheduleForm from './ScheduleForm';
 import { toastError, toastSuccess } from '@/utils/common';
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   isOpen: boolean;
@@ -50,6 +51,7 @@ const ScheduleModal = ({
   processId,
   processVersion,
 }: Props) => {
+  const { t } = useTranslation('robot');
   const [isLoading, setIsLoading] = useState(false);
 
   const schedule = useSelector(scheduleSelector);
@@ -125,7 +127,7 @@ const ScheduleModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader className='m-auto'>Schedule robot</ModalHeader>
+        <ModalHeader className="m-auto">Schedule robot</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           {schedule.name ? 'Edit schedule' : 'Create schedule'}
@@ -138,14 +140,16 @@ const ScheduleModal = ({
                 className="mr-2"
                 isLoading={isLoading}
                 colorScheme="blue"
-                onClick={handleUpdateSchedule}>
+                onClick={handleUpdateSchedule}
+              >
                 Save
               </Button>
               <Button
-                className='mr-2'
+                className="mr-2"
                 isLoading={isLoading}
                 colorScheme="red"
-                onClick={handleDeleteSchedule}>
+                onClick={handleDeleteSchedule}
+              >
                 Delete
               </Button>
             </>
@@ -154,7 +158,8 @@ const ScheduleModal = ({
               className="mr-2"
               isLoading={isLoading}
               colorScheme="blue"
-              onClick={handleCreateSchedule}>
+              onClick={handleCreateSchedule}
+            >
               Create
             </Button>
           )}

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import {
   Box,
   Button,
@@ -34,9 +35,9 @@ import { useSelector } from 'react-redux';
 import { MdArrowDropDown } from 'react-icons/md';
 import { COLORS } from '@/constants/colors';
 import ConfirmModal from '@/components/ConfirmModal/ConfirmModal';
-import { red } from '@mui/material/colors';
 
 const WorkspaceListPage: React.FC = () => {
+  const { t } = useTranslation('workspace');
   const router = useRouter();
   const toast = useToast();
   const user = useSelector(userSelector);
@@ -95,8 +96,8 @@ const WorkspaceListPage: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch workspaces:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch workspaces',
+        title: t('messages.error'),
+        description: t('messages.fetchFailed'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -145,8 +146,8 @@ const WorkspaceListPage: React.FC = () => {
       setIsSubmitting(true);
       await workspaceApi.deleteWorkspace(pendingAction.workspaceId);
       toast({
-        title: 'Success',
-        description: 'Workspace deleted successfully',
+        title: t('messages.success'),
+        description: t('messages.deleteSuccess'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -154,9 +155,9 @@ const WorkspaceListPage: React.FC = () => {
       fetchWorkspaces();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: t('messages.error'),
         description:
-          error?.response?.data?.message || 'Failed to delete workspace',
+          error?.response?.data?.message || t('messages.deleteFailed'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -185,8 +186,8 @@ const WorkspaceListPage: React.FC = () => {
       setIsSubmitting(true);
       await workspaceApi.leaveWorkspace(pendingAction.workspaceId);
       toast({
-        title: 'Success',
-        description: 'Left workspace successfully',
+        title: t('messages.success'),
+        description: t('messages.leaveSuccess'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -194,9 +195,9 @@ const WorkspaceListPage: React.FC = () => {
       fetchWorkspaces();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: t('messages.error'),
         description:
-          error?.response?.data?.message || 'Failed to leave workspace',
+          error?.response?.data?.message || t('messages.leaveFailed'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -222,7 +223,7 @@ const WorkspaceListPage: React.FC = () => {
       <Container maxW="container.xl" py={5}>
         <Flex justify="space-between" align="center" mb={6}>
           <Heading size="lg" color={COLORS.primary}>
-            Workspace
+            {t('title')}
           </Heading>
         </Flex>
 
@@ -233,7 +234,7 @@ const WorkspaceListPage: React.FC = () => {
                 <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input
-                placeholder="Find a workspace..."
+                placeholder={t('search')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -242,7 +243,7 @@ const WorkspaceListPage: React.FC = () => {
               colorScheme="teal"
               onClick={() => router.push('/workspace/create')}
             >
-              New Workspace
+              {t('newWorkspace')}
             </Button>
           </Flex>
 
@@ -263,7 +264,7 @@ const WorkspaceListPage: React.FC = () => {
                   }
                   onChange={handleSelectAll}
                 />
-                <Text fontWeight="medium">Workspaces</Text>
+                <Text fontWeight="medium">{t('workspaces')}</Text>
               </Flex>
               <Flex align="right">
                 <Menu>
@@ -275,19 +276,19 @@ const WorkspaceListPage: React.FC = () => {
                     px={2}
                   >
                     {roleFilter === 'all'
-                      ? 'All'
+                      ? t('all')
                       : roleFilter.charAt(0).toUpperCase() +
                         roleFilter.slice(1)}
                   </MenuButton>
                   <MenuList>
                     <MenuItem onClick={() => setRoleFilter('all')}>
-                      All Roles
+                      {t('allRoles')}
                     </MenuItem>
                     <MenuItem onClick={() => setRoleFilter('owner')}>
-                      Owner
+                      {t('owner')}
                     </MenuItem>
                     <MenuItem onClick={() => setRoleFilter('member')}>
-                      Member
+                      {t('member')}
                     </MenuItem>
                   </MenuList>
                 </Menu>
@@ -324,7 +325,7 @@ const WorkspaceListPage: React.FC = () => {
                       </Text>
                       {isOwner(workspace) && (
                         <Badge colorScheme="blue" fontSize="xs">
-                          Owner
+                          {t('owner')}
                         </Badge>
                       )}
                     </Flex>
@@ -338,7 +339,7 @@ const WorkspaceListPage: React.FC = () => {
                     minW="80px"
                     textAlign="right"
                   >
-                    {workspace.members?.length || 0} member
+                    {workspace.members?.length || 0} {t('member')}
                     {workspace.members?.length !== 1 ? 's' : ''}
                   </Text>
                   <Box
@@ -360,7 +361,7 @@ const WorkspaceListPage: React.FC = () => {
                     justifyContent="center"
                   >
                     <Text fontSize="14px" color="gray.700">
-                      Settings
+                      {t('settings')}
                     </Text>
                   </Box>
                   {isOwner(workspace) ? (
@@ -381,12 +382,12 @@ const WorkspaceListPage: React.FC = () => {
                         color={COLORS.bgGrayLight}
                         fontWeight="medium"
                       >
-                        Delete
+                        {t('delete')}
                       </Text>
                     </Box>
                   ) : (
                     <IconButton
-                      aria-label="Leave"
+                      aria-label={t('leave')}
                       icon={<FaSignOutAlt />}
                       size="sm"
                       variant="ghost"
@@ -411,8 +412,10 @@ const WorkspaceListPage: React.FC = () => {
 
       {/* Delete Confirmation Modal */}
       <ConfirmModal
-        title="Delete Workspace"
-        content={`delete workspace "${pendingAction?.workspaceName}"`}
+        title={t('modals.deleteTitle')}
+        content={t('modals.deleteContent', {
+          workspaceName: pendingAction?.workspaceName,
+        })}
         isOpen={isDeleteOpen}
         isLoading={isSubmitting}
         onClose={onDeleteClose}
@@ -421,8 +424,10 @@ const WorkspaceListPage: React.FC = () => {
 
       {/* Leave Confirmation Modal */}
       <ConfirmModal
-        title="Leave Workspace"
-        content={`leave workspace "${pendingAction?.workspaceName}"`}
+        title={t('modals.leaveTitle')}
+        content={t('modals.leaveContent', {
+          workspaceName: pendingAction?.workspaceName,
+        })}
         isOpen={isLeaveOpen}
         isLoading={isSubmitting}
         onClose={onLeaveClose}
@@ -437,7 +442,12 @@ export default WorkspaceListPage;
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'workspace',
+      ])),
     },
   };
 };

@@ -21,6 +21,7 @@ import {
 import { CreateTeamDto } from '@/dtos/workspaceDto';
 import { TeamVisibility } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
+import { useTranslation } from 'next-i18next';
 
 interface CreateTeamModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
   workspaceId,
   onSuccess,
 }) => {
+  const { t } = useTranslation('workspace');
   const toast = useToast();
   const [formData, setFormData] = useState<CreateTeamDto>({
     name: '',
@@ -62,8 +64,8 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
   const handleSubmit = async () => {
     if (!formData.name) {
       toast({
-        title: 'Error',
-        description: 'Please enter team name',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.pleaseEnterTeamName'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -75,8 +77,8 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
     try {
       await workspaceApi.createTeam(workspaceId, formData);
       toast({
-        title: 'Success',
-        description: 'Team created successfully',
+        title: t('messages.success', { ns: 'common' }),
+        description: t('messages.teamCreated'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -90,8 +92,9 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
       onClose();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error?.response?.data?.message || 'Failed to create team',
+        title: t('messages.error', { ns: 'common' }),
+        description:
+          error?.response?.data?.message || t('messages.failedToCreateTeam'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -105,14 +108,14 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Create new team</ModalHeader>
+        <ModalHeader>{t('createTeamTitle')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl isRequired mb={4}>
-            <FormLabel>Team name</FormLabel>
+            <FormLabel>{t('teamName')}</FormLabel>
             <Input
               name="name"
-              placeholder="Enter team name"
+              placeholder={t('enterTeamName')}
               value={formData.name}
               onChange={handleChange}
             />
@@ -122,17 +125,14 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t('description')}</FormLabel>
             <Textarea
               name="description"
-              placeholder="What is this team all about?"
+              placeholder={t('enterDescription')}
               value={formData.description}
               onChange={handleChange}
               rows={3}
             />
-            <Text fontSize="sm" color="gray.500" mt={1}>
-              What is this team all about?
-            </Text>
           </FormControl>
 
           <FormControl>
@@ -171,9 +171,11 @@ const CreateTeamModal: React.FC<CreateTeamModalProps> = ({
             onClick={handleSubmit}
             isLoading={isLoading}
           >
-            Create team
+            {t('createTeam')}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            {t('buttons.cancel', { ns: 'common' })}
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

@@ -13,6 +13,44 @@ interface IconImageProps {
 function IconImage(props: IconImageProps) {
   const { icon, label, onClick, width = 60, height = 60 } = props;
 
+  // Safety check: if icon is null or undefined, don't render the Image
+  if (!icon) {
+    return (
+      <IconButton
+        aria-label={label}
+        icon={
+          <Box className="flex flex-col items-center">
+            <Box
+              width={width}
+              height={height}
+              bg="gray.200"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              <Text fontSize="xs" color="gray.500">
+                No Icon
+              </Text>
+            </Box>
+            <Text className="text-black mt-[10px] text-[13px] text-center">
+              {label.split(' ').map((word, index, array) => (
+                <span key={index}>
+                  {word}
+                  {index < array.length - 1 ? <br /> : ''}
+                </span>
+              ))}
+            </Text>
+          </Box>
+        }
+        flexDirection="column"
+        alignItems="center"
+        width={width * 2}
+        height={height * 2}
+        onClick={onClick}
+      />
+    );
+  }
+
   return (
     <IconButton
       aria-label={label}

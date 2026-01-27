@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
@@ -13,10 +13,11 @@ import {
   Tabs,
   TabList,
   Tab,
-} from "@chakra-ui/react";
-import { ChevronDownIcon, HamburgerIcon } from "@chakra-ui/icons";
-import { FaSave } from "react-icons/fa";
-import { useSaveShortcut } from "@/hooks/useSaveShortCut";
+} from '@chakra-ui/react';
+import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons';
+import { FaSave } from 'react-icons/fa';
+import { useSaveShortcut } from '@/hooks/useSaveShortCut';
+import { useTranslation } from 'next-i18next';
 
 interface BpmnSubHeaderProps {
   isSaved: boolean;
@@ -41,12 +42,13 @@ export default function BpmnSubHeader({
   tokenSimulation = false,
   onTokenSimulationChange,
 }: BpmnSubHeaderProps) {
+  const { t } = useTranslation('studio');
   const [activeTab, setActiveTab] = useState(0);
 
   const handleChangeToSimulateTab = () => {
     setActiveTab(1);
     onTokenSimulationChange?.(false);
-  }
+  };
   // Add Ctrl+S shortcut support
   useSaveShortcut(onSaveAll);
 
@@ -70,26 +72,26 @@ export default function BpmnSubHeader({
             <TabList>
               <Tab
                 _selected={{
-                  color: "teal.600",
-                  borderBottom: "2px solid",
-                  borderColor: "teal.600",
+                  color: 'teal.600',
+                  borderBottom: '2px solid',
+                  borderColor: 'teal.600',
                 }}
                 fontWeight="medium"
                 pb={2}
               >
-                Design
+                {t('subheader.design')}
               </Tab>
               <Tab
                 _selected={{
-                  color: "teal.600",
-                  borderBottom: "2px solid",
-                  borderColor: "teal.600",
+                  color: 'teal.600',
+                  borderBottom: '2px solid',
+                  borderColor: 'teal.600',
                 }}
                 onClick={handleChangeToSimulateTab}
                 fontWeight="medium"
                 pb={2}
               >
-                Simulate
+                {t('subheader.simulate')}
               </Tab>
             </TabList>
           </Tabs>
@@ -98,13 +100,13 @@ export default function BpmnSubHeader({
           {activeTab === 0 && (
             <Flex align="center" gap={2}>
               <Switch
-              colorScheme="teal"
-              isChecked={tokenSimulation}
-              onChange={(e) => onTokenSimulationChange?.(e.target.checked)}
-              size="sm"
-            />
+                colorScheme="teal"
+                isChecked={tokenSimulation}
+                onChange={(e) => onTokenSimulationChange?.(e.target.checked)}
+                size="sm"
+              />
               <Text fontSize="sm" color="gray.700">
-                Token simulation
+                {t('subheader.tokenSimulation')}
               </Text>
             </Flex>
           )}
@@ -116,14 +118,14 @@ export default function BpmnSubHeader({
           <Button
             size="sm"
             leftIcon={<FaSave />}
-            colorScheme={isSaved ? "gray" : "orange"}
-            variant={isSaved ? "outline" : "solid"}
+            colorScheme={isSaved ? 'gray' : 'orange'}
+            variant={isSaved ? 'outline' : 'solid'}
             onClick={onSaveAll}
             fontWeight="medium"
             px={4}
             isDisabled={isSaved}
           >
-            {isSaved ? "Saved" : "Save"}
+            {isSaved ? t('buttons.saved') : t('buttons.save')}
           </Button>
 
           {/* Version Dropdown */}
@@ -135,33 +137,33 @@ export default function BpmnSubHeader({
               variant="outline"
               borderColor="blue.500"
               color="blue.600"
-              _hover={{ bg: "blue.50" }}
+              _hover={{ bg: 'blue.50' }}
               fontWeight="medium"
             >
-              Version
+              {t('subheader.version')}
             </MenuButton>
             <MenuList minW="200px">
               <MenuItem
                 _hover={{
-                  bg: "transparent",
-                  outline: "2px solid",
-                  outlineColor: "#5B5DD9",
-                  outlineOffset: "-2px",
+                  bg: 'transparent',
+                  outline: '2px solid',
+                  outlineColor: '#5B5DD9',
+                  outlineOffset: '-2px',
                 }}
                 onClick={onCreateVersion}
               >
-                Create version
+                {t('subheader.createVersion')}
               </MenuItem>
               <MenuItem
                 _hover={{
-                  bg: "transparent",
-                  outline: "2px solid",
-                  outlineColor: "#5B5DD9",
-                  outlineOffset: "-2px",
+                  bg: 'transparent',
+                  outline: '2px solid',
+                  outlineColor: '#5B5DD9',
+                  outlineOffset: '-2px',
                 }}
                 onClick={onShowVersions}
               >
-                Show versions
+                {t('subheader.showVersions')}
               </MenuItem>
             </MenuList>
           </Menu>
@@ -171,12 +173,12 @@ export default function BpmnSubHeader({
             size="sm"
             bg="pink.500"
             color="white"
-            _hover={{ bg: "pink.600" }}
+            _hover={{ bg: 'pink.600' }}
             onClick={onPublish}
             fontWeight="medium"
             px={6}
           >
-            Publish
+            {t('buttons.publish')}
           </Button>
 
           {/* RobotCode Button */}
@@ -187,7 +189,7 @@ export default function BpmnSubHeader({
             fontWeight="medium"
             px={6}
           >
-            RobotCode
+            {t('buttons.robotCode')}
           </Button>
 
           {/* More Menu */}
@@ -197,15 +199,15 @@ export default function BpmnSubHeader({
               icon={<HamburgerIcon />}
               variant="ghost"
               size="sm"
-              aria-label="More options"
+              aria-label={t('buttons.moreOptions')}
             />
             <MenuList>
               <MenuItem icon={<FaSave />} onClick={onSaveAll}>
-                Save All
+                {t('buttons.saveAll')}
               </MenuItem>
-              <MenuItem>Export XML</MenuItem>
-              <MenuItem>Import BPMN</MenuItem>
-              <MenuItem>Settings</MenuItem>
+              <MenuItem>{t('subheader.exportXml')}</MenuItem>
+              <MenuItem>{t('subheader.importBpmn')}</MenuItem>
+              <MenuItem>{t('subheader.settings')}</MenuItem>
             </MenuList>
           </Menu>
         </Flex>

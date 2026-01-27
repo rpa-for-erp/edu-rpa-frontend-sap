@@ -19,8 +19,12 @@ import robotApi from '@/apis/robotApi';
 import { Robot } from '@/interfaces/robot';
 import RobotTable from '@/components/Robot/RobotTable';
 import { toastError } from '@/utils/common';
+import { useTranslation } from 'next-i18next';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 const ServiceDetail = () => {
+  const { t } = useTranslation('integration-service');
   const router = useRouter();
   const param = useParams();
   const toast = useToast();
@@ -37,7 +41,7 @@ const ServiceDetail = () => {
 
   const fetchData = async () => {
     // TODO: implement refresh functionallity
-    toastError(toast, 'Refresh functionallity is not implemented yet');
+    toastError(toast, t('toast.refreshNotImplemented'));
   };
 
   const formatData: Omit<Robot, 'userId'>[] =
@@ -55,13 +59,13 @@ const ServiceDetail = () => {
 
   const tableProps = {
     header: [
-      'Robot Name',
-      'Process ID',
-      'Process Version',
-      'Created At',
-      'Trigger Type',
-      'Status',
-      'Actions',
+      t('detail.robotName'),
+      t('detail.processId'),
+      t('detail.processVersion'),
+      t('detail.createdAt'),
+      t('detail.triggerType'),
+      t('detail.status'),
+      t('detail.actions'),
     ],
     data: formatData ?? [],
   };
@@ -84,8 +88,9 @@ const ServiceDetail = () => {
           textAlign="center"
           color="teal"
           my={5}
-          py={8}>
-          Detail Connection
+          py={8}
+        >
+          {t('detail.title')}
         </Heading>
         <Box></Box>
       </Box>
@@ -95,20 +100,21 @@ const ServiceDetail = () => {
         rounded="lg"
         shadow="md"
         mb={6}
-        className="w-90 m-auto">
+        className="w-90 m-auto"
+      >
         <Text>
-          <b>Provider:</b> {provider}
+          <b>{t('detail.provider')}:</b> {provider}
         </Text>
         <Text>
-          <b>Email:</b> {user}
+          <b>{t('detail.email')}:</b> {user}
         </Text>
       </Box>
       {tableProps.data.length === 0 && (
         <div className="w-90 m-auto flex justify-center items-center">
           <div className="text-center">
-            <div className="text-2xl font-bold">No robots here</div>
+            <div className="text-2xl font-bold">{t('detail.noRobots')}</div>
             <div className="text-gray-500">
-              Publish a robot from your existing processes.
+              {t('detail.noRobotsDescription')}
             </div>
           </div>
         </div>
@@ -125,13 +131,13 @@ const ServiceDetail = () => {
                 width="30vw"
                 bg="white.300"
                 type="text"
-                placeholder="Search by robot name"
+                placeholder={t('detail.searchByRobotName')}
                 value={nameFilter}
                 onChange={(e) => setNameFilter(e.target.value)}
               />
               <Box className="w-[15vw] ml-[20px]">
                 <IconButton
-                  aria-label="Refresh"
+                  aria-label={t('detail.refresh')}
                   icon={<RepeatIcon />}
                   onClick={fetchData}
                 />
@@ -144,4 +150,18 @@ const ServiceDetail = () => {
     </Box>
   );
 };
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'integration-service',
+      ])),
+    },
+  };
+};
+
 export default ServiceDetail;

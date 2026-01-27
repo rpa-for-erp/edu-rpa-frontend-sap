@@ -39,4 +39,10 @@ export type BpmnJsReactHook = () => {
   getBusinessObject: (id: string) => any;
   getIncoming: (id: string) => any;
   getOutgoing: (id: string) => any;
+
+  // Undo/Redo operations
+  undo: () => void;
+  redo: () => void;
+  canUndo: () => boolean;
+  canRedo: () => boolean;
 };

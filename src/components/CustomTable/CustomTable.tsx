@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Table,
   Thead,
@@ -27,7 +27,7 @@ import {
   MenuItem,
   MenuDivider,
   Select,
-} from "@chakra-ui/react";
+} from '@chakra-ui/react';
 import {
   DownloadIcon,
   EditIcon,
@@ -36,14 +36,15 @@ import {
   ChevronLeftIcon,
   ChevronUpIcon,
   ChevronDownIcon,
-} from "@chakra-ui/icons";
-import ReactPaginate from "react-paginate";
-import { IoDocumentText } from "react-icons/io5";
-import { FaPlay, FaEllipsisV } from "react-icons/fa";
-import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
-import { FaCode } from "react-icons/fa6";
-import { BsPinAngleFill, BsPinAngle } from "react-icons/bs";
-import { MdContentCopy, MdShare, MdSettings } from "react-icons/md";
+} from '@chakra-ui/icons';
+import ReactPaginate from 'react-paginate';
+import { IoDocumentText } from 'react-icons/io5';
+import { FaPlay, FaEllipsisV } from 'react-icons/fa';
+import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
+import { FaCode } from 'react-icons/fa6';
+import { BsPinAngleFill, BsPinAngle } from 'react-icons/bs';
+import { MdContentCopy, MdShare, MdSettings } from 'react-icons/md';
+import { useTranslation } from 'next-i18next';
 
 interface TableProps {
   header: string[];
@@ -61,12 +62,13 @@ interface TableProps {
   onShare?: (id: string) => void;
   onPin?: (id: string) => void;
   onProcessSettings?: (id: string) => void;
-  sortOrder?: "asc" | "desc" | null;
+  sortOrder?: 'asc' | 'desc' | null;
   onSortChange?: () => void;
 }
 const DEFAULT_MAX_ROWS = 6;
 
 const CustomTable = (props: TableProps) => {
+  const { t } = useTranslation('common');
   const [currentPage, setCurrentPage] = useState(0);
   const [currentDeletingId, setCurrentDeletingId] = useState<string | null>(
     null
@@ -104,17 +106,17 @@ const CustomTable = (props: TableProps) => {
 
   const renderTableCell = (type: string, value: string, item?: any) => {
     switch (type) {
-      case "status":
+      case 'status':
         return (
           <Tag
             colorScheme={
-              value === "draft"
-                ? "yellow"
-                : value === "deployed"
-                ? "green"
-                : value === "Connected"
-                ? "green"
-                : "red"
+              value === 'draft'
+                ? 'yellow'
+                : value === 'deployed'
+                  ? 'green'
+                  : value === 'Connected'
+                    ? 'green'
+                    : 'red'
             }
             size="md"
             p={2}
@@ -123,7 +125,7 @@ const CustomTable = (props: TableProps) => {
             {value}
           </Tag>
         );
-      case "type":
+      case 'type':
         return (
           <Box className="flex justify-between">
             <Box className="flex justify-between">
@@ -136,7 +138,7 @@ const CustomTable = (props: TableProps) => {
             <Box></Box>
           </Box>
         );
-      case "name":
+      case 'name':
         return (
           <HStack>
             {item?.pinned && <BsPinAngleFill color="#319795" />}
@@ -151,7 +153,7 @@ const CustomTable = (props: TableProps) => {
   return (
     <Box>
       <Box overflowX="auto" className="shadow-sm">
-        <Table variant="simple" size="md" sx={{ tableLayout: "auto" }}>
+        <Table variant="simple" size="md" sx={{ tableLayout: 'auto' }}>
           <Thead bg="#F0F0F0">
             <Tr>
               {props.header.map((headerItem: string, headerIndex: number) => {
@@ -162,20 +164,20 @@ const CustomTable = (props: TableProps) => {
                 // Define column widths
                 const getColumnWidth = (header: string) => {
                   switch (header) {
-                    case "Process name":
-                      return "20%";
-                    case "Process description":
-                      return "25%";
-                    case "Owner":
-                      return "12%";
-                    case "Last Modified":
-                      return "18%";
-                    case "Version":
-                      return "8%";
-                    case "Status":
-                      return "10%";
+                    case 'Process name':
+                      return '20%';
+                    case 'Process description':
+                      return '25%';
+                    case 'Owner':
+                      return '12%';
+                    case 'Last Modified':
+                      return '18%';
+                    case 'Version':
+                      return '8%';
+                    case 'Status':
+                      return '10%';
                     default:
-                      return "auto";
+                      return 'auto';
                   }
                 };
 
@@ -191,14 +193,14 @@ const CustomTable = (props: TableProps) => {
                   >
                     <HStack spacing={1} justify="flex-start">
                       <Text>{headerItem}</Text>
-                      {headerItem === "Last Modified" && props.onSortChange && (
+                      {headerItem === 'Last Modified' && props.onSortChange && (
                         <IconButton
                           size="xs"
                           aria-label="Sort"
                           variant="ghost"
-                          _hover={{ bg: "gray.100" }}
+                          _hover={{ bg: 'gray.100' }}
                           icon={
-                            props.sortOrder === "asc" ? (
+                            props.sortOrder === 'asc' ? (
                               <ChevronUpIcon />
                             ) : (
                               <ChevronDownIcon />
@@ -227,11 +229,11 @@ const CustomTable = (props: TableProps) => {
             {currentData.map((item, index) => (
               <Tr
                 key={item.id}
-                bg={item.pinned ? "teal.50" : "transparent"}
+                bg={item.pinned ? 'teal.50' : 'transparent'}
                 _hover={{
-                  bg: "#4FD1C5",
-                  cursor: "pointer",
-                  color: "white",
+                  bg: '#4FD1C5',
+                  cursor: 'pointer',
+                  color: 'white',
                 }}
                 onClick={() =>
                   props.onView && props.onView(item.id, item.name, item.version)
@@ -290,7 +292,7 @@ const CustomTable = (props: TableProps) => {
                           onClick={(e) => e.stopPropagation()}
                         />
                         <MenuList
-                          textColor={"black"}
+                          textColor={'black'}
                           onClick={(e) => e.stopPropagation()}
                         >
                           {props.onProcessSettings && (
@@ -351,7 +353,7 @@ const CustomTable = (props: TableProps) => {
                                 props.onPin!(item.id);
                               }}
                             >
-                              {item.pinned ? "Unpin" : "Pin"}
+                              {item.pinned ? 'Unpin' : 'Pin'}
                             </MenuItem>
                           )}
                           {props.onDelete && props.onProcessSettings && (
@@ -408,7 +410,7 @@ const CustomTable = (props: TableProps) => {
         p={4}
       >
         <HStack spacing={2}>
-          <Text fontSize="sm">Items per page:</Text>
+          <Text fontSize="sm">{t('table.itemsPerPage')}</Text>
           <Select
             size="sm"
             width="80px"
@@ -436,13 +438,13 @@ const CustomTable = (props: TableProps) => {
           }
           pageCount={pageCount}
           onPageChange={handlePageChange}
-          containerClassName={"flex items-center gap-[5px]"}
-          previousLinkClassName={"font-bold"}
-          nextLinkClassName={"font-bold"}
-          disabledClassName={"opacity-50 cursor-not-allowed"}
-          activeClassName={"bg-teal-500 rounded-[5px] text-white py-[8px]"}
+          containerClassName={'flex items-center gap-[5px]'}
+          previousLinkClassName={'font-bold'}
+          nextLinkClassName={'font-bold'}
+          disabledClassName={'opacity-50 cursor-not-allowed'}
+          activeClassName={'bg-teal-500 rounded-[5px] text-white py-[8px]'}
           pageLinkClassName={
-            "border rounded-[5px] px-[15px] py-[10px] hover:bg-teal-500 hover:text-white"
+            'border rounded-[5px] px-[15px] py-[10px] hover:bg-teal-500 hover:text-white'
           }
         />
       </Box>

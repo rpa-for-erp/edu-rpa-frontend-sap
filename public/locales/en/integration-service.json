@@ -1,0 +1,71 @@
+{
+  "page": {
+    "title": "Connection List",
+    "search": "Search...",
+    "allServices": "All services",
+    "newConnection": "New Connection",
+    "noConnections": "No connections",
+    "noConnectionsDescription": "Create a new connection to help you integrate with other services"
+  },
+  "table": {
+    "service": "Service",
+    "connectionName": "Connection name",
+    "createdAt": "Created at",
+    "status": "Status",
+    "action": "Action"
+  },
+  "toast": {
+    "error": "Error",
+    "success": "Success",
+    "listRefreshed": "Connection list refreshed",
+    "refreshNotImplemented": "Refresh functionality is not implemented yet"
+  },
+  "detail": {
+    "title": "Detail Connection",
+    "provider": "Provider",
+    "email": "Email",
+    "searchByRobotName": "Search by robot name",
+    "refresh": "Refresh",
+    "noRobots": "No robots here",
+    "noRobotsDescription": "Publish a robot from your existing processes.",
+    "robotName": "Robot Name",
+    "processId": "Process ID",
+    "processVersion": "Process Version",
+    "createdAt": "Created At",
+    "triggerType": "Trigger Type",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "modal": {
+    "createNewConnection": "Create new connection",
+    "cancel": "Cancel",
+    "moodle": {
+      "title": "Create Moodle Connection",
+      "description": "Connect to your Moodle site using a Web Service Token. You can generate this token from your Moodle site's administration panel.",
+      "baseUrl": "Moodle URL",
+      "baseUrlPlaceholder": "https://moodle.example.com",
+      "token": "Web Service Token",
+      "tokenPlaceholder": "Enter your Moodle web service token",
+      "tokenHelp": "This token will be securely stored and encrypted",
+      "name": "Connection Name",
+      "nameOptional": "(Optional)",
+      "namePlaceholder": "My Moodle Site",
+      "nameHelp": "Leave empty to auto-detect from your Moodle site",
+      "required": "*",
+      "creating": "Creating...",
+      "createConnection": "Create Connection",
+      "success": "Success!",
+      "successDescription": "Moodle connection \"{{name}}\" created successfully",
+      "error": "Error",
+      "errorDefault": "Failed to create Moodle connection",
+      "validation": {
+        "urlInvalid": "Must be a valid URL (e.g., https://moodle.example.com)",
+        "urlProtocol": "URL must start with http:// or https://",
+        "urlRequired": "Moodle URL is required",
+        "tokenMin": "Token must be at least 10 characters",
+        "tokenRequired": "Web Service Token is required",
+        "nameMax": "Name must be less than 100 characters"
+      }
+    }
+  }
+}

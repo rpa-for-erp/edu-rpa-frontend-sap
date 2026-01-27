@@ -1,21 +1,21 @@
-import HeaderLayout from "@/components/Layouts/HeaderLayout";
-import HeroHome from "@/components/LandingPage/Hero/Hero";
-import FeatureHome from "@/components/LandingPage/Feature/Feature";
-import OurTeamSection from "@/components/LandingPage/OurTeam/OurTeam";
-import TestimonialHome from "@/components/LandingPage/Testimonial/Testimonial";
-import PricingHome from "@/components/LandingPage/Pricing/Pricing";
-import ContactUsHome from "@/components/LandingPage/ContactUs/ContactUs";
+import HeaderLayout from '@/components/Layouts/HeaderLayout';
+import HeroHome from '@/components/LandingPage/Hero/Hero';
+import FeatureHome from '@/components/LandingPage/Feature/Feature';
+import OurTeamSection from '@/components/LandingPage/OurTeam/OurTeam';
+import TestimonialHome from '@/components/LandingPage/Testimonial/Testimonial';
+import PricingHome from '@/components/LandingPage/Pricing/Pricing';
+import ContactUsHome from '@/components/LandingPage/ContactUs/ContactUs';
 import { GetStaticProps } from 'next';
 import { getStaticTranslations } from '@/utils/i18n';
 
 export default function RootPage() {
   const componentsToRender = [
-    { id: "hero", component: <HeroHome /> },
-    { id: "feature", component: <FeatureHome /> },
-    { id: "ourTeam", component: <OurTeamSection /> },
-    { id: "testimonial", component: <TestimonialHome /> },
-    { id: "pricing", component: <PricingHome /> },
-    { id: "contactUs", component: <ContactUsHome /> },
+    { id: 'hero', component: <HeroHome /> },
+    { id: 'feature', component: <FeatureHome /> },
+    { id: 'ourTeam', component: <OurTeamSection /> },
+    { id: 'testimonial', component: <TestimonialHome /> },
+    { id: 'pricing', component: <PricingHome /> },
+    { id: 'contactUs', component: <ContactUsHome /> },
   ];
 
   return (
@@ -34,7 +34,11 @@ export default function RootPage() {
 export const getStaticProps: GetStaticProps = async (context) => {
   return {
     props: {
-      ...(await getStaticTranslations(context, ['common', 'header'])),
+      ...(await getStaticTranslations(context, [
+        'common',
+        'header',
+        'landing',
+      ])),
     },
   };
 };

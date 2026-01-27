@@ -31,7 +31,12 @@ export default function Home() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'landing',
+      ])),
     },
   };
 };

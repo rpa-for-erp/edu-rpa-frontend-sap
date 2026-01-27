@@ -62,7 +62,11 @@ export default function Login() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'header'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'auth',
+        'header',
+      ])),
     },
   };
 };

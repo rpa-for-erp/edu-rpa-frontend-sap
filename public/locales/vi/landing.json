@@ -1,0 +1,82 @@
+{
+  "hero": {
+    "title": "Tự động hóa càng nhiều,",
+    "subtitle": "kinh doanh càng dễ",
+    "description": "ErpRpa là nền tảng chuyển đổi tích hợp Tự động hóa Quy trình Robot (RPA) trong lĩnh vực giáo dục và kinh doanh, được thiết kế để hỗ trợ giáo viên, sinh viên và các chuyên gia kinh doanh.",
+    "descriptionContinue": "Công cụ này trao quyền cho người dùng tự động hóa các hoạt động tốn thời gian và đơn điệu nhất, cho phép họ tập trung nhiều hơn vào các khía cạnh thiết yếu của giảng dạy, học tập và kinh doanh.",
+    "getStarted": "Bắt đầu",
+    "howItWorks": "Cách hoạt động"
+  },
+  "features": {
+    "title": "Chúng tôi cung cấp",
+    "subtitle": "ErpRpa giới thiệu sức mạnh của RPA vào lĩnh vực giáo dục, tự động hóa các nhiệm vụ thiết yếu, tạo điều kiện cho chuyển đổi số trong học tập trực tuyến.",
+    "learnMore": "Tìm hiểu thêm",
+    "designWorkflow": {
+      "title": "Thiết kế quy trình",
+      "description": "Nền tảng của chúng tôi giúp bạn trực quan hóa, phân tích các quy trình làm việc trong giao diện thân thiện với người dùng."
+    },
+    "utilizePackages": {
+      "title": "Sử dụng gói",
+      "description": "Với nhiều gói có thể tái sử dụng cho các tác vụ phổ biến, bạn có thể tiết kiệm thời gian và công sức khi xây dựng quy trình tự động hóa."
+    },
+    "collaborate": {
+      "title": "Cộng tác",
+      "description": "Cho phép cộng tác bằng cách chia sẻ quy trình và gói với đồng đội và người dùng khác."
+    },
+    "scheduleRobot": {
+      "title": "Lên lịch Robot",
+      "description": "Lên lịch cho robot của bạn chạy tự động vào các khoảng thời gian cụ thể hoặc được kích hoạt bởi các sự kiện bên ngoài."
+    },
+    "monitorLogs": {
+      "title": "Giám sát nhật ký",
+      "description": "Theo dõi và phân tích hiệu suất robot với nhật ký chi tiết, giúp bạn tối ưu hóa và khắc phục sự cố tự động hóa của mình."
+    }
+  },
+  "team": {
+    "title": "Chúng tôi là ai",
+    "subtitle": "Chúng tôi là một nhóm luận văn chuyên ngành Khoa học Máy tính từ ĐH Bách Khoa ĐHQG-HCM, Việt Nam. Nền tảng này đại diện cho đóng góp hết lòng của chúng tôi cho cộng đồng bằng cách áp dụng công nghệ RPA vào chuyển đổi số trong giáo dục.",
+    "role": "Kỹ sư phần mềm"
+  },
+  "pricing": {
+    "title": "Gói phù hợp với nhu cầu của bạn",
+    "subtitle": "Bắt đầu với bản dùng thử 14 ngày miễn phí. Không cần thẻ tín dụng. Hủy bất cứ lúc nào.",
+    "month": "/tháng",
+    "startTrial": "Dùng thử",
+    "hobby": {
+      "name": "Hobby",
+      "feature1": "Phút build không giới hạn",
+      "feature2": "Lưu trữ hàm robot 1GB.",
+      "feature3": "Lưu trữ tệp 2GB."
+    },
+    "standard": {
+      "name": "Standard",
+      "feature1": "Phút build không giới hạn",
+      "feature2": "Lưu trữ hàm robot 10GB.",
+      "feature3": "Lưu trữ tệp 20GB.",
+      "feature4": "Hỗ trợ ưu tiên"
+    },
+    "premium": {
+      "name": "Premium",
+      "feature1": "Phút build không giới hạn",
+      "feature2": "Lưu trữ hàm robot không giới hạn.",
+      "feature3": "Lưu trữ tệp không giới hạn.",
+      "feature4": "Hỗ trợ ưu tiên 24/7",
+      "feature5": "Phân tích nâng cao"
+    }
+  },
+  "testimonial": {
+    "title": "Người dùng nói gì về chúng tôi",
+    "subtitle": "Khám phá cách ErpRpa đang chuyển đổi giáo dục và tự động hóa kinh doanh"
+  },
+  "contact": {
+    "title": "Liên hệ với chúng tôi",
+    "subtitle": "Liên lạc với đội ngũ của chúng tôi",
+    "name": "Tên",
+    "namePlaceholder": "Tên của bạn",
+    "email": "Email",
+    "emailPlaceholder": "email@cua.ban",
+    "message": "Tin nhắn",
+    "messagePlaceholder": "Tin nhắn của bạn",
+    "send": "Gửi tin nhắn"
+  }
+}

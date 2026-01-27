@@ -16,9 +16,7 @@ import WorkspaceLayout from '@/components/Layouts/WorkspaceLayout';
 import SidebarContent from '@/components/Sidebar/SidebarContent/SidebarContent';
 import ConnectionTable from '@/components/Connection/ConnectionTable';
 import CreateNewConnectionModal from '@/components/Connection/CreateNewConnectionModal';
-import {
-  useWorkspaceConnections,
-} from '@/hooks/useWorkspaceConnections';
+import { useWorkspaceConnections } from '@/hooks/useWorkspaceConnections';
 import { AuthorizationProvider } from '@/types/workspaceConnection';
 import { ToolTipExplain } from '@/constants/description';
 
@@ -31,7 +29,11 @@ export default function WorkspaceIntegrationService() {
   const [connectionData, setConnectionData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { data: connections, isLoading: isFetching, refetch } = useWorkspaceConnections(
+  const {
+    data: connections,
+    isLoading: isFetching,
+    refetch,
+  } = useWorkspaceConnections(
     workspaceId as string,
     providerFilter as AuthorizationProvider
   );
@@ -118,7 +120,8 @@ export default function WorkspaceIntegrationService() {
               hasArrow
               label={ToolTipExplain.INTERGRATION_SERVICE}
               bg="gray.300"
-              color="black">
+              color="black"
+            >
               <QuestionIcon color="blue.500" />
             </Tooltip>
           </div>
@@ -143,7 +146,8 @@ export default function WorkspaceIntegrationService() {
                       pathname: router.pathname,
                       query: { ...router.query, provider: e.target.value },
                     });
-                  }}>
+                  }}
+                >
                   <option value="">All services</option>
                   {Object.values(AuthorizationProvider).map((provider) => {
                     return (
@@ -156,13 +160,18 @@ export default function WorkspaceIntegrationService() {
               </Box>
             </InputGroup>
             <div className="flex justify-between gap-[10px]">
-              <Button colorScheme="teal" bg={'teal'} onClick={onOpen}>
+              <Button
+                bg="teal.500"
+                color="white"
+                _hover={{ bg: 'teal.600' }}
+                onClick={onOpen}
+              >
                 New Connection
               </Button>
             </div>
 
-            <CreateNewConnectionModal 
-              isOpen={isOpen} 
+            <CreateNewConnectionModal
+              isOpen={isOpen}
               onClose={onClose}
               workspaceId={workspaceId as string}
               onSuccess={handleSuccess}

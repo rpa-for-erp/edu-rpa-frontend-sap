@@ -1,15 +1,32 @@
 import React from 'react';
-import { Box, Flex, Breadcrumb, BreadcrumbItem, BreadcrumbLink, IconButton, Avatar, Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  IconButton,
+  Avatar,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+} from '@chakra-ui/react';
 import { ChevronRightIcon, BellIcon, QuestionIcon } from '@chakra-ui/icons';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 
 interface BpmnTopHeaderProps {
   processID: string;
   processName: string;
 }
 
-export default function BpmnTopHeader({ processID, processName }: BpmnTopHeaderProps) {
+export default function BpmnTopHeader({
+  processID,
+  processName,
+}: BpmnTopHeaderProps) {
   const router = useRouter();
+  const { t } = useTranslation('studio');
 
   return (
     <Box
@@ -21,32 +38,35 @@ export default function BpmnTopHeader({ processID, processName }: BpmnTopHeaderP
     >
       <Flex justify="space-between" align="center">
         {/* Breadcrumbs */}
-        <Breadcrumb spacing="8px" separator={<ChevronRightIcon color="gray.500" />}>
+        <Breadcrumb
+          spacing="8px"
+          separator={<ChevronRightIcon color="gray.500" />}
+        >
           <BreadcrumbItem>
-            <BreadcrumbLink 
+            <BreadcrumbLink
               onClick={() => router.push('/studio')}
               fontSize="sm"
               color="gray.600"
               _hover={{ color: 'teal.500' }}
             >
-              Homepage
+              {t('navigation.homepage')}
             </BreadcrumbLink>
           </BreadcrumbItem>
 
           <BreadcrumbItem>
-            <BreadcrumbLink 
+            <BreadcrumbLink
               onClick={() => router.push('/studio')}
               fontSize="sm"
               color="gray.600"
               _hover={{ color: 'teal.500' }}
             >
-              Project
+              {t('navigation.project')}
             </BreadcrumbLink>
           </BreadcrumbItem>
 
           <BreadcrumbItem isCurrentPage>
             <BreadcrumbLink fontSize="sm" color="gray.900" fontWeight="medium">
-              {processName || 'Name project'}
+              {processName || t('navigation.nameProject')}
             </BreadcrumbLink>
           </BreadcrumbItem>
         </Breadcrumb>
@@ -54,15 +74,15 @@ export default function BpmnTopHeader({ processID, processName }: BpmnTopHeaderP
         {/* Right Icons */}
         <Flex align="center" gap={2}>
           <IconButton
-            aria-label="Notifications"
+            aria-label={t('navigation.notifications')}
             icon={<BellIcon />}
             variant="ghost"
             size="sm"
             colorScheme="gray"
           />
-          
+
           <IconButton
-            aria-label="Help"
+            aria-label={t('navigation.help')}
             icon={<QuestionIcon />}
             variant="ghost"
             size="sm"
@@ -74,9 +94,9 @@ export default function BpmnTopHeader({ processID, processName }: BpmnTopHeaderP
               <Avatar size="sm" name="User" bg="teal.500" />
             </MenuButton>
             <MenuList>
-              <MenuItem>Profile</MenuItem>
-              <MenuItem>Settings</MenuItem>
-              <MenuItem>Logout</MenuItem>
+              <MenuItem>{t('navigation.profile')}</MenuItem>
+              <MenuItem>{t('navigation.settings')}</MenuItem>
+              <MenuItem>{t('navigation.logout')}</MenuItem>
             </MenuList>
           </Menu>
         </Flex>
@@ -84,4 +104,3 @@ export default function BpmnTopHeader({ processID, processName }: BpmnTopHeaderP
     </Box>
   );
 }
-

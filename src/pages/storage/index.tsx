@@ -1,6 +1,6 @@
-import { formatDate } from "@/utils/common";
-import React, { useEffect, useState } from "react";
-import SidebarContent from "@/components/Sidebar/SidebarContent/SidebarContent";
+import { formatDate } from '@/utils/common';
+import React, { useEffect, useState } from 'react';
+import SidebarContent from '@/components/Sidebar/SidebarContent/SidebarContent';
 import {
   Box,
   Button,
@@ -11,30 +11,32 @@ import {
   Select,
   Tooltip,
   useDisclosure,
-} from "@chakra-ui/react";
-import { ChevronRightIcon, QuestionIcon, SearchIcon } from "@chakra-ui/icons";
-import { RangeDatepicker } from "chakra-dayzed-datepicker";
-import FileItem from "@/components/FileStorage/FileItem";
+} from '@chakra-ui/react';
+import { ChevronRightIcon, QuestionIcon, SearchIcon } from '@chakra-ui/icons';
+import { RangeDatepicker } from 'chakra-dayzed-datepicker';
+import FileItem from '@/components/FileStorage/FileItem';
 import {
   getFiles,
   createFolder,
   getPresignedUrl,
   deleteFile,
-} from "@/apis/fileStorageApi";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "@chakra-ui/react";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import CreateNewFolderIcon from "@mui/icons-material/CreateNewFolder";
-import CreateFolderModal from "@/components/FileStorage/CreateFolderModal";
-import FileUploadModal from "@/components/FileStorage/FileUploadModal";
-import ConfirmModal from "@/components/ConfirmModal/ConfirmModal";
-import { ToolTipExplain } from "@/constants/description";
-import { FileMetadata } from "@/interfaces/storage";
+} from '@/apis/fileStorageApi';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from '@chakra-ui/react';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
+import CreateFolderModal from '@/components/FileStorage/CreateFolderModal';
+import FileUploadModal from '@/components/FileStorage/FileUploadModal';
+import ConfirmModal from '@/components/ConfirmModal/ConfirmModal';
+import { FileMetadata } from '@/interfaces/storage';
 import { GetServerSideProps } from 'next';
 import { getServerSideTranslations } from '@/utils/i18n';
+import { useTranslation } from 'next-i18next';
 
 export default function Storage() {
+  const { t } = useTranslation('storage');
+  const { t: tCommon } = useTranslation('common');
   const [files, setFiles] = useState<FileMetadata[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>("");
+  const [currentPath, setCurrentPath] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoadingCreateFolder, setIsLoadingCreateFolder] =
     useState<boolean>(false);
@@ -42,7 +44,7 @@ export default function Storage() {
     useState<boolean>(false);
   const [isLoadingDeleteFile, setIsLoadingDeleteFile] =
     useState<boolean>(false);
-  const [selectedFileToDelete, setSelectedFileToDelete] = useState<string>("");
+  const [selectedFileToDelete, setSelectedFileToDelete] = useState<string>('');
   const [selectedDates, setSelectedDates] = useState<Date[]>([
     new Date(),
     new Date(),
@@ -91,7 +93,7 @@ export default function Storage() {
     setIsLoading(true);
     getFiles(currentPath)
       .then((res) => {
-        setFiles(res.filter((file) => file.name !== ""));
+        setFiles(res.filter((file) => file.name !== ''));
       })
       .finally(() => {
         setIsLoading(false);
@@ -99,13 +101,13 @@ export default function Storage() {
   }, [currentPath]);
 
   const handleFileItemClick = (name: string) => {
-    if (name.endsWith("/")) {
+    if (name.endsWith('/')) {
       setCurrentPath(`${currentPath}${name}`);
     } else {
       setIsLoadingGetPresignedUrl(true);
       getPresignedUrl(`${currentPath}${name}`)
         .then((res) => {
-          window.open(res.url, "_blank");
+          window.open(res.url, '_blank');
         })
         .finally(() => {
           setIsLoadingGetPresignedUrl(false);
@@ -118,7 +120,7 @@ export default function Storage() {
     setIsLoading(true);
     getFiles(currentPath)
       .then((res) => {
-        setFiles(res.filter((file) => file.name !== ""));
+        setFiles(res.filter((file) => file.name !== ''));
       })
       .finally(() => {
         setIsLoading(false);
@@ -140,11 +142,11 @@ export default function Storage() {
 
   const handleConfirmDelete = async () => {
     setIsLoadingDeleteFile(true);
-    const isDirectory = selectedFileToDelete.endsWith("/");
+    const isDirectory = selectedFileToDelete.endsWith('/');
     if (isDirectory) {
       const files = await getFiles(selectedFileToDelete);
-      if (files.some((file) => file.name !== "")) {
-        alert("The folder is not empty");
+      if (files.some((file) => file.name !== '')) {
+        alert(t('folderNotEmpty'));
         setIsLoadingDeleteFile(false);
         return;
       }
@@ -155,7 +157,7 @@ export default function Storage() {
       onCloseConfirmDeleteModal();
       setIsLoading(true);
       const res = await getFiles(currentPath);
-      setFiles(res.filter((file) => file.name !== ""));
+      setFiles(res.filter((file) => file.name !== ''));
     } catch (error: any) {
       alert(error);
     }
@@ -168,18 +170,18 @@ export default function Storage() {
       <SidebarContent>
         <div className="flex flex-start">
           <h1 className="pl-[20px] pr-[10px] ml-[35px] font-bold text-2xl text-[#319795]">
-            File Storage
+            {t('fileStorage')}
           </h1>
           <Tooltip
             hasArrow
-            label={ToolTipExplain.STORAGE_SERVICE}
+            label={tCommon('tooltips.storageService')}
             bg="gray.300"
             color="black"
           >
             <QuestionIcon color="blue.500" />
           </Tooltip>
         </div>
-        <Breadcrumb
+        {/* <Breadcrumb
           separator={<ChevronRightIcon color="gray.500" />}
           spacing="8px"
           className="px-[20px] ml-[35px] mt-[20px]"
@@ -188,22 +190,22 @@ export default function Storage() {
             <BreadcrumbLink
               color="#319795"
               onClick={() => {
-                setCurrentPath("");
+                setCurrentPath('');
               }}
             >
               /
             </BreadcrumbLink>
           </BreadcrumbItem>
-          {currentPath.split("/").map((path, index) => (
+          {currentPath.split('/').map((path, index) => (
             <BreadcrumbItem key={index}>
               <BreadcrumbLink
                 color="#319795"
                 onClick={() => {
                   setCurrentPath(
                     currentPath
-                      .split("/")
+                      .split('/')
                       .slice(0, index + 1)
-                      .join("/") + "/"
+                      .join('/') + '/'
                   );
                 }}
               >
@@ -211,7 +213,7 @@ export default function Storage() {
               </BreadcrumbLink>
             </BreadcrumbItem>
           ))}
-        </Breadcrumb>
+        </Breadcrumb> */}
         <div className="flex justify-between w-90 mx-auto my-[30px]">
           <InputGroup>
             <InputLeftElement pointerEvents="none">
@@ -221,7 +223,7 @@ export default function Storage() {
               width="20vw"
               bg="white.300"
               type="text"
-              placeholder="Search..."
+              placeholder={t('searchPlaceholder')}
             />
           </InputGroup>
 
@@ -234,20 +236,22 @@ export default function Storage() {
             </Box>
             <Box className="w-[10vw]">
               <Select defaultValue="all">
-                <option value="google-sheet">Google Sheet</option>
-                <option value="pdf">PDF</option>
-                <option value="google-docs">Google Docs</option>
-                <option value="image">Image</option>
-                <option value="all">All</option>
+                <option value="google-sheet">{t('googleSheet')}</option>
+                <option value="pdf">{t('pdf')}</option>
+                <option value="google-docs">{t('googleDocs')}</option>
+                <option value="image">{t('image')}</option>
+                <option value="all">{t('all')}</option>
               </Select>
             </Box>
             <IconButton
+              bg={'teal'}
               colorScheme="teal"
               aria-label="Upload File"
               icon={<CloudUploadIcon />}
               onClick={handleClickUpload}
             />
             <IconButton
+              bg={'teal'}
               colorScheme="teal"
               aria-label="Create Folder"
               icon={<CreateNewFolderIcon />}
@@ -272,10 +276,10 @@ export default function Storage() {
         <ConfirmModal
           isOpen={isOpenConfirmDeleteModal}
           onClose={onCloseConfirmDeleteModal}
-          title={`Delete ${
-            selectedFileToDelete.endsWith("/") ? "folder" : "file"
-          }?`}
-          content={`delete ${selectedFileToDelete}`}
+          title={t(
+            selectedFileToDelete.endsWith('/') ? 'deleteFolder' : 'deleteFile'
+          )}
+          content={t('confirmDeleteContent', { name: selectedFileToDelete })}
           onConfirm={handleConfirmDelete}
           isLoading={isLoadingDeleteFile}
         />
@@ -283,7 +287,7 @@ export default function Storage() {
         {isLoading ? (
           <div className="w-90 m-auto flex justify-center items-center">
             <Button colorScheme="teal" className="m-auto" isLoading>
-              Loading...
+              {t('loading')}
             </Button>
           </div>
         ) : (
@@ -305,8 +309,8 @@ export default function Storage() {
         {files.length === 0 && !isLoading && (
           <div className="w-90 m-auto flex justify-center items-center">
             <div className="text-center">
-              <div className="text-2xl font-bold">No files here</div>
-              <div className="text-gray-500">Upload or create a new one</div>
+              <div className="text-2xl font-bold">{t('noFilesHere')}</div>
+              <div className="text-gray-500">{t('uploadOrCreateNew')}</div>
             </div>
           </div>
         )}
@@ -318,7 +322,12 @@ export default function Storage() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'storage',
+      ])),
     },
   };
 };

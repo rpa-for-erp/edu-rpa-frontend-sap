@@ -1,6 +1,7 @@
-import { EditDocumentTemplateDto } from "@/dtos/documentTemplateDto";
-import { DocumentTemplate } from "@/interfaces/document-template";
-import { DocumentTemplateType } from "@/interfaces/enums/document-template-type"
+import { EditDocumentTemplateDto } from '@/dtos/documentTemplateDto';
+import { DocumentTemplate } from '@/interfaces/document-template';
+import { DocumentTemplateType } from '@/interfaces/enums/document-template-type';
+import { useTranslation } from 'next-i18next';
 import {
   Modal,
   ModalOverlay,
@@ -13,15 +14,17 @@ import {
   Select,
   ModalFooter,
   Button,
-  Input
-} from "@chakra-ui/react"
-import { use, useEffect, useState } from "react";
+  Input,
+} from '@chakra-ui/react';
+import { use, useEffect, useState } from 'react';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   documentTemplate?: DocumentTemplate;
-  handleEditDocumentTemplate: (editDocumentTemplateDto: EditDocumentTemplateDto) => void;
+  handleEditDocumentTemplate: (
+    editDocumentTemplateDto: EditDocumentTemplateDto
+  ) => void;
 }
 
 const EditDocumentTemplateModal: React.FC<Props> = ({
@@ -30,10 +33,12 @@ const EditDocumentTemplateModal: React.FC<Props> = ({
   documentTemplate,
   handleEditDocumentTemplate,
 }) => {
-  const [editDocumentTemplate, setEditDocumentTemplate] = useState<EditDocumentTemplateDto>({
-    name: '',
-    description: '',
-  });
+  const { t } = useTranslation('document-template');
+  const [editDocumentTemplate, setEditDocumentTemplate] =
+    useState<EditDocumentTemplateDto>({
+      name: '',
+      description: '',
+    });
 
   useEffect(() => {
     if (documentTemplate) {
@@ -45,36 +50,47 @@ const EditDocumentTemplateModal: React.FC<Props> = ({
   }, [documentTemplate]);
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Edit document template</ModalHeader>
+        <ModalHeader>{t('modals.edit.title')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl>
-            <FormLabel>Document template name</FormLabel>
+            <FormLabel>{t('modals.edit.nameLabel')}</FormLabel>
             <Input
-              placeholder="Document template name"
+              placeholder={t('modals.edit.namePlaceholder')}
               value={editDocumentTemplate.name}
-              onChange={(e) => setEditDocumentTemplate({ ...editDocumentTemplate, name: e.target.value })}
+              onChange={(e) =>
+                setEditDocumentTemplate({
+                  ...editDocumentTemplate,
+                  name: e.target.value,
+                })
+              }
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t('modals.edit.descriptionLabel')}</FormLabel>
             <Input
-              placeholder="Description"
+              placeholder={t('modals.edit.descriptionPlaceholder')}
               value={editDocumentTemplate.description}
-              onChange={(e) => setEditDocumentTemplate({ ...editDocumentTemplate, description: e.target.value })}
+              onChange={(e) =>
+                setEditDocumentTemplate({
+                  ...editDocumentTemplate,
+                  description: e.target.value,
+                })
+              }
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Type</FormLabel>
+            <FormLabel>{t('modals.edit.typeLabel')}</FormLabel>
             <Select
               value={documentTemplate?.type || DocumentTemplateType.IMAGE}
-              disabled>
-              <option value={DocumentTemplateType.IMAGE}>Image</option>
+              disabled
+            >
+              <option value={DocumentTemplateType.IMAGE}>
+                {t('modals.edit.typeImage')}
+              </option>
             </Select>
           </FormControl>
         </ModalBody>
@@ -82,14 +98,15 @@ const EditDocumentTemplateModal: React.FC<Props> = ({
           <Button
             colorScheme="blue"
             mr={3}
-            onClick={() => handleEditDocumentTemplate(editDocumentTemplate)}>
-            Save
+            onClick={() => handleEditDocumentTemplate(editDocumentTemplate)}
+          >
+            {t('buttons.save')}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>{t('buttons.cancel')}</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
-  )
-}
+  );
+};
 
 export default EditDocumentTemplateModal;

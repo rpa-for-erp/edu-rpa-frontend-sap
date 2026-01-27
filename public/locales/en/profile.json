@@ -1,0 +1,43 @@
+{
+  "title": "Profile",
+  "myProfile": "My Profile",
+  "editProfile": "Edit Profile",
+  "personalInformation": "Personal Information",
+  "accountSettings": "Account Settings",
+  "fullName": "Full Name",
+  "fullNamePlaceholder": "Your name",
+  "email": "Email",
+  "emailPlaceholder": "Your email",
+  "firstName": "First name",
+  "lastName": "Last name",
+  "displayName": "Display name",
+  "phoneNumber": "Phone number",
+  "bio": "Bio",
+  "enterBio": "Tell us about yourself",
+  "avatar": "Avatar",
+  "changeAvatar": "Change Avatar",
+  "uploadAvatar": "Upload Avatar",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "confirmPassword": "Confirm password",
+  "changePassword": "Change Password",
+  "emailNotifications": "Email Notifications",
+  "pushNotifications": "Push Notifications",
+  "language": "Language",
+  "timezone": "Timezone",
+  "deleteAccount": "Delete Account",
+  "buttons": {
+    "save": "Save"
+  },
+  "messages": {
+    "profileUpdated": "Profile updated.",
+    "profileUpdatedDescription": "Your profile has been successfully updated.",
+    "passwordChanged": "Password changed successfully",
+    "avatarUpdated": "Avatar updated successfully",
+    "failedToUpdate": "Failed to update profile",
+    "failedToChangePassword": "Failed to change password",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordTooShort": "Password must be at least 8 characters",
+    "confirmDeleteAccount": "Are you sure you want to delete your account? This action cannot be undone."
+  }
+}

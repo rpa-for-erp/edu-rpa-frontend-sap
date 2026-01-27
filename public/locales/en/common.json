@@ -28,6 +28,39 @@
     "success": "Success",
     "pageNotFound": "Page Not Found",
     "pageNotFoundDescription": "The page you're looking for does not seem to exist"
+  },
+  "tooltips": {
+    "studioService": "Studio service provides a comprehensive development environment for designing, testing, and deploying your automation workflows.",
+    "robotService": "Robot service manages the execution of your automated tasks. Once a workflow is deployed, robots can run these tasks autonomously.",
+    "integrationService": "With integration service, you can create connections to other services. Connections can be used by robots to perform tasks on your behalf.",
+    "documentTemplateService": "Document template is a template that contains the information of the document that you want to extract.",
+    "storageService": "File storage is a place where you can store your files. Robots can access these files to perform their tasks"
+  },
+  "table": {
+    "itemsPerPage": "Items per page:"
+  },
+  "footer": {
+    "product": "Product",
+    "overview": "Overview",
+    "features": "Features",
+    "new": "New",
+    "tutorials": "Tutorials",
+    "pricing": "Pricing",
+    "releases": "Releases",
+    "company": "Company",
+    "aboutUs": "About Us",
+    "press": "Press",
+    "careers": "Careers",
+    "contactUs": "Contact Us",
+    "partners": "Partners",
+    "legal": "Legal",
+    "cookiesPolicy": "Cookies Policy",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "lawEnforcement": "Law Enforcement",
+    "status": "Status",
+    "stayUpToDate": "Stay up to date",
+    "emailPlaceholder": "Your email address",
+    "copyright": "@ 2026, Made with ❤️ by ErpRpa And EduRpa Team for a better business solutions."
   }
 }
-

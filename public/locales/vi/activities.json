@@ -1,0 +1,590 @@
+{
+  "packages": {
+    "google_drive": {
+      "displayName": "Google Drive",
+      "description": "Giúp bạn tích hợp công việc với Google Drive"
+    },
+    "gmail": {
+      "displayName": "Gmail",
+      "description": "Giúp bạn tích hợp công việc với Gmail"
+    },
+    "google_sheets": {
+      "displayName": "Google Sheet",
+      "description": "Giúp bạn tích hợp công việc với Google Sheets"
+    },
+    "google_classroom": {
+      "displayName": "Google Classroom",
+      "description": "Giúp bạn tích hợp công việc với Google Classroom"
+    },
+    "google_form": {
+      "displayName": "Google Form",
+      "description": "Giúp bạn tích hợp công việc với Google Form"
+    },
+    "control": {
+      "displayName": "Điều khiển",
+      "description": "Giúp bạn điều khiển luồng thực thi của robot"
+    },
+    "data_manipulation": {
+      "displayName": "Thao tác dữ liệu",
+      "description": "Giúp bạn thao tác dữ liệu trong robot"
+    },
+    "browser_automation": {
+      "displayName": "Tự động hóa trình duyệt",
+      "description": "Giúp bạn tự động hóa các tác vụ cần thực hiện trên trình duyệt web (như Chrome)"
+    },
+    "document_automation": {
+      "displayName": "Tự động hóa tài liệu",
+      "description": "Giúp bạn tự động hóa các tác vụ liên quan đến tài liệu (tài liệu giấy truyền thống hoặc tài liệu số như PDF) với sự hỗ trợ của AI"
+    },
+    "file_storage": {
+      "displayName": "Lưu trữ tệp",
+      "description": "Giúp bạn lưu trữ và truy xuất tệp trên hệ thống lưu trữ của nền tảng"
+    },
+    "rpa-sap-mock": {
+      "displayName": "SAP MOCK",
+      "description": "Giúp bạn xử lý các hoạt động SAP"
+    },
+    "rpa-erpnext": {
+      "displayName": "ERPNext",
+      "description": "Tự động hóa quy trình mua sắm trong ERPNext (Mặt hàng, MR, RFQ, PO)"
+    },
+    "moodle": {
+      "displayName": "Moodle",
+      "description": "Tích hợp với Moodle LMS để quản lý khóa học và bài trắc nghiệm"
+    }
+  },
+  "templates": {
+    "google_drive.set_up_connection": {
+      "displayName": "Thiết lập kết nối Drive",
+      "description": "Thiết lập kết nối Drive cho các tác vụ tiếp theo"
+    },
+    "drive.create_folder": {
+      "displayName": "Tạo thư mục",
+      "description": "Tạo một thư mục Google Drive tại đường dẫn chỉ định"
+    },
+    "drive.dowload_files": {
+      "displayName": "Tải xuống tệp",
+      "description": "Tải xuống tệp từ các thư mục Drive"
+    },
+    "drive.upload_file": {
+      "displayName": "Tải lên tệp",
+      "description": "Tải lên một tệp từ hệ thống tệp của robot lên Google Drive"
+    },
+    "drive.get_file_list_in_folder": {
+      "displayName": "Lấy danh sách tệp trong thư mục",
+      "description": "Lấy danh sách các tệp trong một thư mục chỉ định trên Google Drive"
+    },
+    "drive.get_file_folder": {
+      "displayName": "Lấy tệp/thư mục",
+      "description": "Lấy một tệp/thư mục trên Google Drive"
+    },
+    "drive.delete_file_folder": {
+      "displayName": "Xóa tệp/thư mục",
+      "description": "Xóa một tệp/thư mục trên Google Drive"
+    },
+    "drive.move_file_folder": {
+      "displayName": "Di chuyển tệp/thư mục",
+      "description": "Di chuyển một tệp/thư mục sang thư mục khác trên Google Drive"
+    },
+    "drive.share_file_folder": {
+      "displayName": "Chia sẻ tệp/thư mục",
+      "description": "Chia sẻ một tệp/thư mục trên Google Drive"
+    },
+    "gmail.set_up_connection": {
+      "displayName": "Thiết lập kết nối Gmail",
+      "description": "Thiết lập kết nối Gmail cho tác vụ tiếp theo"
+    },
+    "gmail.send_email": {
+      "displayName": "Gửi email",
+      "description": "Gửi một email cho người khác bằng Gmail"
+    },
+    "gmail.list_emails": {
+      "displayName": "Lấy danh sách email",
+      "description": "Liệt kê các email trong một thư mục Gmail cụ thể"
+    },
+    "google_sheets.set_up_connection": {
+      "displayName": "Thiết lập kết nối Google Sheet",
+      "description": "Thiết lập kết nối Google Sheet cho tác vụ tiếp theo"
+    },
+    "sheet.create_spreadsheet": {
+      "displayName": "Tạo Bảng tính",
+      "description": "Tạo Bảng tính trong Google Sheet"
+    },
+    "sheet.get_spreadsheet_by_id": {
+      "displayName": "Lấy Bảng tính theo ID",
+      "description": "Lấy Bảng tính theo ID trong Google Sheet"
+    },
+    "sheet.add_sheet": {
+      "displayName": "Thêm trang tính",
+      "description": "Thêm trang tính vào một Bảng tính trong Google Sheet"
+    },
+    "sheet.delete_sheet": {
+      "displayName": "Xóa trang tính",
+      "description": "Xóa trang tính khỏi một Bảng tính trong Google Sheet"
+    },
+    "sheet.rename_sheet": {
+      "displayName": "Đổi tên trang tính",
+      "description": "Đổi tên trang tính của một Bảng tính trong Google Sheet"
+    },
+    "sheet.write_data_to_sheet": {
+      "displayName": "Ghi dữ liệu vào trang tính",
+      "description": "Ghi dữ liệu vào trang tính trong một Bảng tính Google Sheet"
+    },
+    "sheet.read_data_from_sheet": {
+      "displayName": "Đọc dữ liệu từ trang tính",
+      "description": "Đọc dữ liệu từ trang tính trong một Bảng tính Google Sheet"
+    },
+    "sheet.clear_data_from_sheet": {
+      "displayName": "Xóa dữ liệu khỏi trang tính",
+      "description": "Xóa dữ liệu khỏi trang tính trong một Bảng tính Google Sheet"
+    },
+    "google_classroom.set_up_connection": {
+      "displayName": "Thiết lập kết nối Google Classroom",
+      "description": "Thiết lập kết nối Google Classroom cho tác vụ tiếp theo"
+    },
+    "create_course": {
+      "displayName": "Tạo Khóa học",
+      "description": "Tạo khóa học mới cho giáo viên"
+    },
+    "list_classrooms": {
+      "displayName": "Liệt kê Lớp học",
+      "description": "Liệt kê các Lớp học"
+    },
+    "delete_course_by_id": {
+      "displayName": "Xóa Lớp học",
+      "description": "Xóa Lớp học"
+    },
+    "get_course_id_by_course_name": {
+      "displayName": "Lấy ID Khóa học theo Tên",
+      "description": "Lấy ID của khóa học dựa trên tên khóa học"
+    },
+    "invite_student_course": {
+      "displayName": "Mời Học sinh vào Lớp",
+      "description": "Mời Học sinh tham gia Lớp học"
+    },
+    "create_assignment": {
+      "displayName": "Tạo Bài tập",
+      "description": "Tạo Bài tập trong một khóa học Google Classroom"
+    },
+    "create_quiz_classroom": {
+      "displayName": "Tạo Bài kiểm tra",
+      "description": "Tạo Bài kiểm tra trong một khóa học Google Classroom"
+    },
+    "list_course_work": {
+      "displayName": "Liệt kê Bài tập khóa học",
+      "description": "Liệt kê các bài tập trong khóa học"
+    },
+    "get_coursework_id_by_title": {
+      "displayName": "Lấy ID Bài tập theo Tiêu đề",
+      "description": "Lấy ID Bài tập theo Tiêu đề"
+    },
+    "delete_coursework": {
+      "displayName": "Xóa Bài tập",
+      "description": "Xóa Bài tập"
+    },
+    "list_student_submissions": {
+      "displayName": "Liệt kê Bài nộp của học sinh",
+      "description": "Liệt kê các bài nộp của học sinh"
+    },
+    "get_submission_id_by_email": {
+      "displayName": "Lấy ID Bài nộp theo Email",
+      "description": "Lấy ID Bài nộp theo Email"
+    },
+    "google_form.set_up_connection": {
+      "displayName": "Thiết lập kết nối Google Form",
+      "description": "Thiết lập kết nối Google Form cho tác vụ tiếp theo"
+    },
+    "create_quiz_form": {
+      "displayName": "Tạo Biểu mẫu trắc nghiệm",
+      "description": "Tạo bài trắc nghiệm trong google form"
+    },
+    "get_doc_id": {
+      "displayName": "Lấy Google Doc ID từ URL",
+      "description": "Lấy Google Doc ID từ URL"
+    },
+    "transfer_quiz": {
+      "displayName": "Chuyển đổi Google Doc sang Form",
+      "description": "Chuyển bài trắc nghiệm từ google doc sang google form"
+    },
+    "if": {
+      "displayName": "Nếu/Ngược lại (If/Else)",
+      "description": "Nếu điều kiện thỏa mãn, thực hiện một nhóm hành động, ngược lại thực hiện nhóm hành động khác"
+    },
+    "for_each": {
+      "displayName": "Lặp qua từng phần tử (For each)",
+      "description": "Thực hiện một nhóm hành động cho mỗi phần tử trong danh sách"
+    },
+    "for_range": {
+      "displayName": "Lặp trong khoảng (For Range)",
+      "description": "Thực hiện một nhóm hành động cho mỗi giá trị trong khoảng"
+    },
+    "set_variable": {
+      "displayName": "Gán biến",
+      "description": "Đặt giá trị cho một biến"
+    },
+    "add_to_list": {
+      "displayName": "Thêm vào danh sách",
+      "description": "Thêm một mục vào danh sách"
+    },
+    "remove_from_list": {
+      "displayName": "Xóa khỏi danh sách",
+      "description": "Xóa một mục khỏi danh sách"
+    },
+    "clear_list": {
+      "displayName": "Làm rỗng danh sách",
+      "description": "Xóa tất cả các mục trong danh sách"
+    },
+    "go_to_url": {
+      "displayName": "Đi đến URL",
+      "description": "Đi đến một URL cụ thể trong tab trình duyệt hiện tại"
+    },
+    "click": {
+      "displayName": "Nhấn chuột (Click)",
+      "description": "Nhấn vào một phần tử cụ thể trong tab trình duyệt hiện tại"
+    },
+    "type": {
+      "displayName": "Nhập văn bản (Type Into)",
+      "description": "Nhập một văn bản vào phần tử cụ thể trong tab trình duyệt hiện tại"
+    },
+    "get_text": {
+      "displayName": "Lấy văn bản",
+      "description": "Lấy văn bản của một phần tử cụ thể trong tab trình duyệt hiện tại"
+    },
+    "extract_data_from_document": {
+      "displayName": "Trích xuất dữ liệu từ tài liệu",
+      "description": "Trích xuất dữ liệu từ tài liệu sử dụng mẫu Tài liệu"
+    },
+    "generate_grade_report": {
+      "displayName": "Tạo báo cáo điểm",
+      "description": "Tạo báo cáo điểm từ danh sách dữ liệu đã trích xuất"
+    },
+    "upload_file": {
+      "displayName": "Tải lên tệp",
+      "description": "Tải lên một tệp vào hệ thống lưu trữ của nền tảng"
+    },
+    "download_file": {
+      "displayName": "Tải xuống tệp",
+      "description": "Tải xuống một tệp từ hệ thống lưu trữ của nền tảng"
+    },
+    "connect_to_sap_system": {
+      "displayName": "Kết nối đến hệ thống SAP",
+      "description": "Kết nối đến hệ thống SAP sử dụng base URL và tệp token"
+    },
+    "get_business_partner": {
+      "displayName": "Lấy Đối tác kinh doanh (Business Partner)",
+      "description": "Lấy đối tác kinh doanh theo ID từ hệ thống SAP"
+    },
+    "create_business_partner_address": {
+      "displayName": "Tạo địa chỉ Đối tác kinh doanh",
+      "description": "Tạo một địa chỉ mới cho đối tác kinh doanh trong hệ thống SAP"
+    },
+    "update_business_partner_address": {
+      "displayName": "Cập nhật địa chỉ Đối tác kinh doanh",
+      "description": "Cập nhật một địa chỉ hiện có cho đối tác kinh doanh trong hệ thống SAP"
+    },
+    "delete_business_partner_address": {
+      "displayName": "Xóa địa chỉ Đối tác kinh doanh",
+      "description": "Xóa một địa chỉ của đối tác kinh doanh trong hệ thống SAP"
+    },
+    "connect_to_erpnext": {
+      "displayName": "Kết nối đến ERPNext",
+      "description": "Kết nối đến ERPNext sử dụng base URL và API token"
+    },
+    "ensure_item_exists": {
+      "displayName": "Đảm bảo mặt hàng tồn tại",
+      "description": "Kiểm tra nếu mặt hàng tồn tại trong ERPNext; nếu không, tự động tạo mới."
+    },
+    "create_material_request": {
+      "displayName": "Tạo Yêu cầu vật tư (Material Request)",
+      "description": "Tạo tài liệu Yêu cầu vật tư trong ERPNext với nhiều mặt hàng."
+    },
+    "create_request_for_quotation": {
+      "displayName": "Tạo Yêu cầu báo giá (RFQ)",
+      "description": "Tạo một RFQ trong ERPNext cho một hoặc nhiều nhà cung cấp."
+    },
+    "create_purchase_order": {
+      "displayName": "Tạo Đơn hàng mua (Purchase Order)",
+      "description": "Tạo tài liệu Đơn hàng mua trong ERPNext cho một nhà cung cấp."
+    },
+    "submit_erp_document": {
+      "displayName": "Gửi tài liệu ERP",
+      "description": "Gửi (Submit) một tài liệu ERPNext hiện có (Yêu cầu vật tư, RFQ hoặc Đơn hàng mua)."
+    },
+    "moodle.setup_connection": {
+      "displayName": "Thiết lập kết nối Moodle",
+      "description": "Thiết lập kết nối Moodle cho các tác vụ sau"
+    },
+    "moodle.setup_google_connection": {
+      "displayName": "Thiết lập kết nối Google Docs",
+      "description": "Thiết lập kết nối Google API để tích hợp Google Docs"
+    },
+    "moodle.get_course_categories": {
+      "displayName": "Lấy danh mục khóa học",
+      "description": "Lấy danh sách tất cả danh mục khóa học"
+    },
+    "moodle.create_course_category": {
+      "displayName": "Tạo danh mục khóa học",
+      "description": "Tạo một danh mục khóa học mới"
+    },
+    "moodle.ensure_category_exists": {
+      "displayName": "Đảm bảo danh mục tồn tại",
+      "description": "Đảm bảo danh mục tồn tại, tạo mới nếu không tìm thấy"
+    },
+    "moodle.create_course": {
+      "displayName": "Tạo khóa học",
+      "description": "Tạo một khóa học mới trong Moodle"
+    },
+    "moodle.get_course_by_shortname": {
+      "displayName": "Lấy khóa học theo tên rút gọn",
+      "description": "Lấy thông tin khóa học bằng tên rút gọn"
+    },
+    "moodle.ensure_course_exists": {
+      "displayName": "Đảm bảo khóa học tồn tại",
+      "description": "Đảm bảo khóa học tồn tại, tạo mới nếu không tìm thấy"
+    },
+    "moodle.get_course_contents": {
+      "displayName": "Lấy nội dung khóa học",
+      "description": "Lấy nội dung của một khóa học"
+    },
+    "moodle.generate_quiz_gift_file": {
+      "displayName": "Tạo tệp GIFT cho Quiz",
+      "description": "Tạo tệp định dạng GIFT để nhập bài trắc nghiệm vào Moodle"
+    },
+    "moodle.generate_quiz_xml_file": {
+      "displayName": "Tạo tệp XML cho Quiz",
+      "description": "Tạo tệp định dạng Moodle XML để nhập bài trắc nghiệm"
+    },
+    "moodle.create_user": {
+      "displayName": "Tạo người dùng",
+      "description": "Tạo người dùng mới trong Moodle"
+    },
+    "moodle.enroll_user_in_course": {
+      "displayName": "Ghi danh người dùng vào khóa học (ID)",
+      "description": "Ghi danh một người dùng vào khóa học bằng ID"
+    },
+    "moodle.enrol_user": {
+      "displayName": "Ghi danh người dùng (Tên)",
+      "description": "Ghi danh người dùng bằng tên đăng nhập và tên rút gọn khóa học"
+    },
+    "moodle.get_drive_file_id_from_url": {
+      "displayName": "Lấy ID tệp Google Drive từ URL",
+      "description": "Trích xuất ID tệp từ URL Google Drive/Sheets/Docs"
+    },
+    "moodle.read_google_doc_content": {
+      "displayName": "Đọc nội dung Google Doc",
+      "description": "Đọc nội dung văn bản từ Google Docs"
+    },
+    "moodle.read_quiz_from_google_doc": {
+      "displayName": "Đọc Quiz từ Google Doc",
+      "description": "Phân tích câu hỏi và đáp án từ Google Doc"
+    },
+    "moodle.create_quiz_from_google_doc": {
+      "displayName": "Tạo Quiz từ Google Doc",
+      "description": "Tạo tệp bài trắc nghiệm từ Google Doc"
+    },
+    "moodle.upload_file_to_moodle": {
+      "displayName": "Tải tệp lên Moodle",
+      "description": "Tải một tệp lên máy chủ Moodle"
+    },
+    "moodle.parse_students_from_excel": {
+      "displayName": "Đọc danh sách học sinh từ Excel",
+      "description": "Phân tích danh sách học sinh từ tệp Excel"
+    },
+    "moodle.parse_courses_from_excel": {
+      "displayName": "Đọc danh sách khóa học từ Excel",
+      "description": "Phân tích danh sách khóa học từ tệp Excel"
+    },
+    "moodle.bulk_create_students": {
+      "displayName": "Tạo học sinh hàng loạt",
+      "description": "Tạo nhiều học sinh cùng lúc"
+    },
+    "moodle.bulk_create_courses_and_enrol_students": {
+      "displayName": "Tạo khóa học và ghi danh hàng loạt",
+      "description": "Tạo nhiều khóa học và ghi danh học sinh"
+    },
+    "moodle.upload_file_to_google_drive": {
+      "displayName": "Tải tệp lên Google Drive",
+      "description": "Tải tệp lên Google Drive"
+    },
+    "moodle.download_file_from_google_drive": {
+      "displayName": "Tải tệp từ Google Drive",
+      "description": "Tải xuống tệp từ Google Drive"
+    },
+    "moodle.create_quiz_and_upload_to_drive": {
+      "displayName": "Tạo Quiz và tải lên Drive",
+      "description": "Tạo bài trắc nghiệm từ Google Doc và tải lên Drive"
+    },
+    "moodle.get_user_by_username": {
+      "displayName": "Lấy người dùng theo tên đăng nhập",
+      "description": "Lấy thông tin người dùng bằng tên đăng nhập"
+    },
+    "moodle.get_user_by_email": {
+      "displayName": "Lấy người dùng theo Email",
+      "description": "Lấy thông tin người dùng bằng địa chỉ email"
+    },
+    "moodle.get_user_by_username_or_email": {
+      "displayName": "Lấy người dùng theo tên đăng nhập hoặc Email",
+      "description": "Lấy người dùng bằng tên đăng nhập hoặc email (tìm kiếm linh hoạt)"
+    },
+    "moodle.get_assignment_id_from_url": {
+      "displayName": "Lấy ID Bài tập từ URL",
+      "description": "Trích xuất ID module khóa học bài tập từ URL Moodle"
+    },
+    "moodle.get_assignment_instance_id_from_cmid": {
+      "displayName": "Lấy ID thực thể bài tập từ ID module khóa học",
+      "description": "Chuyển đổi ID module khóa học sang ID thực thể bài tập"
+    },
+    "moodle.create_submission_for_student": {
+      "displayName": "Tạo bài nộp cho học sinh",
+      "description": "Tạo/nộp bài tập cho một học sinh"
+    },
+    "moodle.submit_assignment_for_students": {
+      "displayName": "Nộp bài tập cho danh sách học sinh",
+      "description": "Tạo bài nộp cho nhiều học sinh"
+    },
+    "moodle.setup_gemini_ai": {
+      "displayName": "Thiết lập Gemini AI",
+      "description": "Thiết lập Gemini AI để chấm điểm tự động"
+    },
+    "moodle.grade_submission_with_gemini": {
+      "displayName": "Chấm bài nộp bằng Gemini",
+      "description": "Chấm bài nộp của học sinh sử dụng Gemini AI"
+    },
+    "moodle.grade_image_submission_with_gemini_vision": {
+      "displayName": "Chấm bài nộp hình ảnh bằng Gemini Vision",
+      "description": "Chấm bài nộp của học sinh từ hình ảnh sử dụng Gemini Vision"
+    },
+    "moodle.upload_grades_to_moodle": {
+      "displayName": "Tải điểm lên Moodle",
+      "description": "Tải điểm lên sổ điểm bài tập trên Moodle"
+    },
+    "moodle.export_grading_results_to_excel": {
+      "displayName": "Xuất kết quả chấm điểm ra Excel",
+      "description": "Xuất kết quả chấm điểm ra tệp Excel"
+    },
+    "moodle.export_grading_results_to_csv": {
+      "displayName": "Xuất kết quả chấm điểm ra CSV",
+      "description": "Xuất kết quả chấm điểm ra CSV để nhập vào sổ điểm Moodle"
+    },
+    "moodle.export_detailed_grading_results_to_excel": {
+      "displayName": "Xuất kết quả chấm điểm chi tiết ra Excel",
+      "description": "Xuất câu trả lời chi tiết của học sinh và phân tích điểm ra Excel"
+    },
+    "moodle.export_student_answers_to_csv": {
+      "displayName": "Xuất câu trả lời học sinh ra CSV",
+      "description": "Chỉ xuất câu trả lời của học sinh ra CSV (không có chi tiết chấm điểm)"
+    },
+    "moodle.complete_auto_grading_and_upload_workflow": {
+      "displayName": "Hoàn tất quy trình Chấm điểm tự động và Tải lên",
+      "description": "Chấm điểm các bài nộp và tải kết quả lên Moodle"
+    },
+    "moodle.grade_all_image_submissions": {
+      "displayName": "Chấm tất cả bài nộp hình ảnh",
+      "description": "Chấm tất cả bài nộp hình ảnh sử dụng Gemini Vision"
+    },
+    "moodle.list_files_in_google_drive_folder": {
+      "displayName": "Liệt kê tệp trong thư mục Google Drive",
+      "description": "Liệt kê tất cả tệp trong một thư mục Google Drive"
+    },
+    "moodle.complete_bulk_enrollment_workflow": {
+      "displayName": "Hoàn tất quy trình Ghi danh hàng loạt",
+      "description": "Tải xuống Excel từ Drive, tạo học sinh và khóa học"
+    },
+    "moodle.get_course_grades": {
+      "displayName": "Lấy điểm khóa học",
+      "description": "Lấy tất cả điểm của học sinh trong một khóa học"
+    },
+    "moodle.get_assignment_submissions": {
+      "displayName": "Lấy bài nộp của bài tập",
+      "description": "Lấy tất cả bài nộp của học sinh cho một bài tập"
+    },
+    "moodle.get_assignment_grades": {
+      "displayName": "Lấy điểm bài tập",
+      "description": "Lấy điểm cho tất cả học sinh trong một bài tập"
+    },
+    "moodle.get_course_enrolled_users": {
+      "displayName": "Lấy người dùng đã ghi danh khóa học",
+      "description": "Lấy tất cả người dùng đã ghi danh trong một khóa học"
+    },
+    "moodle.export_course_grades_to_excel": {
+      "displayName": "Xuất điểm khóa học ra Excel",
+      "description": "Xuất tất cả điểm khóa học ra tệp Excel"
+    },
+    "moodle.export_course_grades_to_csv": {
+      "displayName": "Xuất điểm khóa học ra CSV",
+      "description": "Xuất tất cả điểm khóa học ra tệp CSV"
+    },
+    "moodle.get_course_activity_completion": {
+      "displayName": "Lấy trạng thái hoàn thành hoạt động khóa học",
+      "description": "Lấy trạng thái hoàn thành hoạt động cho khóa học"
+    },
+    "moodle.generate_course_report": {
+      "displayName": "Tạo báo cáo khóa học",
+      "description": "Tạo báo cáo khóa học toàn diện (điểm, ghi danh, bài nộp)"
+    },
+    "moodle.get_course_statistics": {
+      "displayName": "Lấy thống kê khóa học",
+      "description": "Lấy thống kê toàn diện về một khóa học"
+    }
+  },
+  "arguments": {
+    "Connection": "Kết nối",
+    "Folder name": "Tên thư mục",
+    "Parent Folder Path": "Đường dẫn thư mục cha",
+    "Query": "Truy vấn",
+    "File name": "Tên tệp",
+    "Folder Path": "Đường dẫn thư mục",
+    "Overwrite": "Ghi đè",
+    "Make Folder": "Tạo thư mục",
+    "ID": "ID"
+  },
+  "argumentDescriptions": {
+    "Connection": "ID kết nối của bạn với Google Drive",
+    "Folder name": "Tên của thư mục",
+    "Parent Folder Path": "Đường dẫn đến thư mục cha",
+    "Query": "Định nghĩa loại tệp cần tải xuống",
+    "File name": "Tên của tệp",
+    "Folder Path": "Đường dẫn đến thư mục",
+    "Overwrite": "Ghi đè tệp hiện có",
+    "Make Folder": "Tạo thư mục nếu chưa tồn tại",
+    "ID": "ID của thư mục hoặc tệp"
+  },
+  "returns": {
+    "Folder": "Thư mục",
+    "Files": "Các tệp",
+    "File id": "ID tệp",
+    "File List": "Danh sách tệp",
+    "File/Folder": "Tệp/Thư mục",
+    "Number of deleted": "Số lượng đã xóa"
+  },
+  "returnDescriptions": {
+    "Folder": "Thư mục đã tạo. Dạng từ điển, chứa: id (id thư mục), url (url thư mục)",
+    "Files": "Danh sách tên các tệp đã tải xuống",
+    "File id": "ID của tệp đã tải lên",
+    "File List": "Một danh sách các tệp. Mỗi tệp là một từ điển, chứa: id, url, name, is_folder, mimeType, size, modifiedTime",
+    "File/Folder": "Tệp/thư mục. Dạng từ điển, chứa: id, url, name, is_folder, mimeType, size, modifiedTime",
+    "Number of deleted": "Số lượng tệp/thư mục đã bị xóa"
+  },
+  "varTypes": {
+    "scalar": "Biến vô hướng",
+    "any": "Biến bất kỳ",
+    "dictionary": "Biến từ điển",
+    "list": "Biến danh sách",
+    "string": "Chuỗi",
+    "number": "Số",
+    "boolean": "Logic",
+    "connection": "Kết nối"
+  },
+  "common": {
+    "selectPackage": "Chọn một gói",
+    "selectActivity": "Chọn một hoạt động",
+    "configureArguments": "Cấu hình tham số",
+    "required": "Bắt buộc",
+    "optional": "Tùy chọn",
+    "value": "Giá trị",
+    "returnValue": "Giá trị trả về",
+    "saveAs": "Lưu vào",
+    "noPackagesAvailable": "Không có gói nào khả dụng",
+    "noActivitiesAvailable": "Không có hoạt động nào trong gói này"
+  }
+}

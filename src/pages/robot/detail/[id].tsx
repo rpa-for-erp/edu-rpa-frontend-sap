@@ -19,6 +19,9 @@ import { ChevronLeftIcon } from '@chakra-ui/icons';
 import { useParams } from 'next/navigation';
 import RobotLog from '../components/Log/RobotLog';
 import { LOG_ROBOT } from '@/constants/robot';
+import { useTranslation } from 'next-i18next';
+import { GetServerSideProps } from 'next';
+import { getServerSideTranslations } from '@/utils/i18n';
 
 import LoadingIndicator from '@/components/LoadingIndicator/LoadingIndicator';
 import ConnectionDetail from '../components/ConnectionDetail/ConnectionDetail';
@@ -39,6 +42,7 @@ interface RobotRunningDto {
 }
 
 const RobotDetail = () => {
+  const { t } = useTranslation('robot');
   const router = useRouter();
   const params = useParams();
   const user = useSelector(userSelector);
@@ -70,7 +74,7 @@ const RobotDetail = () => {
     },
     onSuccess: () => {
       toast({
-        title: 'Run robot sucessfully!',
+        title: t('detail.messages.runSuccess'),
         status: 'success',
         position: 'top-right',
         duration: 1000,
@@ -80,7 +84,7 @@ const RobotDetail = () => {
     },
     onError: () => {
       toast({
-        title: 'Run robot failed !',
+        title: t('detail.messages.runFailed'),
         status: 'error',
         position: 'top-right',
         duration: 1000,
@@ -99,7 +103,7 @@ const RobotDetail = () => {
     },
     onSuccess: () => {
       toast({
-        title: 'Stop robot sucessfully!',
+        title: t('detail.messages.stopSuccess'),
         status: 'success',
         position: 'top-right',
         duration: 1000,
@@ -109,7 +113,7 @@ const RobotDetail = () => {
     },
     onError: () => {
       toast({
-        title: 'Stop robot failed !',
+        title: t('detail.messages.stopFailed'),
         status: 'error',
         position: 'top-right',
         duration: 1000,
@@ -140,8 +144,9 @@ const RobotDetail = () => {
           textAlign="center"
           color="teal"
           my={5}
-          py={8}>
-          Robot Information
+          py={8}
+        >
+          {t('detail.title')}
         </Heading>
         <Box></Box>
       </Box>
@@ -152,15 +157,17 @@ const RobotDetail = () => {
         rounded="lg"
         shadow="md"
         mb={6}
-        className="w-90 mx-auto my-5">
+        className="w-90 mx-auto my-5"
+      >
         <Text>
-          <span className="font-bold">Robot ID:</span> {robotID}
+          <span className="font-bold">{t('detail.robotId')}:</span> {robotID}
         </Text>
         <Text>
-          <span className="font-bold">Process ID:</span> {processID}
+          <span className="font-bold">{t('detail.processId')}:</span>{' '}
+          {processID}
         </Text>
         <Text>
-          <span className="font-bold">Version:</span> {version}
+          <span className="font-bold">{t('detail.version')}:</span> {version}
         </Text>
       </Box>
 
@@ -173,7 +180,8 @@ const RobotDetail = () => {
               )}
               size="md"
               p={3}
-              rounded={10}>
+              rounded={10}
+            >
               {robotStatus ? mapStatus(robotStatus.instanceState) : ''}
             </Tag>
             <IconButton
@@ -211,10 +219,18 @@ const RobotDetail = () => {
 
       <Tabs variant="enclosed" className="w-90 m-auto">
         <TabList mb="1em">
-          <Tab _selected={{ color: 'white', bg: '#319795' }}>Log</Tab>
-          <Tab _selected={{ color: 'white', bg: '#319795' }}>Log Detail</Tab>
-          <Tab _selected={{ color: 'white', bg: '#319795' }}>Dashboard</Tab>
-          <Tab _selected={{ color: 'white', bg: '#319795' }}>Connection</Tab>
+          <Tab _selected={{ color: 'white', bg: '#319795' }}>
+            {t('detail.tabs.log')}
+          </Tab>
+          <Tab _selected={{ color: 'white', bg: '#319795' }}>
+            {t('detail.tabs.logDetail')}
+          </Tab>
+          <Tab _selected={{ color: 'white', bg: '#319795' }}>
+            {t('detail.tabs.dashboard')}
+          </Tab>
+          <Tab _selected={{ color: 'white', bg: '#319795' }}>
+            {t('detail.tabs.connection')}
+          </Tab>
         </TabList>
         <TabPanels>
           <TabPanel>
@@ -233,6 +249,19 @@ const RobotDetail = () => {
       </Tabs>
     </Box>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  return {
+    props: {
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'robot',
+      ])),
+    },
+  };
 };
 
 export default RobotDetail;

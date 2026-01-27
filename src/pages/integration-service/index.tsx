@@ -21,11 +21,13 @@ import { Connection } from '@/interfaces/connection';
 import ConnectionTable from '@/components/Connection/ConnectionTable';
 import CreateNewConnectionModal from '@/components/Connection/CreateNewConnectionModal';
 import _ from 'lodash';
-import { ToolTipExplain } from '@/constants/description';
 import { GetServerSideProps } from 'next';
 import { getServerSideTranslations } from '@/utils/i18n';
+import { useTranslation } from 'next-i18next';
 
 export default function Service() {
+  const { t } = useTranslation('integration-service');
+  const { t: tCommon } = useTranslation('common');
   const router = useRouter();
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -38,7 +40,13 @@ export default function Service() {
   const [isLoading, setIsLoading] = useState(false);
 
   const tableProps = {
-    header: ['Service', 'Connection name', 'Created at', 'Status', 'Action'],
+    header: [
+      t('table.service'),
+      t('table.connectionName'),
+      t('table.createdAt'),
+      t('table.status'),
+      t('table.action'),
+    ],
     data: connectionData,
   };
   const errorMessage = router.query.error;
@@ -61,26 +69,26 @@ export default function Service() {
   useEffect(() => {
     if (errorMessage) {
       toast({
-        title: `Error: ${errorMessage}`,
+        title: `${t('toast.error')}: ${errorMessage}`,
         status: 'error',
         position: 'top-right',
         duration: 2000,
         isClosable: true,
       });
     }
-  }, [errorMessage]);
+  }, [errorMessage, t]);
 
   useEffect(() => {
     if (successMessage) {
       toast({
-        title: `Success: ${successMessage}`,
+        title: `${t('toast.success')}: ${successMessage}`,
         status: 'success',
         position: 'top-right',
         duration: 2000,
         isClosable: true,
       });
     }
-  }, [successMessage]);
+  }, [successMessage, t]);
 
   if (providerFilter) {
     tableProps.data = tableProps.data.filter(
@@ -93,13 +101,14 @@ export default function Service() {
       <SidebarContent>
         <div className="flex flex-start">
           <h1 className="pl-[20px] pr-[10px] ml-[35px] font-bold text-2xl text-[#319795]">
-            Connection List
+            {t('page.title')}
           </h1>
           <Tooltip
             hasArrow
-            label={ToolTipExplain.INTERGRATION_SERVICE}
+            label={tCommon('tooltips.integrationService')}
             bg="gray.300"
-            color="black">
+            color="black"
+          >
             <QuestionIcon color="blue.500" />
           </Tooltip>
         </div>
@@ -113,7 +122,7 @@ export default function Service() {
               width="40vw"
               bg="white.300"
               type="text"
-              placeholder="Search..."
+              placeholder={t('page.search')}
             />
             <Box className="w-[15vw] ml-[20px]">
               <Select
@@ -124,8 +133,9 @@ export default function Service() {
                     pathname: router.pathname,
                     query: { provider: e.target.value },
                   });
-                }}>
-                <option value="">All services</option>
+                }}
+              >
+                <option value="">{t('page.allServices')}</option>
                 {Object.values(AuthorizationProvider).map((provider) => {
                   return (
                     <option key={provider} value={provider}>
@@ -137,13 +147,18 @@ export default function Service() {
             </Box>
           </InputGroup>
           <div className="flex justify-between gap-[10px]">
-            <Button colorScheme="teal" bg={'teal'} onClick={onOpen}>
-              New Connection
+            <Button
+              bg="teal.500"
+              color="white"
+              _hover={{ bg: 'teal.600' }}
+              onClick={onOpen}
+            >
+              {t('page.newConnection')}
             </Button>
           </div>
 
-          <CreateNewConnectionModal 
-            isOpen={isOpen} 
+          <CreateNewConnectionModal
+            isOpen={isOpen}
             onClose={onClose}
             onSuccess={async () => {
               // Refresh connection list after creating a new connection
@@ -152,7 +167,7 @@ export default function Service() {
                 const data = await connectionApi.queryConnections();
                 setConnectionData(data);
                 toast({
-                  title: 'Connection list refreshed',
+                  title: t('toast.listRefreshed'),
                   status: 'success',
                   position: 'top-right',
                   duration: 2000,
@@ -173,10 +188,11 @@ export default function Service() {
         ) : (
           <div className="w-90 m-auto flex justify-center items-center">
             <div className="text-center">
-              <div className="text-2xl font-bold">No connections</div>
+              <div className="text-2xl font-bold">
+                {t('page.noConnections')}
+              </div>
               <div className="text-gray-500">
-                Create a new connection to help you integrate with other
-                services
+                {t('page.noConnectionsDescription')}
               </div>
             </div>
           </div>
@@ -189,7 +205,12 @@ export default function Service() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'integration-service',
+      ])),
     },
   };
 };

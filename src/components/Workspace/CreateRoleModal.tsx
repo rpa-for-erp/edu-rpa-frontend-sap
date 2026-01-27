@@ -22,6 +22,7 @@ import {
 import { CreateRoleDto } from '@/dtos/workspaceDto';
 import { Permission } from '@/interfaces/workspace';
 import workspaceApi from '@/apis/workspaceApi';
+import { useTranslation } from 'next-i18next';
 
 interface CreateRoleModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
   teamId,
   onSuccess,
 }) => {
+  const { t } = useTranslation('workspace');
   const toast = useToast();
   const [formData, setFormData] = useState<CreateRoleDto>({
     name: '',
@@ -81,8 +83,8 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
   const handleSubmit = async () => {
     if (!formData.name) {
       toast({
-        title: 'Error',
-        description: 'Please enter role name',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.pleaseEnterRoleName'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -94,8 +96,8 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
     try {
       await workspaceApi.createRole(teamId, formData);
       toast({
-        title: 'Success',
-        description: 'Role created successfully',
+        title: t('messages.success', { ns: 'common' }),
+        description: t('messages.roleCreated'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -105,8 +107,9 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
       onClose();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error?.response?.data?.message || 'Failed to create role',
+        title: t('messages.error', { ns: 'common' }),
+        description:
+          error?.response?.data?.message || t('messages.failedToCreateRole'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -117,39 +120,39 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
   };
 
   // Group permissions by resource
-  const groupedPermissions = permissions.reduce((acc, permission) => {
-    if (!acc[permission.resource]) {
-      acc[permission.resource] = [];
-    }
-    acc[permission.resource].push(permission);
-    return acc;
-  }, {} as Record<string, Permission[]>);
+  const groupedPermissions = permissions.reduce(
+    (acc, permission) => {
+      if (!acc[permission.resource]) {
+        acc[permission.resource] = [];
+      }
+      acc[permission.resource].push(permission);
+      return acc;
+    },
+    {} as Record<string, Permission[]>
+  );
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="xl">
       <ModalOverlay />
       <ModalContent maxH="90vh" overflowY="auto">
-        <ModalHeader>Create new role</ModalHeader>
+        <ModalHeader>{t('createRoleTitle')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl isRequired mb={4}>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>{t('roleName')}</FormLabel>
             <Input
               name="name"
-              placeholder="Enter role name"
+              placeholder={t('enterRoleName')}
               value={formData.name}
               onChange={handleChange}
             />
-            <Text fontSize="sm" color="gray.500" mt={1}>
-              You'll use this name to mention this role in conversations.
-            </Text>
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t('description')}</FormLabel>
             <Textarea
               name="description"
-              placeholder="What is this role all about?"
+              placeholder={t('enterDescription')}
               value={formData.description}
               onChange={handleChange}
               rows={3}
@@ -157,7 +160,7 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
           </FormControl>
 
           <FormControl>
-            <FormLabel>Select Permissions</FormLabel>
+            <FormLabel>{t('permissions')}</FormLabel>
             <CheckboxGroup
               value={formData.permissionIds}
               onChange={handlePermissionChange}
@@ -197,9 +200,11 @@ const CreateRoleModal: React.FC<CreateRoleModalProps> = ({
             onClick={handleSubmit}
             isLoading={isLoading}
           >
-            Create Role
+            {t('createRole')}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            {t('buttons.cancel', { ns: 'common' })}
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

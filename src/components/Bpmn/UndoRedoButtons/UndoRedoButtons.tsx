@@ -1,20 +1,22 @@
-import React, { useState, useEffect } from "react";
-import { Button, ButtonGroup, Tooltip, Box } from "@chakra-ui/react";
-import { useBpmn } from "@/hooks/useBpmn";
+import React, { useState, useEffect } from 'react';
+import { Button, ButtonGroup, Tooltip, Box } from '@chakra-ui/react';
+import { useBpmn } from '@/hooks/useBpmn';
+import { useTranslation } from 'next-i18next';
 
 interface UndoRedoButtonsProps {
   bpmnReact?: ReturnType<typeof useBpmn>;
 }
 
 const UndoRedoButtons: React.FC<UndoRedoButtonsProps> = ({ bpmnReact }) => {
+  const { t } = useTranslation('studio');
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
   useEffect(() => {
     if (!bpmnReact?.bpmnModeler) return;
 
-    const commandStack = bpmnReact.bpmnModeler.get("commandStack") as any;
-    const eventBus = bpmnReact.bpmnModeler.get("eventBus") as any;
+    const commandStack = bpmnReact.bpmnModeler.get('commandStack') as any;
+    const eventBus = bpmnReact.bpmnModeler.get('eventBus') as any;
 
     // Update button states when command stack changes
     const updateStates = () => {
@@ -23,13 +25,13 @@ const UndoRedoButtons: React.FC<UndoRedoButtonsProps> = ({ bpmnReact }) => {
     };
 
     // Listen to command stack changes via eventBus
-    eventBus.on("commandStack.changed", updateStates);
+    eventBus.on('commandStack.changed', updateStates);
 
     // Initial state
     updateStates();
 
     return () => {
-      eventBus.off("commandStack.changed", updateStates);
+      eventBus.off('commandStack.changed', updateStates);
     };
   }, [bpmnReact?.bpmnModeler]);
 
@@ -54,7 +56,7 @@ const UndoRedoButtons: React.FC<UndoRedoButtonsProps> = ({ bpmnReact }) => {
         bg="white"
         shadow="md"
       >
-        <Tooltip label="Undo (Ctrl+Z)" placement="bottom">
+        <Tooltip label={t('undoRedo.undoTooltip')} placement="bottom">
           <Button
             onClick={handleUndo}
             isDisabled={!canUndo}
@@ -74,10 +76,10 @@ const UndoRedoButtons: React.FC<UndoRedoButtonsProps> = ({ bpmnReact }) => {
               </svg>
             }
           >
-            Undo
+            {t('undoRedo.undo')}
           </Button>
         </Tooltip>
-        <Tooltip label="Redo (Ctrl+Y)" placement="bottom">
+        <Tooltip label={t('undoRedo.redoTooltip')} placement="bottom">
           <Button
             onClick={handleRedo}
             isDisabled={!canRedo}
@@ -97,7 +99,7 @@ const UndoRedoButtons: React.FC<UndoRedoButtonsProps> = ({ bpmnReact }) => {
               </svg>
             }
           >
-            Redo
+            {t('undoRedo.redo')}
           </Button>
         </Tooltip>
       </ButtonGroup>

@@ -9,10 +9,11 @@ import {
   FormLabel,
   ModalFooter,
   Button,
-  Input
-} from "@chakra-ui/react"
-import { useEffect, useState } from "react";
-import { uploadFile } from "@/apis/fileStorageApi";
+  Input,
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import { uploadFile } from '@/apis/fileStorageApi';
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   isOpen: boolean;
@@ -22,19 +23,18 @@ interface Props {
 
 const MAX_FILE_SIZE = 1024 * 1024 * 100; // 100MB
 
-const FileUploadModal: React.FC<Props> = ({
-  isOpen,
-  path,
-  onClose,
-}) => {
+const FileUploadModal: React.FC<Props> = ({ isOpen, path, onClose }) => {
+  const { t } = useTranslation('storage');
   const [files, setFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState<boolean[]>([]);
 
   const handleUploadFiles = () => {
     setIsUploading(files.map(() => true));
-    Promise.all(files.map((file) => {
-      return uploadFile(path, file);
-    }))
+    Promise.all(
+      files.map((file) => {
+        return uploadFile(path, file);
+      })
+    )
       .then(() => {
         setFiles([]);
         onClose();
@@ -52,9 +52,11 @@ const FileUploadModal: React.FC<Props> = ({
   const handleSelectFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files || []);
-      const isFileSizeValid = selectedFiles.every((file) => file.size <= MAX_FILE_SIZE);
+      const isFileSizeValid = selectedFiles.every(
+        (file) => file.size <= MAX_FILE_SIZE
+      );
       if (!isFileSizeValid) {
-        alert(`The maximum file size is ${MAX_FILE_SIZE / 1024 / 1024}MB.`);
+        alert(t('maxFileSize', { size: MAX_FILE_SIZE / 1024 / 1024 }));
         return;
       }
       setFiles([...files, ...selectedFiles]);
@@ -62,37 +64,30 @@ const FileUploadModal: React.FC<Props> = ({
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}>
+    <Modal isOpen={isOpen} onClose={handleClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Upload files</ModalHeader>
+        <ModalHeader>{t('uploadFiles')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
-          The maximum file size is 100MB.
           <FormControl>
-            <FormLabel>Files</FormLabel>
-            <Input
-              type="file"
-              multiple
-              onChange={handleSelectFiles}
-            />
+            <FormLabel>{t('selectFiles')}</FormLabel>
+            <Input type="file" multiple onChange={handleSelectFiles} />
           </FormControl>
           {files.map((file, index) => (
-            <div key={index} className='flex flex-start gap-[10px]'>
+            <div key={index} className="flex flex-start gap-[10px]">
               {file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)
               <Button
-                size='sm'
-                colorScheme='red'
-                variant='outline'
+                size="sm"
+                colorScheme="red"
+                variant="outline"
                 disabled={isUploading[index]}
                 isLoading={isUploading[index]}
                 onClick={() => {
                   setFiles(files.filter((_, i) => i !== index));
                 }}
               >
-                Remove
+                {t('delete')}
               </Button>
             </div>
           ))}
@@ -101,16 +96,19 @@ const FileUploadModal: React.FC<Props> = ({
           <Button
             colorScheme="blue"
             mr={3}
-            disabled={!files.length || isUploading.some((isUploading) => isUploading)}
+            disabled={
+              !files.length || isUploading.some((isUploading) => isUploading)
+            }
             isLoading={isUploading.some((isUploading) => isUploading)}
-            onClick={handleUploadFiles}>
-            Upload
+            onClick={handleUploadFiles}
+          >
+            {t('uploadFile')}
           </Button>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>{t('cancel')}</Button>
         </ModalFooter>
       </ModalContent>
     </Modal>
-  )
-}
+  );
+};
 
 export default FileUploadModal;

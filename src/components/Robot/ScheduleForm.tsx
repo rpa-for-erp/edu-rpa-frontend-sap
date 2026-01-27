@@ -23,38 +23,41 @@ import {
   setRateValue,
   setRateUnit,
 } from '@/redux/slice/scheduleSlice';
+import { useTranslation } from 'next-i18next';
 
 const ScheduleForm = () => {
+  const { t } = useTranslation('robot');
   const schedule = useSelector(scheduleSelector);
   const dispatch = useDispatch();
 
   return (
     <Box p={5}>
       <FormControl>
-        <FormLabel>Timezone</FormLabel>
+        <FormLabel>{t('scheduleForm.timezone')}</FormLabel>
         <Select
           value={schedule.timezone}
-          onChange={(e) => dispatch(setTimezone(e.target.value))}>
+          onChange={(e) => dispatch(setTimezone(e.target.value))}
+        >
           {Array(24)
             .fill(0)
             .map((_, idx) => (
               <option
                 key={idx}
-                value={`UTC+${idx < 10 ? '0' + idx : idx}:00`}>{`UTC+${
-                idx < 10 ? '0' + idx : idx
-              }:00`}</option>
+                value={`UTC+${idx < 10 ? '0' + idx : idx}:00`}
+              >{`UTC+${idx < 10 ? '0' + idx : idx}:00`}</option>
             ))}
         </Select>
       </FormControl>
 
       <FormControl>
-        <FormLabel>Schedule Type</FormLabel>
+        <FormLabel>{t('scheduleForm.scheduleType')}</FormLabel>
         <RadioGroup
           value={schedule.type}
-          onChange={(value) => dispatch(setScheduleType(value))}>
+          onChange={(value) => dispatch(setScheduleType(value))}
+        >
           <Stack direction="row">
-            <Radio value="at">One-off</Radio>
-            <Radio value="cron">Recurring</Radio>
+            <Radio value="at">{t('scheduleForm.once')}</Radio>
+            <Radio value="cron">{t('scheduleForm.recurring')}</Radio>
             <Radio value="rate">Interval</Radio>
           </Stack>
         </RadioGroup>
@@ -62,7 +65,7 @@ const ScheduleForm = () => {
 
       {schedule.type === 'at' ? (
         <FormControl mt={5}>
-          <FormLabel>Date & Time</FormLabel>
+          <FormLabel>{t('scheduleForm.datetime')}</FormLabel>
           <Input
             type="datetime-local"
             value={schedule.datetime}
@@ -72,60 +75,60 @@ const ScheduleForm = () => {
       ) : schedule.type === 'cron' ? (
         <Box>
           <FormControl mt={5}>
-            <FormLabel>Minute</FormLabel>
+            <FormLabel>{t('scheduleForm.minute')}</FormLabel>
             <Input
               type="text"
-              placeholder="Minute"
+              placeholder={t('scheduleForm.minute')}
               value={schedule.minute}
               onChange={(e) => dispatch(setMinute(e.target.value))}
             />
           </FormControl>
 
           <FormControl mt={5}>
-            <FormLabel>Hour</FormLabel>
+            <FormLabel>{t('scheduleForm.hour')}</FormLabel>
             <Input
               type="text"
-              placeholder="Hour"
+              placeholder={t('scheduleForm.hour')}
               value={schedule.hour}
               onChange={(e) => dispatch(setHour(e.target.value))}
             />
           </FormControl>
 
           <FormControl mt={5}>
-            <FormLabel>Day of Month</FormLabel>
+            <FormLabel>{t('scheduleForm.dayOfMonth')}</FormLabel>
             <Input
               type="text"
-              placeholder="Day of Month"
+              placeholder={t('scheduleForm.dayOfMonth')}
               value={schedule.dayOfMonth}
               onChange={(e) => dispatch(setDayOfMonth(e.target.value))}
             />
           </FormControl>
 
           <FormControl mt={5}>
-            <FormLabel>Month</FormLabel>
+            <FormLabel>{t('scheduleForm.month')}</FormLabel>
             <Input
               type="text"
-              placeholder="Month"
+              placeholder={t('scheduleForm.month')}
               value={schedule.month}
               onChange={(e) => dispatch(setMonth(e.target.value))}
             />
           </FormControl>
 
           <FormControl mt={5}>
-            <FormLabel>Day of Week</FormLabel>
+            <FormLabel>{t('scheduleForm.dayOfWeek')}</FormLabel>
             <Input
               type="text"
-              placeholder="Day of Week"
+              placeholder={t('scheduleForm.dayOfWeek')}
               value={schedule.dayOfWeek}
               onChange={(e) => dispatch(setDayOfWeek(e.target.value))}
             />
           </FormControl>
 
           <FormControl mt={5}>
-            <FormLabel>Year</FormLabel>
+            <FormLabel>{t('scheduleForm.year')}</FormLabel>
             <Input
               type="text"
-              placeholder="Year"
+              placeholder={t('scheduleForm.year')}
               value={schedule.year}
               onChange={(e) => dispatch(setYear(e.target.value))}
             />
@@ -147,7 +150,8 @@ const ScheduleForm = () => {
             <FormLabel>Unit</FormLabel>
             <Select
               value={schedule.unit}
-              onChange={(e) => dispatch(setRateUnit(e.target.value))}>
+              onChange={(e) => dispatch(setRateUnit(e.target.value))}
+            >
               <option value="minutes">Minute</option>
               <option value="hours">Hour</option>
               <option value="days">Day</option>

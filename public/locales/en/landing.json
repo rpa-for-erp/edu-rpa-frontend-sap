@@ -1,0 +1,82 @@
+{
+  "hero": {
+    "title": "More automation,",
+    "subtitle": "better business",
+    "description": "ErpRpa is a transformative platform integrating Robotic Process Automation (RPA) within the education and business sector, designed to assist teachers, students and also business professionals.",
+    "descriptionContinue": "This tool empowers users to automate their most time-consuming and monotonous activities, allowing them to focus more on the essential aspects of teaching, learning, and business.",
+    "getStarted": "Get started",
+    "howItWorks": "How It Works"
+  },
+  "features": {
+    "title": "What We Offers",
+    "subtitle": "ErpRpa introduces the power of RPA to the educational sector, automates essential tasks, facilitating a digital transformation in e-learning.",
+    "learnMore": "Learn more",
+    "designWorkflow": {
+      "title": "Design Workflow",
+      "description": "Our platform helps you to visualize, analyze your workflows in a user-friendly interface."
+    },
+    "utilizePackages": {
+      "title": "Utilize Packages",
+      "description": "With a wide range of reusable packages for common tasks, you can save time and efforts when building automation workflows."
+    },
+    "collaborate": {
+      "title": "Collaborate",
+      "description": "Enable collaboration by sharing workflows and packages with teammates and other users."
+    },
+    "scheduleRobot": {
+      "title": "Schedule Robot",
+      "description": "Schedule your robots to run automatically at specific time intervals or triggered by external events."
+    },
+    "monitorLogs": {
+      "title": "Monitor Logs",
+      "description": "Track and analyze robot performance with detailed logs, helping you optimize and troubleshoot your automation."
+    }
+  },
+  "team": {
+    "title": "Who We Are",
+    "subtitle": "We are a thesis team majoring in Computer Science from VNU-HCMUT, Viet Nam. This platform represents our wholehearted contribution to the community by applying RPA technology into the digital transformation of education.",
+    "role": "Software Engineer"
+  },
+  "pricing": {
+    "title": "Plans that fit your need",
+    "subtitle": "Start with 14-day free trial. No credit card needed. Cancel at anytime.",
+    "month": "/month",
+    "startTrial": "Start trial",
+    "hobby": {
+      "name": "Hobby",
+      "feature1": "Unlimited build minutes",
+      "feature2": "1GB robot function storage.",
+      "feature3": "2GB file storage."
+    },
+    "standard": {
+      "name": "Standard",
+      "feature1": "Unlimited build minutes",
+      "feature2": "10GB robot function storage.",
+      "feature3": "20GB file storage.",
+      "feature4": "Priority support"
+    },
+    "premium": {
+      "name": "Premium",
+      "feature1": "Unlimited build minutes",
+      "feature2": "Unlimited robot function storage.",
+      "feature3": "Unlimited file storage.",
+      "feature4": "24/7 Priority support",
+      "feature5": "Advanced analytics"
+    }
+  },
+  "testimonial": {
+    "title": "What our users say",
+    "subtitle": "Discover how ErpRpa is transforming education and business automation"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "subtitle": "Get in touch with our team",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "your@email.com",
+    "message": "Message",
+    "messagePlaceholder": "Your message",
+    "send": "Send Message"
+  }
+}

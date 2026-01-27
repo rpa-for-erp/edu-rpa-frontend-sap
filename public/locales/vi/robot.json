@@ -1,0 +1,107 @@
+{
+  "title": "Robot",
+  "robots": "Các robot",
+  "createRobot": "Tạo robot",
+  "robotName": "Tên robot",
+  "processName": "Tên quy trình",
+  "version": "Phiên bản",
+  "status": "Trạng thái",
+  "trigger": "Kích hoạt",
+  "actions": "Hành động",
+  "schedule": "Lịch trình",
+  "configTrigger": "Cấu hình kích hoạt",
+  "triggerType": "Loại kích hoạt",
+  "manual": "Thủ công",
+  "scheduled": "Theo lịch",
+  "event": "Sự kiện",
+  "scheduleForm": {
+    "timezone": "múi giờ",
+    "scheduleType": "Loại lịch trình",
+    "datetime": "Ngày & Giờ",
+    "cron": "Biểu thức Cron",
+    "minute": "Phút",
+    "hour": "Giờ",
+    "dayOfMonth": "Ngày trong tháng",
+    "month": "Tháng",
+    "dayOfWeek": "Ngày trong tuần",
+    "year": "Năm",
+    "once": "Một lần",
+    "recurring": "Lặp lại"
+  },
+  "eventTrigger": {
+    "gmail": "Gmail",
+    "forms": "Forms",
+    "drive": "Drive",
+    "selectEvent": "Chọn sự kiện",
+    "emailFrom": "Email từ",
+    "subject": "Tiêu đề",
+    "hasAttachment": "Có tệp đính kèm",
+    "triggerByEvent": "Kích hoạt robot theo sự kiện",
+    "gmailDescription": "Cấu hình robot của bạn để kích hoạt khi có email mới đến trong tài khoản Gmail của bạn",
+    "driveDescription": "Cấu hình robot của bạn để kích hoạt khi có tệp/thư mục mới được thêm vào Google Drive của bạn",
+    "formsDescription": "Cấu hình robot của bạn để kích hoạt khi có phiếu trả lời mới",
+    "connection": "Kết nối",
+    "selectConnection": "Chọn kết nối",
+    "from": "Từ",
+    "enabled": "Đã bật",
+    "fileName": "Tên",
+    "fileType": "Loại",
+    "selectFileType": "Chọn loại",
+    "form": "Biểu mẫu",
+    "selectForm": "Chọn biểu mẫu"
+  },
+  "messages": {
+    "robotCreated": "Tạo robot thành công",
+    "robotDeleted": "Xóa robot thành công",
+    "robotUpdated": "Cập nhật robot thành công",
+    "failedToCreate": "Tạo robot thất bại",
+    "failedToDelete": "Xóa robot thất bại",
+    "failedToUpdate": "Cập nhật robot thất bại",
+    "confirmDelete": "Bạn có chắc chắn muốn xóa robot này?",
+    "triggerConfigured": "Cấu hình kích hoạt thành công",
+    "failedToConfigureTrigger": "Cấu hình kích hoạt thất bại",
+    "failedToFetchSchedule": "Không thể lấy lịch trình"
+  },
+  "buttons": {
+    "run": "Chạy",
+    "stop": "Dừng",
+    "edit": "Chỉnh sửa",
+    "delete": "Xóa",
+    "configure": "Cấu hình",
+    "viewLogs": "Xem nhật ký"
+  },
+  "page": {
+    "title": "Danh sách Robot",
+    "searchPlaceholder": "Tìm kiếm theo tên robot",
+    "noRobots": "Không có robot nào",
+    "noRobotsDesc": "Xuất bản robot từ các quy trình hiện có của bạn.",
+    "refreshNotImplemented": "Chức năng làm mới chưa được triển khai"
+  },
+  "table": {
+    "robotName": "Tên Robot",
+    "processId": "ID Quy trình",
+    "processVersion": "Phiên bản Quy trình",
+    "createdAt": "Ngày tạo",
+    "triggerType": "Kích hoạt bằng",
+    "status": "Trạng thái",
+    "actions": "Hành động"
+  },
+  "detail": {
+    "title": "Thông tin Robot",
+    "robotId": "ID Robot",
+    "processId": "ID Quy trình",
+    "version": "Phiên bản",
+    "tabs": {
+      "log": "Nhật ký",
+      "logDetail": "Chi tiết nhật ký",
+      "dashboard": "Bảng điều khiển",
+      "connection": "Kết nối"
+    },
+    "messages": {
+      "runSuccess": "Chạy robot thành công!",
+      "runFailed": "Chạy robot thất bại!",
+      "stopSuccess": "Dừng robot thành công!",
+      "stopFailed": "Dừng robot thất bại!"
+    }
+  }
+}

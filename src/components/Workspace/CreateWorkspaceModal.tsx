@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react';
 import { CreateWorkspaceDto } from '@/dtos/workspaceDto';
 import workspaceApi from '@/apis/workspaceApi';
+import { useTranslation } from 'next-i18next';
 
 interface CreateWorkspaceModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation('workspace');
   const toast = useToast();
   const [formData, setFormData] = useState<CreateWorkspaceDto>({
     name: '',
@@ -44,8 +46,8 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
   const handleSubmit = async () => {
     if (!formData.name || !formData.contactEmail) {
       toast({
-        title: 'Error',
-        description: 'Please fill in all required fields',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.pleaseFillRequired'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -57,8 +59,8 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
     try {
       await workspaceApi.createWorkspace(formData);
       toast({
-        title: 'Success',
-        description: 'Workspace created successfully',
+        title: t('messages.success', { ns: 'common' }),
+        description: t('messages.workspaceCreated'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -68,9 +70,10 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
       onClose();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: t('messages.error', { ns: 'common' }),
         description:
-          error?.response?.data?.message || 'Failed to create workspace',
+          error?.response?.data?.message ||
+          t('messages.failedToCreateWorkspace'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -84,25 +87,25 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} isCentered>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Create your workspace</ModalHeader>
+        <ModalHeader>{t('createYourWorkspace')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl isRequired mb={4}>
-            <FormLabel>Workspace name</FormLabel>
+            <FormLabel>{t('workspaceName')}</FormLabel>
             <Input
               name="name"
-              placeholder="Enter workspace name"
+              placeholder={t('enterWorkspaceName')}
               value={formData.name}
               onChange={handleChange}
             />
           </FormControl>
 
           <FormControl isRequired>
-            <FormLabel>Contact email</FormLabel>
+            <FormLabel>{t('contactEmail')}</FormLabel>
             <Input
               name="contactEmail"
               type="email"
-              placeholder="Enter contact email"
+              placeholder={t('enterContactEmail')}
               value={formData.contactEmail}
               onChange={handleChange}
             />
@@ -116,9 +119,11 @@ const CreateWorkspaceModal: React.FC<CreateWorkspaceModalProps> = ({
             onClick={handleSubmit}
             isLoading={isLoading}
           >
-            Create
+            {t('buttons.create', { ns: 'common' })}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            {t('buttons.cancel', { ns: 'common' })}
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

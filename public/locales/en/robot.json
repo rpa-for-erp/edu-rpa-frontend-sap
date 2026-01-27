@@ -1,0 +1,107 @@
+{
+  "title": "Robot",
+  "robots": "Robots",
+  "createRobot": "Create Robot",
+  "robotName": "Robot name",
+  "processName": "Process name",
+  "version": "Version",
+  "status": "Status",
+  "trigger": "Trigger",
+  "actions": "Actions",
+  "schedule": "Schedule",
+  "configTrigger": "Configure Trigger",
+  "triggerType": "Trigger Type",
+  "manual": "Manual",
+  "scheduled": "Scheduled",
+  "event": "Event",
+  "scheduleForm": {
+    "timezone": "Timezone",
+    "scheduleType": "Schedule Type",
+    "datetime": "Date & Time",
+    "cron": "Cron Expression",
+    "minute": "Minute",
+    "hour": "Hour",
+    "dayOfMonth": "Day of Month",
+    "month": "Month",
+    "dayOfWeek": "Day of Week",
+    "year": "Year",
+    "once": "Once",
+    "recurring": "Recurring"
+  },
+  "eventTrigger": {
+    "gmail": "Gmail",
+    "forms": "Forms",
+    "drive": "Drive",
+    "selectEvent": "Select Event",
+    "emailFrom": "Email From",
+    "subject": "Subject",
+    "hasAttachment": "Has Attachment",
+    "triggerByEvent": "Trigger robot by event",
+    "gmailDescription": "Configure your robot to trigger when new emails arrive in your Gmail account",
+    "driveDescription": "Configure your robot to trigger when new files/folders are added to your Google Drive",
+    "formsDescription": "Configure your robot to trigger when new form submission is received",
+    "connection": "Connection",
+    "selectConnection": "Select connection",
+    "from": "From",
+    "enabled": "Enabled",
+    "fileName": "Name",
+    "fileType": "Type",
+    "selectFileType": "Select type",
+    "form": "Form",
+    "selectForm": "Select form"
+  },
+  "messages": {
+    "robotCreated": "Robot created successfully",
+    "robotDeleted": "Robot deleted successfully",
+    "robotUpdated": "Robot updated successfully",
+    "failedToCreate": "Failed to create robot",
+    "failedToDelete": "Failed to delete robot",
+    "failedToUpdate": "Failed to update robot",
+    "confirmDelete": "Are you sure you want to delete this robot?",
+    "triggerConfigured": "Trigger configured successfully",
+    "failedToConfigureTrigger": "Failed to configure trigger",
+    "failedToFetchSchedule": "Failed to fetch schedule"
+  },
+  "buttons": {
+    "run": "Run",
+    "stop": "Stop",
+    "edit": "Edit",
+    "delete": "Delete",
+    "configure": "Configure",
+    "viewLogs": "View Logs"
+  },
+  "page": {
+    "title": "Robot List",
+    "searchPlaceholder": "Search by robot name",
+    "noRobots": "No robots here",
+    "noRobotsDesc": "Publish a robot from your existing processes.",
+    "refreshNotImplemented": "Refresh functionality is not implemented yet"
+  },
+  "table": {
+    "robotName": "Robot Name",
+    "processId": "Process ID",
+    "processVersion": "Process Version",
+    "createdAt": "Created At",
+    "triggerType": "Trigger Type",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "detail": {
+    "title": "Robot Information",
+    "robotId": "Robot ID",
+    "processId": "Process ID",
+    "version": "Version",
+    "tabs": {
+      "log": "Log",
+      "logDetail": "Log Detail",
+      "dashboard": "Dashboard",
+      "connection": "Connection"
+    },
+    "messages": {
+      "runSuccess": "Run robot successfully!",
+      "runFailed": "Run robot failed!",
+      "stopSuccess": "Stop robot successfully!",
+      "stopFailed": "Stop robot failed!"
+    }
+  }
+}

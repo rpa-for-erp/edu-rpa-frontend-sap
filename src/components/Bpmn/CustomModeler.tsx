@@ -60,6 +60,7 @@ import versionApi from '@/apis/versionApi';
 import { convertJsonToProcess } from '@/utils/bpmn-parser/json-to-bpmn-xml.util';
 import { PublishRobotModal } from './FunctionalTabBar/PublishRobotModal';
 import { Modal, ModalOverlay } from '@chakra-ui/react';
+import { useTranslation } from 'next-i18next';
 
 interface OriginalObject {
   [key: string]: {
@@ -71,6 +72,7 @@ interface OriginalObject {
 
 function CustomModeler() {
   const router = useRouter();
+  const { t } = useTranslation('studio');
   const ref = useRef<BpmnJsReactHandle>(null);
   const params = useParams();
   const bpmnReactJs = useBpmn();
@@ -259,7 +261,7 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: 'Save all changes sucessfully!',
+        title: t('modeler.saveSuccess'),
         status: 'success',
         position: 'top-right',
         duration: 1000,
@@ -269,7 +271,7 @@ function CustomModeler() {
     },
     onError: () => {
       toast({
-        title: 'There are some errors, try again !',
+        title: t('modeler.saveError'),
         status: 'error',
         position: 'top-right',
         duration: 1000,
@@ -339,7 +341,7 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: 'Version created successfully!',
+        title: t('modeler.versionCreatedSuccess'),
         status: 'success',
         position: 'top-right',
         duration: 2000,
@@ -349,8 +351,8 @@ function CustomModeler() {
     },
     onError: (error: any) => {
       toast({
-        title: 'Failed to create version',
-        description: error?.message || 'An error occurred',
+        title: t('modeler.versionCreatedError'),
+        description: error?.message || t('modeler.errorOccurred'),
         status: 'error',
         position: 'top-right',
         duration: 2000,
@@ -380,7 +382,7 @@ function CustomModeler() {
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
       } catch (syncError) {
         toast({
-          title: 'Failed to sync canvas state',
+          title: t('modeler.syncError'),
           status: 'warning',
           position: 'top-right',
           duration: 2000,
@@ -393,7 +395,7 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties) {
       toast({
-        title: 'There are some errors, please refresh the page!',
+        title: t('modeler.refreshError'),
         status: 'error',
         position: 'top-right',
         duration: 1000,
@@ -508,8 +510,8 @@ function CustomModeler() {
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
       } catch (syncError) {
         toast({
-          title: 'Failed to sync workflow state',
-          description: 'Please try again.',
+          title: t('modeler.failedSyncWorkflow'),
+          description: t('modeler.pleaseTryAgain'),
           status: 'warning',
           position: 'top-right',
           duration: 3000,
@@ -523,9 +525,8 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties || !processProperties.xml) {
       toast({
-        title: 'Process data not ready',
-        description:
-          'Please wait for the process to load completely, then try again.',
+        title: t('modeler.processDataNotReady'),
+        description: t('modeler.processDataNotReadyDesc'),
         status: 'warning',
         position: 'top-right',
         duration: 3000,
@@ -563,9 +564,8 @@ function CustomModeler() {
           console.log('→ Showing warning to user...');
 
           toast({
-            title: 'Cannot Publish from Nested SubProcess',
-            description:
-              'This subprocess contains nested subprocesses. Please use "Create Process from SubProcess" button to extract it first, or go back to the main process.',
+            title: t('modeler.cannotPublishNested'),
+            description: t('modeler.cannotPublishNestedDesc'),
             status: 'warning',
             position: 'top-right',
             duration: 6000,
@@ -602,7 +602,7 @@ function CustomModeler() {
       // Show specific error message (ONLY toast, no modal)
       if (error instanceof BpmnParseError) {
         toast({
-          title: 'BPMN Parse Error',
+          title: t('modeler.bpmnParseError'),
           description: `${error.message}: ${error.bpmnId}`,
           status: 'error',
           position: 'top-right',
@@ -611,9 +611,9 @@ function CustomModeler() {
         });
       } else {
         toast({
-          title: 'Cannot Publish Robot',
+          title: t('modeler.cannotPublishRobot'),
           description:
-            (error as Error).message || 'Failed to validate robot code',
+            (error as Error).message || t('modeler.failedValidateCode'),
           status: 'error',
           position: 'top-right',
           duration: 5000,
@@ -632,9 +632,8 @@ function CustomModeler() {
     // Only allow version creation for standalone processes
     if (teamId || workspaceId) {
       toast({
-        title: 'Version feature not available',
-        description:
-          'Version management is only available for standalone processes.',
+        title: t('modeler.versionNotAvailable'),
+        description: t('modeler.versionNotAvailableDesc'),
         status: 'info',
         position: 'top-right',
         duration: 3000,
@@ -648,7 +647,7 @@ function CustomModeler() {
   const handleCreateProcessFromSubProcess = async (newProcessName: string) => {
     try {
       if (!bpmnReactJs.bpmnModeler) {
-        throw new Error('Modeler not initialized');
+        throw new Error(t('modeler.modelerNotInitialized'));
       }
 
       const canvas = bpmnReactJs.bpmnModeler.get('canvas') as any;
@@ -698,8 +697,11 @@ function CustomModeler() {
       console.log('╚═══════════════════════════════════════════╝\n');
 
       toast({
-        title: 'Process Created Successfully',
-        description: `Process "${newProcessName}" has been created with ${subProcessData.activities.length} activities. You can find it in the process list.`,
+        title: t('modeler.processCreatedSuccess'),
+        description: t('modeler.processCreatedSuccessDesc', {
+          name: newProcessName,
+          count: subProcessData.activities.length,
+        }),
         status: 'success',
         position: 'top-right',
         duration: 5000,
@@ -710,8 +712,8 @@ function CustomModeler() {
     } catch (error: any) {
       console.error('Error creating process from subprocess:', error);
       toast({
-        title: 'Failed to Create Process',
-        description: error?.message || 'An unexpected error occurred',
+        title: t('modeler.failedCreateProcess'),
+        description: error?.message || t('modeler.unexpectedError'),
         status: 'error',
         position: 'top-right',
         duration: 5000,
@@ -724,9 +726,8 @@ function CustomModeler() {
     // Only allow version viewing for standalone processes
     if (teamId || workspaceId) {
       toast({
-        title: 'Version feature not available',
-        description:
-          'Version management is only available for standalone processes.',
+        title: t('modeler.versionNotAvailable'),
+        description: t('modeler.versionNotAvailableDesc'),
         status: 'info',
         position: 'top-right',
         duration: 3000,
@@ -800,9 +801,8 @@ function CustomModeler() {
       dispatch(isSavedChange(false));
 
       toast({
-        title: 'BPMN Applied Successfully',
-        description:
-          "The process has been applied to the canvas. Don't forget to save!",
+        title: t('modeler.bpmnAppliedSuccess'),
+        description: t('modeler.bpmnAppliedDesc'),
         status: 'success',
         position: 'top-right',
         duration: 3000,
@@ -811,8 +811,8 @@ function CustomModeler() {
     } catch (error: any) {
       console.error('❌ [AI Chatbot] Error applying XML:', error);
       toast({
-        title: 'Failed to apply BPMN',
-        description: error?.message || 'An unexpected error occurred',
+        title: t('modeler.bpmnAppliedError'),
+        description: error?.message || t('modeler.unexpectedError'),
         status: 'error',
         position: 'top-right',
         duration: 5000,
@@ -852,9 +852,8 @@ function CustomModeler() {
           console.log('→ Showing warning to user...');
 
           toast({
-            title: 'Cannot Generate Robot Code from Nested SubProcess',
-            description:
-              'This subprocess contains nested subprocesses. Please use "Create Process from SubProcess" button to extract it first, or go back to the main process.',
+            title: t('modeler.nestedSubprocessWarning'),
+            description: t('modeler.nestedSubprocessDesc'),
             status: 'warning',
             position: 'top-right',
             duration: 6000,
@@ -904,7 +903,7 @@ function CustomModeler() {
       } catch (syncError) {
         console.error('Failed to sync modeler state:', syncError);
         toast({
-          title: 'Failed to sync workflow state. Please try again.',
+          title: t('modeler.syncBeforeCompile'),
           status: 'warning',
           position: 'top-right',
           duration: 3000,

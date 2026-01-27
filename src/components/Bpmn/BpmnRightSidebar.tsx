@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Flex,
@@ -9,10 +9,11 @@ import {
   TabPanel,
   IconButton,
   Text,
-} from "@chakra-ui/react";
-import { MdViewSidebar } from "react-icons/md";
-import PropertiesPanel from "./PropertiesPanel/PropertiesPanel";
-import CommentsPanel from "./CommentsPanel/CommentsPanel";
+} from '@chakra-ui/react';
+import { MdViewSidebar } from 'react-icons/md';
+import PropertiesPanel from './PropertiesPanel/PropertiesPanel';
+import CommentsPanel from './CommentsPanel/CommentsPanel';
+import { useTranslation } from 'next-i18next';
 
 interface BpmnRightSidebarProps {
   processID: string;
@@ -29,6 +30,7 @@ export default function BpmnRightSidebar({
   onClose,
   modelerRef,
 }: BpmnRightSidebarProps) {
+  const { t } = useTranslation('studio');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [sidebarWidth, setSidebarWidth] = useState(400);
@@ -38,7 +40,7 @@ export default function BpmnRightSidebar({
   // Handle resize
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsResizing(true);
-    document.body.classList.add("is-resizing");
+    document.body.classList.add('is-resizing');
     e.preventDefault();
   };
 
@@ -54,18 +56,18 @@ export default function BpmnRightSidebar({
 
     const handleMouseUp = () => {
       setIsResizing(false);
-      document.body.classList.remove("is-resizing");
+      document.body.classList.remove('is-resizing');
     };
 
     if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     }
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.classList.remove("is-resizing");
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.classList.remove('is-resizing');
     };
   }, [isResizing]);
 
@@ -81,8 +83,8 @@ export default function BpmnRightSidebar({
           bottom="0"
           width="4px"
           cursor="ew-resize"
-          bg={isResizing ? "teal.400" : "transparent"}
-          _hover={{ bg: "teal.200" }}
+          bg={isResizing ? 'teal.400' : 'transparent'}
+          _hover={{ bg: 'teal.200' }}
           onMouseDown={handleMouseDown}
           zIndex={21}
         />
@@ -90,8 +92,8 @@ export default function BpmnRightSidebar({
 
       <Box
         ref={sidebarRef}
-        width={isCollapsed ? "0px" : `${sidebarWidth}px`}
-        transition={isResizing ? "none" : "width 0.3s ease"}
+        width={isCollapsed ? '0px' : `${sidebarWidth}px`}
+        transition={isResizing ? 'none' : 'width 0.3s ease'}
         overflow="hidden"
         height="100%"
         bg="white"
@@ -111,25 +113,25 @@ export default function BpmnRightSidebar({
           <TabList borderBottom="1px solid" borderColor="gray.200">
             <Tab
               _selected={{
-                color: "teal.600",
-                borderBottom: "2px solid",
-                borderColor: "teal.600",
+                color: 'teal.600',
+                borderBottom: '2px solid',
+                borderColor: 'teal.600',
               }}
               fontWeight="medium"
               fontSize="sm"
             >
-              Properties
+              {t('rightSidebar.properties')}
             </Tab>
             <Tab
               _selected={{
-                color: "teal.600",
-                borderBottom: "2px solid",
-                borderColor: "teal.600",
+                color: 'teal.600',
+                borderBottom: '2px solid',
+                borderColor: 'teal.600',
               }}
               fontWeight="medium"
               fontSize="sm"
             >
-              Comments
+              {t('rightSidebar.comments')}
             </Tab>
           </TabList>
 
@@ -169,7 +171,7 @@ export default function BpmnRightSidebar({
             cursor="pointer"
             borderRadius="md 0 0 md"
             boxShadow="md"
-            _hover={{ bg: "pink.200" }}
+            _hover={{ bg: 'pink.200' }}
             onClick={() => setIsCollapsed(true)}
           >
             <MdViewSidebar size={20} />
@@ -177,9 +179,9 @@ export default function BpmnRightSidebar({
               fontSize="xs"
               fontWeight="medium"
               mt={2}
-              style={{ writingMode: "vertical-rl" }}
+              style={{ writingMode: 'vertical-rl' }}
             >
-              Details
+              {t('rightSidebar.details')}
             </Text>
           </Flex>
         </Box>
@@ -204,7 +206,7 @@ export default function BpmnRightSidebar({
             cursor="pointer"
             borderRadius="md 0 0 md"
             boxShadow="md"
-            _hover={{ bg: "pink.200" }}
+            _hover={{ bg: 'pink.200' }}
             onClick={() => setIsCollapsed(false)}
           >
             <MdViewSidebar size={20} />
@@ -212,9 +214,9 @@ export default function BpmnRightSidebar({
               fontSize="xs"
               fontWeight="medium"
               mt={2}
-              style={{ writingMode: "vertical-rl" }}
+              style={{ writingMode: 'vertical-rl' }}
             >
-              Details
+              {t('rightSidebar.details')}
             </Text>
           </Flex>
         </Box>

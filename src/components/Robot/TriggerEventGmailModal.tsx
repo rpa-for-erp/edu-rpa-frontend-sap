@@ -15,6 +15,7 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import robotApi from '@/apis/robotApi';
 import LoadingIndicator from '@/components/LoadingIndicator/LoadingIndicator';
 import { toastError, toastSuccess } from '@/utils/common';
@@ -50,11 +51,12 @@ const TriggerEventGmailModal = ({
   const [enabled, setEnabled] = useState(false);
 
   const toast = useToast();
+  const { t } = useTranslation('robot');
   const gmailProvider = providerData.find(
     (provider) => provider.name === AuthorizationProvider.G_GMAIL
   );
-  const description = 'Configure your robot to trigger when new emails arrive in your Gmail account';
- 
+  const description = t('eventTrigger.gmailDescription');
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -64,7 +66,11 @@ const TriggerEventGmailModal = ({
         );
         setConnections(connections.map((item) => item.name));
 
-        const schedule = await robotApi.getSchedule(userId, processId, processVersion);
+        const schedule = await robotApi.getSchedule(
+          userId,
+          processId,
+          processVersion
+        );
         if (schedule.Name) {
           const input = JSON.parse(schedule.Target.Input);
           setSelectedConnection(input.connection_name);
@@ -73,7 +79,7 @@ const TriggerEventGmailModal = ({
         }
       } catch (error) {
         console.log(error);
-        toastError(toast, 'Failed to fetch schedule');
+        toastError(toast, t('messages.failedToFetchSchedule'));
       }
       setIsLoading(false);
     };
@@ -89,9 +95,9 @@ const TriggerEventGmailModal = ({
         filter: filterEmail,
         state: enabled ? EventState.ENABLED : EventState.DISABLED,
       } as FilterEventSchedule);
-      toastSuccess(toast, 'Event trigger saved');
+      toastSuccess(toast, t('messages.triggerConfigured'));
     } catch (error) {
-      toastError(toast, 'Failed to create trigger');
+      toastError(toast, t('messages.failedToConfigureTrigger'));
     }
     setIsLoading(false);
   };
@@ -100,19 +106,28 @@ const TriggerEventGmailModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader className='m-auto'>Trigger robot by event</ModalHeader>
+        <ModalHeader className="m-auto">
+          {t('eventTrigger.triggerByEvent')}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
-          <Image className='m-auto' src={gmailProvider!.icon} alt="Icon" width={50} height={50} />
+          <Image
+            className="m-auto"
+            src={gmailProvider!.icon}
+            alt="Icon"
+            width={50}
+            height={50}
+          />
           <p>{description}</p>
           <FormControl>
-            <FormLabel>Connection</FormLabel>
+            <FormLabel>{t('eventTrigger.connection')}</FormLabel>
             <Select
               value={selectedConnection}
-              onChange={(e) => setSelectedConnection(e.target.value)}>
+              onChange={(e) => setSelectedConnection(e.target.value)}
+            >
               {selectedConnection === '' && (
                 <option value="" disabled>
-                  Select connection
+                  {t('eventTrigger.selectConnection')}
                 </option>
               )}
               {connections.map((item) => (
@@ -123,26 +138,30 @@ const TriggerEventGmailModal = ({
             </Select>
           </FormControl>
           <FormControl>
-            <FormLabel>From</FormLabel>
+            <FormLabel>{t('eventTrigger.from')}</FormLabel>
             <Input
               type="text"
               value={filterEmail.from}
-              onChange={(e) => setFilterEmail({ ...filterEmail, from: e.target.value })}
-              placeholder="From"
+              onChange={(e) =>
+                setFilterEmail({ ...filterEmail, from: e.target.value })
+              }
+              placeholder={t('eventTrigger.from')}
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Subject</FormLabel>
+            <FormLabel>{t('eventTrigger.subject')}</FormLabel>
             <Input
               type="text"
               value={filterEmail.subject}
-              onChange={(e) => setFilterEmail({ ...filterEmail, subject: e.target.value })}
-              placeholder="Subject"
+              onChange={(e) =>
+                setFilterEmail({ ...filterEmail, subject: e.target.value })
+              }
+              placeholder={t('eventTrigger.subject')}
             />
           </FormControl>
           <FormControl display="flex" alignItems="center">
             <FormLabel htmlFor="email-alerts" mb="0">
-              Enabled
+              {t('eventTrigger.enabled')}
             </FormLabel>
             <Switch
               id="email-alerts"
@@ -153,13 +172,16 @@ const TriggerEventGmailModal = ({
         </ModalBody>
         <ModalFooter>
           <Button
-            className='mr-2'
+            className="mr-2"
             isLoading={isLoading}
             colorScheme="blue"
-            onClick={handleUpsertEventSchedule}>
-            Save
+            onClick={handleUpsertEventSchedule}
+          >
+            {t('buttons.save', { ns: 'common' })}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            {t('buttons.cancel', { ns: 'common' })}
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

@@ -20,12 +20,14 @@ import React, { useEffect, useState } from 'react';
 import RobotTable from '@/components/Robot/RobotTable';
 import { Robot, TriggerType } from '@/interfaces/robot';
 import { toastError } from '@/utils/common';
-import { ToolTipExplain } from '@/constants/description';
 import { formatDateTime } from '@/utils/time';
 import { GetServerSideProps } from 'next';
 import { getServerSideTranslations } from '@/utils/i18n';
+import { useTranslation } from 'next-i18next';
 
 export default function RobotPage() {
+  const { t } = useTranslation('robot');
+  const { t: tCommon } = useTranslation('common');
   const [nameFilter, setNameFilter] = useState('');
   const toast = useToast();
 
@@ -45,7 +47,7 @@ export default function RobotPage() {
 
   const fetchData = async () => {
     // TODO: implement refresh functionallity
-    toastError(toast, 'Refresh functionallity is not implemented yet');
+    toastError(toast, t('page.refreshNotImplemented'));
   };
 
   if (isLoadingRobot || countRobotLoading) {
@@ -67,13 +69,13 @@ export default function RobotPage() {
 
   const tableProps = {
     header: [
-      'Robot Name',
-      'Process ID',
-      'Process Version',
-      'Created At',
-      'Trigger Type',
-      'Status',
-      'Actions',
+      t('table.robotName'),
+      t('table.processId'),
+      t('table.processVersion'),
+      t('table.createdAt'),
+      t('table.triggerType'),
+      t('table.status'),
+      t('table.actions'),
     ],
     data: formatData ?? [],
   };
@@ -83,13 +85,14 @@ export default function RobotPage() {
       <SidebarContent>
         <div className="flex flex-start">
           <h1 className="pl-[20px] pr-[10px] ml-[35px] font-bold text-2xl text-[#319795]">
-            Robot List
+            {t('page.title')}
           </h1>
           <Tooltip
             hasArrow
-            label={ToolTipExplain.ROBOT_SERVICE}
+            label={tCommon('tooltips.robotService')}
             bg="gray.300"
-            color="black">
+            color="black"
+          >
             <QuestionIcon color="blue.500" />
           </Tooltip>
         </div>
@@ -102,7 +105,7 @@ export default function RobotPage() {
               width="30vw"
               bg="white.300"
               type="text"
-              placeholder="Search by robot name"
+              placeholder={t('page.searchPlaceholder')}
               value={nameFilter}
               onChange={(e) => setNameFilter(e.target.value)}
             />
@@ -119,9 +122,9 @@ export default function RobotPage() {
         {tableProps.data.length === 0 && (
           <div className="w-90 m-auto flex justify-center items-center">
             <div className="text-center">
-              <div className="text-2xl font-bold">No robots here</div>
+              <div className="text-2xl font-bold">{t('page.noRobots')}</div>
               <div className="text-gray-500">
-                Publish a robot from your existing processes.
+                {t('page.noRobotsDesc')}
               </div>
             </div>
           </div>
@@ -138,7 +141,12 @@ export default function RobotPage() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'robot',
+      ])),
     },
   };
 };

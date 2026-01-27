@@ -1,0 +1,65 @@
+{
+  "title": "Document Template List",
+  "search": "Search...",
+  "filters": {
+    "all": "All",
+    "image": "Image"
+  },
+  "buttons": {
+    "create": "Create",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "upload": "Upload Sample Document",
+    "select": "Select"
+  },
+  "table": {
+    "headers": {
+      "id": "ID",
+      "name": "Name",
+      "description": "Description",
+      "type": "Type",
+      "actions": "Actions"
+    }
+  },
+  "empty": {
+    "title": "No document template found",
+    "description": "Create a new document template to help you automate document-related tasks"
+  },
+  "modals": {
+    "create": {
+      "title": "Create new document template",
+      "nameLabel": "Document template name",
+      "namePlaceholder": "Document template name",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Description",
+      "typeLabel": "Type",
+      "typeImage": "Image"
+    },
+    "edit": {
+      "title": "Edit document template",
+      "nameLabel": "Document template name",
+      "namePlaceholder": "Document template name",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Description",
+      "typeLabel": "Type",
+      "typeImage": "Image"
+    },
+    "detail": {
+      "sampleDocument": "Sample document",
+      "dataTemplate": "Data template",
+      "alreadyScanned": "The sample document has already been scanned.",
+      "templateSize": "Template size (Width x Height):",
+      "noDocument": "No sample document uploaded or the document cannot be processed.",
+      "fieldLabel": "[Left: {{left}}, Top: {{top}}, Right: {{right}}, Bottom: {{bottom}}]"
+    }
+  },
+  "messages": {
+    "created": "Document template created successfully",
+    "updated": "Document template updated successfully",
+    "deleted": "Document template deleted successfully",
+    "saved": "Document template saved successfully",
+    "errorEmptyLabel": "Label cannot be empty",
+    "errorLabelExists": "Label already exists"
+  }
+}

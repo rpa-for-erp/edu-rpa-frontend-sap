@@ -20,6 +20,7 @@ import {
 import { InviteMemberDto } from '@/dtos/workspaceDto';
 import workspaceApi from '@/apis/workspaceApi';
 import { Role } from '@/interfaces/workspace';
+import { useTranslation } from 'next-i18next';
 
 interface InviteMemberModalProps {
   isOpen: boolean;
@@ -38,6 +39,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   defaultRoleId,
   onSuccess,
 }) => {
+  const { t } = useTranslation('workspace');
   const toast = useToast();
   const [email, setEmail] = useState('');
   const [roleId, setRoleId] = useState('');
@@ -71,8 +73,8 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
   const handleInvite = async () => {
     if (!email) {
       toast({
-        title: 'Error',
-        description: 'Please enter email address',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.pleaseEnterEmail'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -82,8 +84,8 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
 
     if (!roleId) {
       toast({
-        title: 'Error',
-        description: 'Please select a role',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.pleaseSelectRole'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -96,8 +98,8 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       const payload: InviteMemberDto = { email, roleId };
       await workspaceApi.inviteTeamMember(teamId, payload);
       toast({
-        title: 'Success',
-        description: 'Invitation sent successfully',
+        title: t('messages.success', { ns: 'common' }),
+        description: t('messages.invitationSent'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -108,9 +110,9 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
       onClose();
     } catch (error: any) {
       toast({
-        title: 'Error',
+        title: t('messages.error', { ns: 'common' }),
         description:
-          error?.response?.data?.message || 'Failed to send invitation',
+          error?.response?.data?.message || t('messages.failedToInvite'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -132,29 +134,26 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
               <Avatar src="https://bit.ly/ryan-florence" />
             </AvatarGroup>
             <Text fontSize="xl" fontWeight="bold">
-              Invite Your Member
-            </Text>
-            <Text fontSize="sm" color="gray.500" fontWeight="normal">
-              Excited On Starting A New Project!
+              {t('inviteMemberTitle')}
             </Text>
           </VStack>
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
           <FormControl mb={4}>
-            <FormLabel>Team Email Address</FormLabel>
+            <FormLabel>{t('memberEmail')}</FormLabel>
             <Input
               type="email"
-              placeholder="Enter your team member email address"
+              placeholder={t('enterMemberEmail')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Role</FormLabel>
+            <FormLabel>{t('selectRole')}</FormLabel>
             <Select
-              placeholder="Select role"
+              placeholder={t('selectRole')}
               value={roleId}
               onChange={(e) => setRoleId(e.target.value)}
             >
@@ -172,7 +171,7 @@ const InviteMemberModal: React.FC<InviteMemberModalProps> = ({
             onClick={handleInvite}
             isLoading={isLoading}
           >
-            INVITE
+            {t('inviteMember')}
           </Button>
         </ModalBody>
       </ModalContent>

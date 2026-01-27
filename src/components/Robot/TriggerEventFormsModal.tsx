@@ -15,6 +15,7 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import robotApi from '@/apis/robotApi';
 import { toastError, toastSuccess } from '@/utils/common';
 import { EventState, TriggerType } from '@/interfaces/robot';
@@ -50,10 +51,11 @@ const TriggerEventFormsModal = ({
   const [enabled, setEnabled] = useState(false);
 
   const toast = useToast();
+  const { t } = useTranslation('robot');
   const formsProvider = providerData.find(
     (provider) => provider.name === AuthorizationProvider.G_FORMS
   );
-  const description = 'Configure your robot to trigger when new form submission is received';
+  const description = t('eventTrigger.formsDescription');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,7 +66,11 @@ const TriggerEventFormsModal = ({
         );
         setConnections(connections.map((item) => item.name));
 
-        const schedule = await robotApi.getSchedule(userId, processId, processVersion);
+        const schedule = await robotApi.getSchedule(
+          userId,
+          processId,
+          processVersion
+        );
         if (schedule.Name) {
           const input = JSON.parse(schedule.Target.Input);
           setSelectedConnection(input.connection_name);
@@ -77,7 +83,7 @@ const TriggerEventFormsModal = ({
         }
       } catch (error) {
         console.log(error);
-        toastError(toast, 'Failed to fetch schedule');
+        toastError(toast, t('messages.failedToFetchSchedule'));
       }
       setIsLoading(false);
     };
@@ -105,9 +111,9 @@ const TriggerEventFormsModal = ({
         form_id: selectedForm,
         state: enabled ? EventState.ENABLED : EventState.DISABLED,
       } as FormsEventSchedule);
-      toastSuccess(toast, 'Event trigger saved');
+      toastSuccess(toast, t('messages.triggerConfigured'));
     } catch (error) {
-      toastError(toast, 'Failed to create trigger');
+      toastError(toast, t('messages.failedToConfigureTrigger'));
     }
     setIsLoading(false);
   };
@@ -116,19 +122,28 @@ const TriggerEventFormsModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader className='m-auto'>Trigger robot by event</ModalHeader>
+        <ModalHeader className="m-auto">
+          {t('eventTrigger.triggerByEvent')}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
-          <Image className='m-auto' src={formsProvider!.icon} alt="Icon" width={50} height={50} />
+          <Image
+            className="m-auto"
+            src={formsProvider!.icon}
+            alt="Icon"
+            width={50}
+            height={50}
+          />
           <p>{description}</p>
           <FormControl>
-            <FormLabel>Connection</FormLabel>
+            <FormLabel>{t('eventTrigger.connection')}</FormLabel>
             <Select
               value={selectedConnection}
-              onChange={(e) => setSelectedConnection(e.target.value)}>
+              onChange={(e) => setSelectedConnection(e.target.value)}
+            >
               {selectedConnection === '' && (
                 <option value="" disabled>
-                  Select connection
+                  {t('eventTrigger.selectConnection')}
                 </option>
               )}
               {connections.map((item) => (
@@ -139,13 +154,14 @@ const TriggerEventFormsModal = ({
             </Select>
           </FormControl>
           <FormControl>
-            <FormLabel>Form</FormLabel>
+            <FormLabel>{t('eventTrigger.form')}</FormLabel>
             <Select
               value={selectedForm}
-              onChange={(e) => setSelectedForm(e.target.value)}>
+              onChange={(e) => setSelectedForm(e.target.value)}
+            >
               {selectedForm === '' && (
                 <option value="" disabled>
-                  Select form
+                  {t('eventTrigger.selectForm')}
                 </option>
               )}
               {forms.map((item) => (
@@ -157,7 +173,7 @@ const TriggerEventFormsModal = ({
           </FormControl>
           <FormControl display="flex" alignItems="center">
             <FormLabel htmlFor="email-alerts" mb="0">
-              Enabled
+              {t('eventTrigger.enabled')}
             </FormLabel>
             <Switch
               id="email-alerts"
@@ -168,13 +184,16 @@ const TriggerEventFormsModal = ({
         </ModalBody>
         <ModalFooter>
           <Button
-            className='mr-2'
+            className="mr-2"
             isLoading={isLoading}
             colorScheme="blue"
-            onClick={handleUpsertEventSchedule}>
-            Save
+            onClick={handleUpsertEventSchedule}
+          >
+            {t('buttons.save', { ns: 'common' })}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            {t('buttons.cancel', { ns: 'common' })}
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

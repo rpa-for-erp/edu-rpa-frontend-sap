@@ -12,8 +12,11 @@ import {
   IconProps,
 } from '@chakra-ui/react';
 import { FaPlayCircle } from 'react-icons/fa';
+import { useTranslation } from 'next-i18next';
 
 export default function HeroHome() {
+  const { t } = useTranslation('landing');
+
   return (
     <Container maxW={'8xl'} bgColor={'white'}>
       <Stack
@@ -29,21 +32,17 @@ export default function HeroHome() {
             fontWeight={600}
             fontSize={{ base: '3xl', sm: '4xl', lg: '5xl' }}
           >
-            <Text as={'span'}>More automation,</Text>
+            <Text as={'span'}>{t('hero.title')}</Text>
             <br />
             <Text as={'span'} color={'#319795'} fontSize={55}>
-              better education
+              {t('hero.subtitle')}
             </Text>
           </Heading>
           <Text color={'gray.500'}>
-            ErpRpa is a transformative platform integrating Robotic Process
-            Automation (RPA) within the education sector, designed to assist
-            teachers and students.
+            {t('hero.description')}
             <br />
             <br />
-            This tool empowers users to automate their most time-consuming and
-            monotonous activities, allowing them to focus more on the essential
-            aspects of teaching and learning.
+            {t('hero.descriptionContinue')}
           </Text>
           <Stack
             spacing={{ base: 4, sm: 6 }}
@@ -58,8 +57,7 @@ export default function HeroHome() {
               bg={'#319795'}
               _hover={{ bg: '#4FD1C5' }}
             >
-              {' '}
-              Get started
+              {t('hero.getStarted')}
             </Button>
             <Button
               rounded={'lg'}
@@ -70,7 +68,7 @@ export default function HeroHome() {
               px={6}
               leftIcon={<FaPlayCircle height={4} width={4} color={'#319795'} />}
             >
-              How It Works
+              {t('hero.howItWorks')}
             </Button>
           </Stack>
         </Stack>

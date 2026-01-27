@@ -17,6 +17,7 @@ import {
   HStack,
   Box,
 } from '@chakra-ui/react';
+import { useTranslation } from 'next-i18next';
 
 interface CreateVersionModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ export default function CreateVersionModal({
   lastVersionTag = 'Autosaved',
   isLoading = false,
 }: CreateVersionModalProps) {
+  const { t } = useTranslation('studio');
   const [versionTag, setVersionTag] = useState('');
   const [description, setDescription] = useState('');
 
@@ -51,7 +53,9 @@ export default function CreateVersionModal({
     onClose();
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     const value = e.target.value;
     if (value.length <= MAX_DESCRIPTION_LENGTH) {
       setDescription(value);
@@ -64,7 +68,7 @@ export default function CreateVersionModal({
       <ModalContent borderRadius="md" maxW="600px">
         <ModalHeader pb={2}>
           <Text fontSize="xl" fontWeight="semibold" color="gray.800">
-            Create new version
+            {t('version.createNew')}
           </Text>
         </ModalHeader>
 
@@ -72,7 +76,7 @@ export default function CreateVersionModal({
           <VStack spacing={4} align="stretch">
             {/* Description */}
             <Text fontSize="sm" color="gray.600">
-              Use versioning to track and review changes across all resources in the process application.
+              {t('version.useVersioning')}
             </Text>
             <Link
               href="#"
@@ -81,13 +85,13 @@ export default function CreateVersionModal({
               fontWeight="medium"
               _hover={{ textDecoration: 'underline' }}
             >
-              Learn more
+              {t('version.learnMore')}
             </Link>
 
             {/* Version Tag Input */}
             <FormControl>
               <FormLabel fontSize="sm" color="gray.700" mb={1}>
-                Version tag
+                {t('version.versionTag')}
               </FormLabel>
               <Input
                 placeholder={lastVersionTag}
@@ -104,7 +108,7 @@ export default function CreateVersionModal({
                 }}
               />
               <Text fontSize="xs" color="gray.500" mt={1}>
-                The placeholder shows the name of the last saved version for reference.
+                {t('version.lastVersionReference')}
               </Text>
             </FormControl>
 
@@ -112,14 +116,14 @@ export default function CreateVersionModal({
             <FormControl>
               <HStack justify="space-between" mb={1}>
                 <FormLabel fontSize="sm" color="gray.700" mb={0}>
-                  Version description
+                  {t('version.versionDescription')}
                 </FormLabel>
                 <Text fontSize="xs" color="gray.500">
                   {description.length}/{MAX_DESCRIPTION_LENGTH}
                 </Text>
               </HStack>
               <Textarea
-                placeholder="What changed from the previous version?"
+                placeholder={t('version.descriptionPlaceholder')}
                 value={description}
                 onChange={handleDescriptionChange}
                 size="md"
@@ -152,7 +156,7 @@ export default function CreateVersionModal({
               size="lg"
               fontWeight="medium"
             >
-              Cancel
+              {t('buttons.cancel')}
             </Button>
             <Button
               flex={1}
@@ -167,7 +171,7 @@ export default function CreateVersionModal({
               size="lg"
               fontWeight="medium"
             >
-              Create
+              {t('buttons.create')}
             </Button>
           </HStack>
         </ModalFooter>
@@ -175,4 +179,3 @@ export default function CreateVersionModal({
     </Modal>
   );
 }
-

@@ -1,7 +1,11 @@
-import BoundingBox from "@/components/BoundingBox/BoundingBox";
-import { SaveDocumentTemplateDto } from "@/dtos/documentTemplateDto";
-import { DocumentTemplate, DocumentTemplateDetail } from "@/interfaces/document-template";
-import { DataTemplate, Rectangle } from "@/types/boundingBox";
+import BoundingBox from '@/components/BoundingBox/BoundingBox';
+import { SaveDocumentTemplateDto } from '@/dtos/documentTemplateDto';
+import {
+  DocumentTemplate,
+  DocumentTemplateDetail,
+} from '@/interfaces/document-template';
+import { useTranslation } from 'next-i18next';
+import { DataTemplate, Rectangle } from '@/types/boundingBox';
 import {
   Modal,
   ModalOverlay,
@@ -20,17 +24,19 @@ import {
   Radio,
   Stack,
   Text,
-} from "@chakra-ui/react"
-import { useEffect, useState } from "react";
-import documentTemplateApi from "@/apis/documentTemplateApi";
+} from '@chakra-ui/react';
+import { useEffect, useState } from 'react';
+import documentTemplateApi from '@/apis/documentTemplateApi';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   documentTemplate?: DocumentTemplate;
-  handleSaveDocumentTemplate: (saveDocumentTemplateDto: SaveDocumentTemplateDto) => void;
-  isEditable? : boolean,  
-  handleSelectDocumentTemplate?: (e:any) => void;
+  handleSaveDocumentTemplate: (
+    saveDocumentTemplateDto: SaveDocumentTemplateDto
+  ) => void;
+  isEditable?: boolean;
+  handleSelectDocumentTemplate?: (e: any) => void;
 }
 
 const TEMPLATE_SIZES = [
@@ -43,9 +49,10 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
   onClose,
   documentTemplate,
   handleSaveDocumentTemplate,
-  isEditable=true,
-  handleSelectDocumentTemplate=(e:any)=>{}
+  isEditable = true,
+  handleSelectDocumentTemplate = (e: any) => {},
 }) => {
+  const { t } = useTranslation('document-template');
   const [imageUrl, setImageUrl] = useState<string>('');
   const [dataTemplate, setDataTemplate] = useState<DataTemplate>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -60,20 +67,23 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
       setIsLoading(true);
       setDataTemplate({});
 
-      documentTemplateApi.getDocumentTemplateDetail(documentTemplate.id).then((res) => {
-        const documentTemplateDetail: DocumentTemplateDetail = res;
-        setDataTemplate(documentTemplateDetail.dataTemplate);
-        setTemplateSizeIndex(
-          TEMPLATE_SIZES.findIndex(
-            (size) =>
-              size[0] === documentTemplateDetail.size?.width &&
-              size[1] === documentTemplateDetail.size?.height
-          )
-        );
-        setIsScanned(documentTemplateDetail.isScanned ?? false);
-      });
+      documentTemplateApi
+        .getDocumentTemplateDetail(documentTemplate.id)
+        .then((res) => {
+          const documentTemplateDetail: DocumentTemplateDetail = res;
+          setDataTemplate(documentTemplateDetail.dataTemplate);
+          setTemplateSizeIndex(
+            TEMPLATE_SIZES.findIndex(
+              (size) =>
+                size[0] === documentTemplateDetail.size?.width &&
+                size[1] === documentTemplateDetail.size?.height
+            )
+          );
+          setIsScanned(documentTemplateDetail.isScanned ?? false);
+        });
 
-      documentTemplateApi.getPresignedUrl(documentTemplate.id)
+      documentTemplateApi
+        .getPresignedUrl(documentTemplate.id)
         .then((res) => {
           setImageUrl(res.url);
         })
@@ -89,7 +99,12 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
       setImageUrl('');
       const { id } = documentTemplate as DocumentTemplate;
 
-      const res = await documentTemplateApi.uploadSampleDocument(id, selectedFile, isScanned, TEMPLATE_SIZES[templateSizeIndex]);
+      const res = await documentTemplateApi.uploadSampleDocument(
+        id,
+        selectedFile,
+        isScanned,
+        TEMPLATE_SIZES[templateSizeIndex]
+      );
       setImageUrl(res.url);
       const resDTD = await documentTemplateApi.saveDocumentTemplate(id, {
         size: {
@@ -134,12 +149,16 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
     setDataTemplate(newTemplate);
   };
 
-  const handleLabelChange = (oldLabel: string, newLabel: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLabelChange = (
+    oldLabel: string,
+    newLabel: string,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
     if (oldLabel === newLabel) return;
     if (!newLabel) {
       toast({
         title: 'Error',
-        description: 'Label cannot be empty',
+        description: t('messages.errorEmptyLabel'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -150,7 +169,7 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
     if (dataTemplate[newLabel]) {
       toast({
         title: 'Error',
-        description: 'Label already exists',
+        description: t('messages.errorLabelExists'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -166,19 +185,23 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="4xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>{documentTemplate?.name}</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
-            <h1 className="text-2xl mb-[20px]">Sample document</h1>
-            {isEditable && <FormControl>
+      <ModalOverlay />
+      <ModalContent>
+        <ModalHeader>{documentTemplate?.name}</ModalHeader>
+        <ModalCloseButton />
+        <ModalBody>
+          <h1 className="text-2xl mb-[20px]">
+            {t('modals.detail.sampleDocument')}
+          </h1>
+          {isEditable && (
+            <FormControl>
               <Box className="flex justify-between">
                 <Box
                   border="1px"
                   borderColor="gray.300"
                   borderRadius="md"
-                  className="my-[5px]">
+                  className="my-[5px]"
+                >
                   <Input
                     type="file"
                     onChange={(e) => {
@@ -190,127 +213,138 @@ const DetailDocumentTemplateModal: React.FC<Props> = ({
                   />
                 </Box>
               </Box>
-            </FormControl> }
+            </FormControl>
+          )}
 
-            <Box className="flex flex-col">
-              <Checkbox
-                disabled={!selectedFile}
-                isChecked={isScanned}
-                onChange={(e) => setIsScanned(e.target.checked)}
-              >The sample document has already been scanned.</Checkbox>
+          <Box className="flex flex-col">
+            <Checkbox
+              disabled={!selectedFile}
+              isChecked={isScanned}
+              onChange={(e) => setIsScanned(e.target.checked)}
+            >
+              {t('modals.detail.alreadyScanned')}
+            </Checkbox>
 
-              <RadioGroup
-                onChange={(value) => {
-                  setTemplateSizeIndex(parseInt(value));
-                }}
-                value={templateSizeIndex.toString()}
-                isDisabled={!selectedFile}
-              >
-                <Stack direction="row">
-                  <Text>Template size (Width x Height):</Text>
-                  {TEMPLATE_SIZES.map((size, index) => (
-                    <Radio key={index} value={index.toString()}>
-                      {size[0]} x {size[1]}
-                    </Radio>
-                  ))}
-                </Stack>
-              </RadioGroup>
+            <RadioGroup
+              onChange={(value) => {
+                setTemplateSizeIndex(parseInt(value));
+              }}
+              value={templateSizeIndex.toString()}
+              isDisabled={!selectedFile}
+            >
+              <Stack direction="row">
+                <Text>{t('modals.detail.templateSize')}</Text>
+                {TEMPLATE_SIZES.map((size, index) => (
+                  <Radio key={index} value={index.toString()}>
+                    {size[0]} x {size[1]}
+                  </Radio>
+                ))}
+              </Stack>
+            </RadioGroup>
 
-              <Button
-                colorScheme="teal"
-                size="md"
-                className="m-[10px]"
-                onClick={handleTemplateUpload}>
-                Upload Sample Document
-              </Button>
-            </Box>
+            <Button
+              colorScheme="teal"
+              size="md"
+              className="m-[10px]"
+              onClick={handleTemplateUpload}
+            >
+              {t('buttons.upload')}
+            </Button>
+          </Box>
 
-            {!imageUrl && !isLoading && (
-              <div className="flex justify-center items-center">
-                <p>No sample document uploaded or the document cannot be processed.</p>
-              </div>
-            )}
+          {!imageUrl && !isLoading && (
+            <div className="flex justify-center items-center">
+              <p>{t('modals.detail.noDocument')}</p>
+            </div>
+          )}
 
-            {imageUrl && !isLoading && (
-              <BoundingBox
-                size={TEMPLATE_SIZES[templateSizeIndex]}
-                imageUrl={imageUrl}
-                dataTemplate={dataTemplate}
-                onNewRectangle={handleNewRectangle}
-                onLabelChange={handleLabelChange}
-                onErrorImage={handleImageError}
-              />
-            )}
+          {imageUrl && !isLoading && (
+            <BoundingBox
+              size={TEMPLATE_SIZES[templateSizeIndex]}
+              imageUrl={imageUrl}
+              dataTemplate={dataTemplate}
+              onNewRectangle={handleNewRectangle}
+              onLabelChange={handleLabelChange}
+              onErrorImage={handleImageError}
+            />
+          )}
 
-            {isEditable && <h1 className="text-2xl mt-[20px]">Data template</h1>}
+          {isEditable && (
+            <h1 className="text-2xl mt-[20px]">
+              {t('modals.detail.dataTemplate')}
+            </h1>
+          )}
 
-            {isEditable && <ul>
+          {isEditable && (
+            <ul>
               {Object.keys(dataTemplate).map((label, index) => {
                 const rect = dataTemplate[label];
                 return (
                   <li key={index}>
                     {label}: [Left: {rect.left.toFixed(2)}, Top:{' '}
-                    {rect.top.toFixed(2)}, Right: {rect.right.toFixed(2)}, Bottom:{' '}
-                    {rect.bottom.toFixed(2)}]
+                    {rect.top.toFixed(2)}, Right: {rect.right.toFixed(2)},
+                    Bottom: {rect.bottom.toFixed(2)}]
                     <Button
                       colorScheme="teal"
                       size="md"
                       className="m-[10px]"
-                      onClick={() => handleDeleteField(label)}>
-                      Delete
+                      onClick={() => handleDeleteField(label)}
+                    >
+                      {t('buttons.delete')}
                     </Button>
                   </li>
                 );
-
               })}
-            </ul>}
-          </ModalBody>
-          <ModalFooter>
-            {
-              isEditable 
-              ? 
-                <Button
-                    isLoading={isLoading}
-                    colorScheme="teal"
-                    mr={3}
-                    onClick={() => handleSaveDocumentTemplate({
-                      size: {
-                        width: TEMPLATE_SIZES[templateSizeIndex][0],
-                        height: TEMPLATE_SIZES[templateSizeIndex][1],
-                      },
-                      isScanned: isScanned,
-                      dataTemplate: dataTemplate,
-                    } as SaveDocumentTemplateDto
-                    )}>
-                    Save
-                </Button>
-              :
-                <Button
-                  isLoading={isLoading}
-                  colorScheme="teal"
-                  mr={3}
-                  onClick={() => handleSelectDocumentTemplate({
-                    name: `${documentTemplate.type}-template-${documentTemplate.name ?? ""}`, 
-                    template: JSON.stringify({
-                      dataTemplate: dataTemplate,
-                      size: {
-                        width: TEMPLATE_SIZES[templateSizeIndex][0],
-                        height: TEMPLATE_SIZES[templateSizeIndex][1],
-                      },
-                      isScanned: isScanned,
-                    })
-                  })}>
-                  Select
-                </Button>
-            }
-
-            <Button onClick={onClose}>
-              Cancel
+            </ul>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          {isEditable ? (
+            <Button
+              isLoading={isLoading}
+              colorScheme="teal"
+              mr={3}
+              onClick={() =>
+                handleSaveDocumentTemplate({
+                  size: {
+                    width: TEMPLATE_SIZES[templateSizeIndex][0],
+                    height: TEMPLATE_SIZES[templateSizeIndex][1],
+                  },
+                  isScanned: isScanned,
+                  dataTemplate: dataTemplate,
+                } as SaveDocumentTemplateDto)
+              }
+            >
+              {t('buttons.save')}
             </Button>
-          </ModalFooter>
-        </ModalContent>
-      </Modal>
-  )
-}
+          ) : (
+            <Button
+              isLoading={isLoading}
+              colorScheme="teal"
+              mr={3}
+              onClick={() =>
+                handleSelectDocumentTemplate({
+                  name: `${documentTemplate.type}-template-${documentTemplate.name ?? ''}`,
+                  template: JSON.stringify({
+                    dataTemplate: dataTemplate,
+                    size: {
+                      width: TEMPLATE_SIZES[templateSizeIndex][0],
+                      height: TEMPLATE_SIZES[templateSizeIndex][1],
+                    },
+                    isScanned: isScanned,
+                  }),
+                })
+              }
+            >
+              {t('buttons.select')}
+            </Button>
+          )}
+
+          <Button onClick={onClose}>{t('buttons.cancel')}</Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
+  );
+};
 
 export default DetailDocumentTemplateModal;

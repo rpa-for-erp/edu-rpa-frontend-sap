@@ -10,6 +10,7 @@ import {
   useColorModeValue,
 } from '@chakra-ui/react';
 import { ReactElement } from 'react';
+import { useTranslation } from 'next-i18next';
 import {
   FcDoughnutChart,
   FcFlowChart,
@@ -26,6 +27,8 @@ interface CardProps {
 }
 
 const Card = ({ heading, description, icon, href }: CardProps) => {
+  const { t } = useTranslation('landing');
+
   return (
     <Box
       maxW={{ base: 'full', md: '275px' }}
@@ -60,7 +63,7 @@ const Card = ({ heading, description, icon, href }: CardProps) => {
           </Text>
         </Box>
         <Button variant={'link'} colorScheme={'blue'} size={'sm'}>
-          Learn more
+          {t('features.learnMore')}
         </Button>
       </Stack>
     </Box>
@@ -68,6 +71,8 @@ const Card = ({ heading, description, icon, href }: CardProps) => {
 };
 
 export default function FeatureHome() {
+  const { t } = useTranslation('landing');
+
   return (
     <Box p={5} bgColor={'white'}>
       <Stack spacing={4} as={Container} maxW={'3xl'} textAlign={'center'}>
@@ -77,55 +82,43 @@ export default function FeatureHome() {
           mt={5}
           color="teal.500"
         >
-          What We Offers
+          {t('features.title')}
         </Heading>
         <Text color={'gray.600'} fontSize={{ base: 'sm', sm: 'lg' }}>
-          ErpRpa introduces the power of RPA to the educational sector,
-          automates essential tasks, facilitating a digital transformation in
-          e-learning.
+          {t('features.subtitle')}
         </Text>
       </Stack>
 
       <Container maxW={'5xl'} mt={12}>
         <Flex flexWrap="wrap" gridGap={6} justify="center">
           <Card
-            heading={'Design Workflow'}
+            heading={t('features.designWorkflow.title')}
             icon={<Icon as={FcFlowChart} w={10} h={10} />}
-            description={
-              'Our platform helps you to visualize, analyze your workflows in a user-friendly interface.'
-            }
+            description={t('features.designWorkflow.description')}
             href={'#'}
           />
           <Card
-            heading={'Utilize Packages'}
+            heading={t('features.utilizePackages.title')}
             icon={<Icon as={FcCollaboration} w={10} h={10} />}
-            description={
-              'Manage your activity packages, develop functional activities for your robots.'
-            }
+            description={t('features.utilizePackages.description')}
             href={'#'}
           />
           <Card
-            heading={'Compile Robot'}
+            heading={t('features.collaborate.title')}
             icon={<Icon as={FcReading} w={10} h={10} />}
-            description={
-              'Compile your robots with ease, manage your robots, and deploy them to the cloud.'
-            }
+            description={t('features.collaborate.description')}
             href={'#'}
           />
           <Card
-            heading={'Automate Robot'}
+            heading={t('features.scheduleRobot.title')}
             icon={<Icon as={FcTodoList} w={10} h={10} />}
-            description={
-              'Robots helps you to automate repetitive tasks, reduce human error, integrate with AI technology.'
-            }
+            description={t('features.scheduleRobot.description')}
             href={'#'}
           />
           <Card
-            heading={'Monitor Robot'}
+            heading={t('features.monitorLogs.title')}
             icon={<Icon as={FcDoughnutChart} w={10} h={10} />}
-            description={
-              'Monitor your robots, analyze their performance, and optimize their efficiency.'
-            }
+            description={t('features.monitorLogs.description')}
             href={'#'}
           />
         </Flex>

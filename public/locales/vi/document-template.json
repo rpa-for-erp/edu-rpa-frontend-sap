@@ -1,0 +1,65 @@
+{
+  "title": "Danh sách mẫu tài liệu",
+  "search": "Tìm kiếm...",
+  "filters": {
+    "all": "Tất cả",
+    "image": "Hình ảnh"
+  },
+  "buttons": {
+    "create": "Tạo mới",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "upload": "Tải lên tài liệu mẫu",
+    "select": "Chọn"
+  },
+  "table": {
+    "headers": {
+      "id": "ID",
+      "name": "Tên",
+      "description": "Mô tả",
+      "type": "Loại",
+      "actions": "Hành động"
+    }
+  },
+  "empty": {
+    "title": "Không tìm thấy mẫu tài liệu",
+    "description": "Tạo một mẫu tài liệu mới để giúp bạn tự động hóa các tác vụ liên quan đến tài liệu"
+  },
+  "modals": {
+    "create": {
+      "title": "Tạo mẫu tài liệu mới",
+      "nameLabel": "Tên mẫu tài liệu",
+      "namePlaceholder": "Tên mẫu tài liệu",
+      "descriptionLabel": "Mô tả",
+      "descriptionPlaceholder": "Mô tả",
+      "typeLabel": "Loại",
+      "typeImage": "Hình ảnh"
+    },
+    "edit": {
+      "title": "Chỉnh sửa mẫu tài liệu",
+      "nameLabel": "Tên mẫu tài liệu",
+      "namePlaceholder": "Tên mẫu tài liệu",
+      "descriptionLabel": "Mô tả",
+      "descriptionPlaceholder": "Mô tả",
+      "typeLabel": "Loại",
+      "typeImage": "Hình ảnh"
+    },
+    "detail": {
+      "sampleDocument": "Tài liệu mẫu",
+      "dataTemplate": "Mẫu dữ liệu",
+      "alreadyScanned": "Tài liệu mẫu đã được quét.",
+      "templateSize": "Kích thước mẫu (Rộng x Cao):",
+      "noDocument": "Chưa tải lên tài liệu mẫu hoặc tài liệu không thể xử lý.",
+      "fieldLabel": "[Trái: {{left}}, Trên: {{top}}, Phải: {{right}}, Dưới: {{bottom}}]"
+    }
+  },
+  "messages": {
+    "created": "Tạo mẫu tài liệu thành công",
+    "updated": "Cập nhật mẫu tài liệu thành công",
+    "deleted": "Xóa mẫu tài liệu thành công",
+    "saved": "Lưu mẫu tài liệu thành công",
+    "errorEmptyLabel": "Nhãn không được để trống",
+    "errorLabelExists": "Nhãn đã tồn tại"
+  }
+}

@@ -36,6 +36,7 @@ import RobotRow from './RobotRow';
 import ConfigTriggerModal from './ConfigTriggerModal';
 import robotApi from '@/apis/robotApi';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 
 interface RobotTableProps {
   header: string[];
@@ -45,6 +46,7 @@ interface RobotTableProps {
 }
 
 const RobotTable = (props: RobotTableProps) => {
+  const { t } = useTranslation('robot');
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedForRemove, setSelectedForRemove] = useState({
     userId: 0,
@@ -93,9 +95,9 @@ const RobotTable = (props: RobotTableProps) => {
     setIsLoading(true);
     try {
       await robotApi.deleteRobot(robotKey);
-      toastSuccess(toast, 'Robot removed successfully');
+      toastSuccess(toast, t('messages.robotDeleted'));
     } catch (error) {
-      toastError(toast, 'Failed to remove robot');
+      toastError(toast, t('messages.failedToDelete'));
     }
     setIsLoading(false);
     onCloseForRemove();
@@ -132,7 +134,8 @@ const RobotTable = (props: RobotTableProps) => {
       border="1px solid"
       borderColor="#319795"
       borderRadius="15px"
-      overflow="hidden">
+      overflow="hidden"
+    >
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -156,31 +159,27 @@ const RobotTable = (props: RobotTableProps) => {
       <Modal isOpen={isOpenForRemove} onClose={onCloseForRemove}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Confirmation to remove robot</ModalHeader>
+          <ModalHeader>{t('messages.confirmDelete')}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Text>Are you sure to remove this robot ?</Text>
             <Text fontWeight={'bold'}>
-              Process ID: {selectedForRemove.processId}, Version:{' '}
+              {t('processName')}: {selectedForRemove.processId}, {t('version')}:{' '}
               {selectedForRemove.processVersion}
-            </Text>
-            <Text>
-              This action will stop the robot if it is running and remove it
-              from the system.
             </Text>
           </ModalBody>
 
           <ModalFooter>
             <Button variant="outline" mr={3} onClick={onCloseForRemove}>
-              Cancel
+              {t('buttons.cancel', { ns: 'common' })}
             </Button>
             <Button
               colorScheme="red"
               isLoading={isLoading}
               onClick={() => {
                 handleRemoveRobot(selectedForRemove.robotKey);
-              }}>
-              Remove
+              }}
+            >
+              {t('buttons.delete', { ns: 'common' })}
             </Button>
           </ModalFooter>
         </ModalContent>

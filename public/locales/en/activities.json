@@ -1,0 +1,590 @@
+{
+  "packages": {
+    "google_drive": {
+      "displayName": "Google Drive",
+      "description": "Help you integrate your work with Google Drive"
+    },
+    "gmail": {
+      "displayName": "Gmail",
+      "description": "Help you integrate your work with Gmail"
+    },
+    "google_sheets": {
+      "displayName": "Google Sheet",
+      "description": "Help you integrate your work with Google Sheets"
+    },
+    "google_classroom": {
+      "displayName": "Google Classroom",
+      "description": "Help you integrate your work with Google Classroom"
+    },
+    "google_form": {
+      "displayName": "Google Form",
+      "description": "Help you integrate your work with Google Form"
+    },
+    "control": {
+      "displayName": "Control",
+      "description": "Help you control the execution flow of your robot"
+    },
+    "data_manipulation": {
+      "displayName": "Data manipulation",
+      "description": "Help you manipulate data in your robot"
+    },
+    "browser_automation": {
+      "displayName": "Browser automation",
+      "description": "Help you automate tasks that need to be done in a web browser (like Chrome)"
+    },
+    "document_automation": {
+      "displayName": "Document automation",
+      "description": "Help you automate tasks related to documents (traditional paper documents or digital documents like PDFs) with the help of AI"
+    },
+    "file_storage": {
+      "displayName": "File storage",
+      "description": "Help you store and retrieve files in the platform"
+    },
+    "rpa-sap-mock": {
+      "displayName": "SAP MOCK",
+      "description": "Help you to handle sap activities"
+    },
+    "rpa-erpnext": {
+      "displayName": "ERPNext",
+      "description": "Automate procurement workflows in ERPNext (Item, MR, RFQ, PO)"
+    },
+    "moodle": {
+      "displayName": "Moodle",
+      "description": "Integrate with Moodle LMS for course and quiz management"
+    }
+  },
+  "templates": {
+    "google_drive.set_up_connection": {
+      "displayName": "Setup Drive Connection",
+      "description": "Set up drive connection for following task"
+    },
+    "drive.create_folder": {
+      "displayName": "Create folder",
+      "description": "Create a Google Drive folder in a given directory"
+    },
+    "drive.dowload_files": {
+      "displayName": "Dowload Files",
+      "description": "Dowload Files From Drive Folders"
+    },
+    "drive.upload_file": {
+      "displayName": "Upload file",
+      "description": "Upload a file from robot"
+    },
+    "drive.get_file_list_in_folder": {
+      "displayName": "Get file list in folder",
+      "description": "Get a list of files in a given folder in Google Drive"
+    },
+    "drive.get_file_folder": {
+      "displayName": "Get a file/folder",
+      "description": "Get a file/folder in Google Drive"
+    },
+    "drive.delete_file_folder": {
+      "displayName": "Delete file/folder",
+      "description": "Delete a file/folder in Google Drive"
+    },
+    "drive.move_file_folder": {
+      "displayName": "Move file/folder",
+      "description": "Move a file/folder to another folder in Google Drive"
+    },
+    "drive.share_file_folder": {
+      "displayName": "Share a file/folder",
+      "description": "Share a file/folder in Google Drive"
+    },
+    "gmail.set_up_connection": {
+      "displayName": "Setup Gmail Connection",
+      "description": "Set up Gmail connection for following task"
+    },
+    "gmail.send_email": {
+      "displayName": "Send email",
+      "description": "Send an email to other people using Gmail"
+    },
+    "gmail.list_emails": {
+      "displayName": "Get list emails",
+      "description": "List emails in a given folder in Gmail"
+    },
+    "google_sheets.set_up_connection": {
+      "displayName": "Setup Google Sheet Connection",
+      "description": "Set up Google Sheet connection for following task"
+    },
+    "sheet.create_spreadsheet": {
+      "displayName": "Create SpreadSheet",
+      "description": "Create SpreadSheet in Google Sheet"
+    },
+    "sheet.get_spreadsheet_by_id": {
+      "displayName": "Get SpreadSheet By Id",
+      "description": "Get SpreadSheet By Id in Google Sheet"
+    },
+    "sheet.add_sheet": {
+      "displayName": "Add sheet",
+      "description": "Add sheet to a given SpreadSheet in Google Sheet"
+    },
+    "sheet.delete_sheet": {
+      "displayName": "Delete sheet",
+      "description": "Delete sheet from a given SpreadSheet in Google Sheet"
+    },
+    "sheet.rename_sheet": {
+      "displayName": "Rename sheet",
+      "description": "Rename sheet of a given SpreadSheet in Google Sheet"
+    },
+    "sheet.write_data_to_sheet": {
+      "displayName": "Write Data To Sheet",
+      "description": "Write Data To Sheet in a given SpreadSheet in Google Sheet"
+    },
+    "sheet.read_data_from_sheet": {
+      "displayName": "Read Data From Sheet",
+      "description": "Read Data From Sheet in a given SpreadSheet in Google Sheet"
+    },
+    "sheet.clear_data_from_sheet": {
+      "displayName": "Clear Data From Sheet",
+      "description": "Clear Data From Sheet in a given SpreadSheet in Google Sheet"
+    },
+    "google_classroom.set_up_connection": {
+      "displayName": "Setup Google Classroom Connection",
+      "description": "Set up Google Classroom connection for following task"
+    },
+    "create_course": {
+      "displayName": "Create Course",
+      "description": "Create new course for teacher"
+    },
+    "list_classrooms": {
+      "displayName": "List Classrooms",
+      "description": "List Classrooms"
+    },
+    "delete_course_by_id": {
+      "displayName": "Delete Classroom",
+      "description": "Delete Classroom"
+    },
+    "get_course_id_by_course_name": {
+      "displayName": "Get Course ID By Course Name",
+      "description": "Get ID of the course by course name"
+    },
+    "invite_student_course": {
+      "displayName": "Invite Students To Classroom",
+      "description": "Invite Students To Classroom"
+    },
+    "create_assignment": {
+      "displayName": "Create Assignment",
+      "description": "Create Assignment in a course of Google Classroom"
+    },
+    "create_quiz_classroom": {
+      "displayName": "Create Quiz",
+      "description": "Create Quiz in a course of Google Classroom"
+    },
+    "list_course_work": {
+      "displayName": "List Coursework",
+      "description": "List Coursework"
+    },
+    "get_coursework_id_by_title": {
+      "displayName": "Get Coursework ID By Title",
+      "description": "Get Coursework ID By Title"
+    },
+    "delete_coursework": {
+      "displayName": "Delete Coursework",
+      "description": "Delete Coursework"
+    },
+    "list_student_submissions": {
+      "displayName": "List Student Submissions",
+      "description": "List Student Submissions"
+    },
+    "get_submission_id_by_email": {
+      "displayName": "Get Submission ID By Email",
+      "description": "Get Submission ID By Email"
+    },
+    "google_form.set_up_connection": {
+      "displayName": "Setup Google Form Connection",
+      "description": "Set up Google Form connection for following task"
+    },
+    "create_quiz_form": {
+      "displayName": "Create Quiz Form",
+      "description": "Create quiz in google form"
+    },
+    "get_doc_id": {
+      "displayName": "Get Google Doc ID From URL",
+      "description": "Get Google Doc ID from URL"
+    },
+    "transfer_quiz": {
+      "displayName": "Transfer Google Doc To Google",
+      "description": "Transfer quiz from google doc to google form"
+    },
+    "if": {
+      "displayName": "If/Else",
+      "description": "If a condition is met, then execute a set of activities, otherwise execute another set of activities"
+    },
+    "for_each": {
+      "displayName": "For each",
+      "description": "Execute a set of activities for each item in a list"
+    },
+    "for_range": {
+      "displayName": "For Value In Range",
+      "description": "Execute a set of activities for each item in range"
+    },
+    "set_variable": {
+      "displayName": "Set variable",
+      "description": "Set the value of a variable"
+    },
+    "add_to_list": {
+      "displayName": "Add to list",
+      "description": "Add an item to a list"
+    },
+    "remove_from_list": {
+      "displayName": "Remove from list",
+      "description": "Remove an item from a list"
+    },
+    "clear_list": {
+      "displayName": "Clear list",
+      "description": "Clear all items in a list"
+    },
+    "go_to_url": {
+      "displayName": "Go to URL",
+      "description": "Go to a given URL in the current browser tab"
+    },
+    "click": {
+      "displayName": "Click",
+      "description": "Click on a given element in the current browser tab"
+    },
+    "type": {
+      "displayName": "Type Into",
+      "description": "Type a given text into a given element in the current browser tab"
+    },
+    "get_text": {
+      "displayName": "Get text",
+      "description": "Get the text of a given element in the current browser tab"
+    },
+    "extract_data_from_document": {
+      "displayName": "Extract data from document",
+      "description": "Extract data from a document using Document template"
+    },
+    "generate_grade_report": {
+      "displayName": "Generate grade report",
+      "description": "Generate a grade report from a list of extracted data"
+    },
+    "upload_file": {
+      "displayName": "Upload file",
+      "description": "Upload a file to the platform"
+    },
+    "download_file": {
+      "displayName": "Download file",
+      "description": "Download a file from the platform"
+    },
+    "connect_to_sap_system": {
+      "displayName": "Connect to SAP System",
+      "description": "Connect to the SAP system using a base URL and token file"
+    },
+    "get_business_partner": {
+      "displayName": "Get Business Partner",
+      "description": "Retrieve a business partner by ID from the SAP system"
+    },
+    "create_business_partner_address": {
+      "displayName": "Create Business Partner Address",
+      "description": "Create a new address for a business partner in the SAP system"
+    },
+    "update_business_partner_address": {
+      "displayName": "Update Business Partner Address",
+      "description": "Update an existing address for a business partner in the SAP system"
+    },
+    "delete_business_partner_address": {
+      "displayName": "Delete Business Partner Address",
+      "description": "Delete an address for a business partner in the SAP system"
+    },
+    "connect_to_erpnext": {
+      "displayName": "Connect to ERPNext",
+      "description": "Connect to ERPNext using a base URL and API token"
+    },
+    "ensure_item_exists": {
+      "displayName": "Ensure Item Exists",
+      "description": "Check if an Item exists in ERPNext; if not, create one automatically."
+    },
+    "create_material_request": {
+      "displayName": "Create Material Request",
+      "description": "Create a Material Request document in ERPNext with multiple items."
+    },
+    "create_request_for_quotation": {
+      "displayName": "Create Request For Quotation (RFQ)",
+      "description": "Create an RFQ in ERPNext for one or more suppliers."
+    },
+    "create_purchase_order": {
+      "displayName": "Create Purchase Order",
+      "description": "Create a Purchase Order document in ERPNext for a supplier."
+    },
+    "submit_erp_document": {
+      "displayName": "Submit ERP Document",
+      "description": "Submit an existing ERPNext document (Material Request, RFQ, or Purchase Order)."
+    },
+    "moodle.setup_connection": {
+      "displayName": "Setup Moodle Connection",
+      "description": "Set up Moodle connection for following tasks"
+    },
+    "moodle.setup_google_connection": {
+      "displayName": "Setup Google Docs Connection",
+      "description": "Setup Google API connection for Google Docs integration"
+    },
+    "moodle.get_course_categories": {
+      "displayName": "Get Course Categories",
+      "description": "Get list of all course categories"
+    },
+    "moodle.create_course_category": {
+      "displayName": "Create Course Category",
+      "description": "Create a new course category"
+    },
+    "moodle.ensure_category_exists": {
+      "displayName": "Ensure Category Exists",
+      "description": "Ensure category exists, create if not found"
+    },
+    "moodle.create_course": {
+      "displayName": "Create Course",
+      "description": "Create a new course in Moodle"
+    },
+    "moodle.get_course_by_shortname": {
+      "displayName": "Get Course By Shortname",
+      "description": "Get course information by shortname"
+    },
+    "moodle.ensure_course_exists": {
+      "displayName": "Ensure Course Exists",
+      "description": "Ensure course exists, create if not found"
+    },
+    "moodle.get_course_contents": {
+      "displayName": "Get Course Contents",
+      "description": "Get contents of a course"
+    },
+    "moodle.generate_quiz_gift_file": {
+      "displayName": "Generate Quiz GIFT File",
+      "description": "Generate GIFT format file for Moodle quiz import"
+    },
+    "moodle.generate_quiz_xml_file": {
+      "displayName": "Generate Quiz XML File",
+      "description": "Generate Moodle XML format file for quiz import"
+    },
+    "moodle.create_user": {
+      "displayName": "Create User",
+      "description": "Create a new user in Moodle"
+    },
+    "moodle.enroll_user_in_course": {
+      "displayName": "Enroll User In Course",
+      "description": "Enroll a user in a course"
+    },
+    "moodle.enrol_user": {
+      "displayName": "Enrol User",
+      "description": "Enrol user by username and course shortname"
+    },
+    "moodle.get_drive_file_id_from_url": {
+      "displayName": "Get Google Drive File ID From URL",
+      "description": "Extract file ID from Google Drive/Sheets/Docs URL"
+    },
+    "moodle.read_google_doc_content": {
+      "displayName": "Read Google Doc Content",
+      "description": "Read text content from Google Docs"
+    },
+    "moodle.read_quiz_from_google_doc": {
+      "displayName": "Read Quiz From Google Doc",
+      "description": "Parse quiz questions and answers from Google Doc"
+    },
+    "moodle.create_quiz_from_google_doc": {
+      "displayName": "Create Quiz From Google Doc",
+      "description": "Create quiz file from Google Doc"
+    },
+    "moodle.upload_file_to_moodle": {
+      "displayName": "Upload File To Moodle",
+      "description": "Upload a file to Moodle server"
+    },
+    "moodle.parse_students_from_excel": {
+      "displayName": "Parse Students From Excel",
+      "description": "Parse student list from Excel file"
+    },
+    "moodle.parse_courses_from_excel": {
+      "displayName": "Parse Courses From Excel",
+      "description": "Parse course list from Excel file"
+    },
+    "moodle.bulk_create_students": {
+      "displayName": "Bulk Create Students",
+      "description": "Create multiple students at once"
+    },
+    "moodle.bulk_create_courses_and_enrol_students": {
+      "displayName": "Bulk Create Courses And Enrol Students",
+      "description": "Create multiple courses and enrol students"
+    },
+    "moodle.upload_file_to_google_drive": {
+      "displayName": "Upload File To Google Drive",
+      "description": "Upload file to Google Drive"
+    },
+    "moodle.download_file_from_google_drive": {
+      "displayName": "Download File From Google Drive",
+      "description": "Download file from Google Drive"
+    },
+    "moodle.create_quiz_and_upload_to_drive": {
+      "displayName": "Create Quiz And Upload To Drive",
+      "description": "Create quiz from Google Doc and upload to Drive"
+    },
+    "moodle.get_user_by_username": {
+      "displayName": "Get User By Username",
+      "description": "Get user information by username"
+    },
+    "moodle.get_user_by_email": {
+      "displayName": "Get User By Email",
+      "description": "Get user information by email address"
+    },
+    "moodle.get_user_by_username_or_email": {
+      "displayName": "Get User By Username Or Email",
+      "description": "Get user by username or email (flexible search)"
+    },
+    "moodle.get_assignment_id_from_url": {
+      "displayName": "Get Assignment ID From URL",
+      "description": "Extract assignment course module ID from Moodle URL"
+    },
+    "moodle.get_assignment_instance_id_from_cmid": {
+      "displayName": "Get Assignment Instance ID From Course Module ID",
+      "description": "Convert course module ID to assignment instance ID"
+    },
+    "moodle.create_submission_for_student": {
+      "displayName": "Create Submission For Student",
+      "description": "Create/submit assignment for a student"
+    },
+    "moodle.submit_assignment_for_students": {
+      "displayName": "Submit Assignment For Students",
+      "description": "Create submissions for multiple students"
+    },
+    "moodle.setup_gemini_ai": {
+      "displayName": "Setup Gemini AI",
+      "description": "Setup Gemini AI for automatic grading"
+    },
+    "moodle.grade_submission_with_gemini": {
+      "displayName": "Grade Submission With Gemini",
+      "description": "Grade a student submission using Gemini AI"
+    },
+    "moodle.grade_image_submission_with_gemini_vision": {
+      "displayName": "Grade Image Submission With Gemini Vision",
+      "description": "Grade student submission from image using Gemini Vision"
+    },
+    "moodle.upload_grades_to_moodle": {
+      "displayName": "Upload Grades To Moodle",
+      "description": "Upload grades to Moodle assignment gradebook"
+    },
+    "moodle.export_grading_results_to_excel": {
+      "displayName": "Export Grading Results To Excel",
+      "description": "Export grading results to Excel file"
+    },
+    "moodle.export_grading_results_to_csv": {
+      "displayName": "Export Grading Results To CSV",
+      "description": "Export grading results to CSV for Moodle gradebook import"
+    },
+    "moodle.export_detailed_grading_results_to_excel": {
+      "displayName": "Export Detailed Grading Results To Excel",
+      "description": "Export detailed student answers and grading breakdown to Excel"
+    },
+    "moodle.export_student_answers_to_csv": {
+      "displayName": "Export Student Answers To CSV",
+      "description": "Export only student answers to CSV (without grading details)"
+    },
+    "moodle.complete_auto_grading_and_upload_workflow": {
+      "displayName": "Complete Auto Grading And Upload Workflow",
+      "description": "Grade submissions and upload results to Moodle"
+    },
+    "moodle.grade_all_image_submissions": {
+      "displayName": "Grade All Image Submissions",
+      "description": "Grade all image submissions using Gemini Vision"
+    },
+    "moodle.list_files_in_google_drive_folder": {
+      "displayName": "List Files In Google Drive Folder",
+      "description": "List all files in a Google Drive folder"
+    },
+    "moodle.complete_bulk_enrollment_workflow": {
+      "displayName": "Complete Bulk Enrollment Workflow",
+      "description": "Download Excel from Drive, create students and courses"
+    },
+    "moodle.get_course_grades": {
+      "displayName": "Get Course Grades",
+      "description": "Get all student grades in a course"
+    },
+    "moodle.get_assignment_submissions": {
+      "displayName": "Get Assignment Submissions",
+      "description": "Get all student submissions for an assignment"
+    },
+    "moodle.get_assignment_grades": {
+      "displayName": "Get Assignment Grades",
+      "description": "Get grades for all students in an assignment"
+    },
+    "moodle.get_course_enrolled_users": {
+      "displayName": "Get Course Enrolled Users",
+      "description": "Get all users enrolled in a course"
+    },
+    "moodle.export_course_grades_to_excel": {
+      "displayName": "Export Course Grades To Excel",
+      "description": "Export all course grades to Excel file"
+    },
+    "moodle.export_course_grades_to_csv": {
+      "displayName": "Export Course Grades To CSV",
+      "description": "Export all course grades to CSV file"
+    },
+    "moodle.get_course_activity_completion": {
+      "displayName": "Get Course Activity Completion",
+      "description": "Get activity completion status for course"
+    },
+    "moodle.generate_course_report": {
+      "displayName": "Generate Course Report",
+      "description": "Generate comprehensive course report (grades, enrollments, submissions)"
+    },
+    "moodle.get_course_statistics": {
+      "displayName": "Get Course Statistics",
+      "description": "Get comprehensive statistics about a course"
+    }
+  },
+  "arguments": {
+    "Connection": "Connection",
+    "Folder name": "Folder name",
+    "Parent Folder Path": "Parent Folder Path",
+    "Query": "Query",
+    "File name": "File name",
+    "Folder Path": "Folder Path",
+    "Overwrite": "Overwrite",
+    "Make Folder": "Make Folder",
+    "ID": "ID"
+  },
+  "argumentDescriptions": {
+    "Connection": "Your connection ID with Google Drive",
+    "Folder name": "The name of the folder",
+    "Parent Folder Path": "The path to the parent folder",
+    "Query": "Define the file type to download",
+    "File name": "The name of the file",
+    "Folder Path": "The path to the folder",
+    "Overwrite": "Overwrite existing file",
+    "Make Folder": "Create folder if not exists",
+    "ID": "The ID of folder or file"
+  },
+  "returns": {
+    "Folder": "Folder",
+    "Files": "Files",
+    "File id": "File id",
+    "File List": "File List",
+    "File/Folder": "File/Folder",
+    "Number of deleted": "Number of deleted"
+  },
+  "returnDescriptions": {
+    "Folder": "The created folder. This is a dictionary, contains: id (folder id), url (folder url)",
+    "Files": "List of downloaded files' name",
+    "File id": "The uploaded file id",
+    "File List": "A list of files. Each file is a dictionary, contains: id (file id), url (file url), name (file name), is_folder, mimeType (file mime type), size (file size), modifiedTime (file modified time)",
+    "File/Folder": "The file/folder. This is a dictionary, contains: id (file/folder id), url (file/folder url), name (file/folder name), is_folder, mimeType (file/folder mime type), size (file/folder size), modifiedTime (file/folder modified time)",
+    "Number of deleted": "The number of deleted files/folders"
+  },
+  "varTypes": {
+    "scalar": "Scalar Variable",
+    "any": "Any Variable",
+    "dictionary": "Dictionary Variable",
+    "list": "List Variable",
+    "string": "String",
+    "number": "Number",
+    "boolean": "Boolean",
+    "connection": "Connection"
+  },
+  "common": {
+    "selectPackage": "Select a package",
+    "selectActivity": "Select an activity",
+    "configureArguments": "Configure arguments",
+    "required": "Required",
+    "optional": "Optional",
+    "value": "Value",
+    "returnValue": "Return Value",
+    "saveAs": "Save as",
+    "noPackagesAvailable": "No packages available",
+    "noActivitiesAvailable": "No activities available in this package"
+  }
+}

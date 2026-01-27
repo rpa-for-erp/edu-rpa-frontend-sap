@@ -15,6 +15,7 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'next-i18next';
 import robotApi from '@/apis/robotApi';
 import { toastError, toastSuccess } from '@/utils/common';
 import { EventState, TriggerType } from '@/interfaces/robot';
@@ -60,10 +61,11 @@ const TriggerEventDriveModal = ({
   const [enabled, setEnabled] = useState(false);
 
   const toast = useToast();
+  const { t } = useTranslation('robot');
   const driveProvider = providerData.find(
     (provider) => provider.name === AuthorizationProvider.G_DRIVE
   );
-  const description = 'Configure your robot to trigger when new files/folders are added to your Google Drive';
+  const description = t('eventTrigger.driveDescription');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,7 +76,11 @@ const TriggerEventDriveModal = ({
         );
         setConnections(connections.map((item) => item.name));
 
-        const schedule = await robotApi.getSchedule(userId, processId, processVersion);
+        const schedule = await robotApi.getSchedule(
+          userId,
+          processId,
+          processVersion
+        );
         if (schedule.Name) {
           const input = JSON.parse(schedule.Target.Input);
           setSelectedConnection(input.connection_name);
@@ -83,7 +89,7 @@ const TriggerEventDriveModal = ({
         }
       } catch (error) {
         console.log(error);
-        toastError(toast, 'Failed to fetch schedule');
+        toastError(toast, t('messages.failedToFetchSchedule'));
       }
       setIsLoading(false);
     };
@@ -99,9 +105,9 @@ const TriggerEventDriveModal = ({
         filter: filterFile,
         state: enabled ? EventState.ENABLED : EventState.DISABLED,
       } as FilterEventSchedule);
-      toastSuccess(toast, 'Event trigger saved');
+      toastSuccess(toast, t('messages.triggerConfigured'));
     } catch (error) {
-      toastError(toast, 'Failed to create trigger');
+      toastError(toast, t('messages.failedToConfigureTrigger'));
     }
     setIsLoading(false);
   };
@@ -110,19 +116,28 @@ const TriggerEventDriveModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader className='m-auto'>Trigger robot by event</ModalHeader>
+        <ModalHeader className="m-auto">
+          {t('eventTrigger.triggerByEvent')}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody pb={6}>
-          <Image className='m-auto' src={driveProvider!.icon} alt="Icon" width={50} height={50} />
+          <Image
+            className="m-auto"
+            src={driveProvider!.icon}
+            alt="Icon"
+            width={50}
+            height={50}
+          />
           <p>{description}</p>
           <FormControl>
-            <FormLabel>Connection</FormLabel>
+            <FormLabel>{t('eventTrigger.connection')}</FormLabel>
             <Select
               value={selectedConnection}
-              onChange={(e) => setSelectedConnection(e.target.value)}>
+              onChange={(e) => setSelectedConnection(e.target.value)}
+            >
               {selectedConnection === '' && (
                 <option value="" disabled>
-                  Select connection
+                  {t('eventTrigger.selectConnection')}
                 </option>
               )}
               {connections.map((item) => (
@@ -133,22 +148,27 @@ const TriggerEventDriveModal = ({
             </Select>
           </FormControl>
           <FormControl>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>{t('eventTrigger.fileName')}</FormLabel>
             <Input
               type="text"
               value={filterFile.name}
-              onChange={(e) => setFilterFile({ ...filterFile, name: e.target.value })}
-              placeholder="Name"
+              onChange={(e) =>
+                setFilterFile({ ...filterFile, name: e.target.value })
+              }
+              placeholder={t('eventTrigger.fileName')}
             />
           </FormControl>
           <FormControl>
-            <FormLabel>Type</FormLabel>
+            <FormLabel>{t('eventTrigger.fileType')}</FormLabel>
             <Select
               value={filterFile.mime_type}
-              onChange={(e) => setFilterFile({ ...filterFile, mime_type: e.target.value })}>
+              onChange={(e) =>
+                setFilterFile({ ...filterFile, mime_type: e.target.value })
+              }
+            >
               {filterFile.mime_type === '' && (
                 <option value="" disabled>
-                  Select type
+                  {t('eventTrigger.selectFileType')}
                 </option>
               )}
               {Object.entries(MIME_TYPES).map(([key, value]) => (
@@ -160,7 +180,7 @@ const TriggerEventDriveModal = ({
           </FormControl>
           <FormControl display="flex" alignItems="center">
             <FormLabel htmlFor="email-alerts" mb="0">
-              Enabled
+              {t('eventTrigger.enabled')}
             </FormLabel>
             <Switch
               id="email-alerts"
@@ -171,13 +191,16 @@ const TriggerEventDriveModal = ({
         </ModalBody>
         <ModalFooter>
           <Button
-            className='mr-2'
+            className="mr-2"
             isLoading={isLoading}
             colorScheme="blue"
-            onClick={handleUpsertEventSchedule}>
-            Save
+            onClick={handleUpsertEventSchedule}
+          >
+            {t('buttons.save', { ns: 'common' })}
           </Button>
-          <Button onClick={onClose}>Cancel</Button>
+          <Button onClick={onClose}>
+            {t('buttons.cancel', { ns: 'common' })}
+          </Button>
         </ModalFooter>
       </ModalContent>
     </Modal>

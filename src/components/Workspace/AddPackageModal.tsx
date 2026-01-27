@@ -20,6 +20,7 @@ import {
 import activityPackageApi from '@/apis/activityPackageApi';
 import workspaceApi from '@/apis/workspaceApi';
 import { ActivityPackage } from '@/interfaces/activity-package';
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   isOpen: boolean;
@@ -36,6 +37,7 @@ const AddPackageModal: React.FC<Props> = ({
   existingPackageIds,
   onSuccess,
 }) => {
+  const { t } = useTranslation('workspace');
   const toast = useToast();
   const [allPackages, setAllPackages] = useState<ActivityPackage[]>([]);
   const [selectedPackageIds, setSelectedPackageIds] = useState<string[]>([]);
@@ -60,8 +62,8 @@ const AddPackageModal: React.FC<Props> = ({
     } catch (error) {
       console.error('Failed to fetch packages:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to load activity packages',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.failedToAddPackage'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -84,8 +86,8 @@ const AddPackageModal: React.FC<Props> = ({
   const handleSubmit = async () => {
     if (selectedPackageIds.length === 0) {
       toast({
-        title: 'Error',
-        description: 'Please select at least one package',
+        title: t('messages.error', { ns: 'common' }),
+        description: t('messages.selectAtLeastOne', { ns: 'storage' }),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -101,8 +103,8 @@ const AddPackageModal: React.FC<Props> = ({
       }
 
       toast({
-        title: 'Success',
-        description: `${selectedPackageIds.length} package(s) added successfully`,
+        title: t('messages.success', { ns: 'common' }),
+        description: t('messages.packageAdded'),
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -113,8 +115,9 @@ const AddPackageModal: React.FC<Props> = ({
       onClose();
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error?.response?.data?.message || 'Failed to add packages',
+        title: t('messages.error', { ns: 'common' }),
+        description:
+          error?.response?.data?.message || t('messages.failedToAddPackage'),
         status: 'error',
         duration: 3000,
         isClosable: true,
@@ -133,16 +136,15 @@ const AddPackageModal: React.FC<Props> = ({
     <Modal isOpen={isOpen} onClose={handleClose} size="xl">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Add Activity Package</ModalHeader>
+        <ModalHeader>{t('addPackage')}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {isLoading ? (
-            <Text>Loading packages...</Text>
+            <Text>{t('labels.loading', { ns: 'common' })}</Text>
           ) : allPackages.length === 0 ? (
             <Box p={4} textAlign="center">
               <Text color="gray.500">
-                No available packages to add. All packages are already added to
-                this team.
+                {t('labels.noData', { ns: 'common' })}
               </Text>
             </Box>
           ) : (
@@ -184,7 +186,7 @@ const AddPackageModal: React.FC<Props> = ({
         </ModalBody>
         <ModalFooter>
           <Button variant="ghost" mr={3} onClick={handleClose}>
-            Cancel
+            {t('buttons.cancel', { ns: 'common' })}
           </Button>
           <Button
             colorScheme="teal"
@@ -194,7 +196,7 @@ const AddPackageModal: React.FC<Props> = ({
               selectedPackageIds.length === 0 || allPackages.length === 0
             }
           >
-            Add Package{selectedPackageIds.length > 1 ? 's' : ''}
+            {t('addPackage')}
           </Button>
         </ModalFooter>
       </ModalContent>

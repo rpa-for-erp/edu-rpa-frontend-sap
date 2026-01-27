@@ -12,6 +12,7 @@ import { IoMdShare } from 'react-icons/io';
 import { MdPublish } from 'react-icons/md';
 import { ShareWithModal } from './ShareWithModal';
 import { PublishRobotModal } from './PublishRobotModal';
+import { useTranslation } from 'next-i18next';
 
 interface FunctionalTabBarProps {
   processID: string;
@@ -20,6 +21,7 @@ interface FunctionalTabBarProps {
 }
 
 export default function FunctionalTabBar(props: FunctionalTabBarProps) {
+  const { t } = useTranslation('studio');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [modalType, setType] = useState('publish');
   // Ctrl + S for save
@@ -34,8 +36,9 @@ export default function FunctionalTabBar(props: FunctionalTabBarProps) {
         leftIcon={<FaSave />}
         colorScheme="teal"
         variant="solid"
-        onClick={props.onSaveAll}>
-        Save All
+        onClick={props.onSaveAll}
+      >
+        {t('buttons.saveAll')}
       </Button>
       {/* <Button leftIcon={<FaPlay />} colorScheme="teal" variant="solid">
         Run
@@ -48,8 +51,9 @@ export default function FunctionalTabBar(props: FunctionalTabBarProps) {
           setType('publish');
         }}
         colorScheme="blue"
-        variant="solid">
-        Publish
+        variant="solid"
+      >
+        {t('buttons.publish')}
       </Button>
       <Button
         leftIcon={<IoMdShare />}
@@ -58,15 +62,17 @@ export default function FunctionalTabBar(props: FunctionalTabBarProps) {
           setType('share');
         }}
         colorScheme="red"
-        variant="solid">
-        Share
+        variant="solid"
+      >
+        {t('buttons.share')}
       </Button>
 
       <Modal
         initialFocusRef={initialRef}
         finalFocusRef={finalRef}
         isOpen={isOpen}
-        onClose={onClose}>
+        onClose={onClose}
+      >
         <ModalOverlay />
         {modalType == 'publish' ? (
           <PublishRobotModal {...props} onClose={onClose} />

@@ -1,4 +1,5 @@
 import React, { use, useEffect, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import {
   Box,
   Flex,
@@ -19,13 +20,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { GetServerSideProps } from 'next';
 import { getServerSideTranslations } from '@/utils/i18n';
 
-interface ProfileFormData {
-  fullName: string;
-  email: string;
-  avatar: FileList;
-}
-
 const ProfilePage: React.FC = () => {
+  const { t } = useTranslation('profile');
   const toast = useToast();
   const dispatch = useDispatch();
   const user = useSelector(userSelector);
@@ -45,9 +41,9 @@ const ProfilePage: React.FC = () => {
         name: userName,
       });
       toast({
-        title: 'Profile updated.',
+        title: t('messages.profileUpdated'),
         position: 'top-right',
-        description: 'Your profile has been successfully updated.',
+        description: t('messages.profileUpdatedDescription'),
         status: 'success',
         duration: 2000,
         isClosable: true,
@@ -81,12 +77,17 @@ const ProfilePage: React.FC = () => {
           <Box
             position="relative"
             onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}>
+            onMouseLeave={() => setIsHovered(false)}
+          >
             <Avatar size="2xl" src={user.avatarUrl} />
             {isHovered && (
               <div className="overlay px-[10px]" onClick={handleClick}>
-                <Button colorScheme="teal" size="sm" aria-label="Upload avatar">
-                  Change Avatar
+                <Button
+                  colorScheme="teal"
+                  size="sm"
+                  aria-label={t('uploadAvatar')}
+                >
+                  {t('changeAvatar')}
                 </Button>
                 <input
                   type="file"
@@ -110,22 +111,22 @@ const ProfilePage: React.FC = () => {
         <Box>
           <Stack spacing={4} p={5}>
             <FormControl>
-              <FormLabel htmlFor="fullName">Full Name</FormLabel>
+              <FormLabel htmlFor="fullName">{t('fullName')}</FormLabel>
               <Input
                 id="fullName"
-                placeholder="Your name"
+                placeholder={t('fullNamePlaceholder')}
                 value={userName}
                 onChange={(e) => setUserName(e.target.value)}
               />
             </FormControl>
 
             <FormControl>
-              <FormLabel htmlFor="email">Email</FormLabel>
+              <FormLabel htmlFor="email">{t('email')}</FormLabel>
               <Input
                 id="email"
                 type="email"
                 disabled
-                placeholder="Your email"
+                placeholder={t('emailPlaceholder')}
                 value={user.email}
               />
             </FormControl>
@@ -138,8 +139,9 @@ const ProfilePage: React.FC = () => {
                 isLoadingUpdateProfile ||
                 userName === user.name ||
                 userName === ''
-              }>
-              Save
+              }
+            >
+              {t('buttons.save')}
             </Button>
           </Stack>
         </Box>
@@ -168,7 +170,12 @@ export default ProfilePage;
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'profile',
+      ])),
     },
   };
 };

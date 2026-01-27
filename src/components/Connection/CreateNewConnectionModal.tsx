@@ -1,5 +1,5 @@
-import IconImage from "@/components/IconImage/IconImage";
-import { AuthorizationProvider } from "@/interfaces/enums/provider.enum";
+import IconImage from '@/components/IconImage/IconImage';
+import { AuthorizationProvider } from '@/interfaces/enums/provider.enum';
 import {
   Modal,
   ModalOverlay,
@@ -10,12 +10,13 @@ import {
   ModalFooter,
   Button,
   useDisclosure,
-} from "@chakra-ui/react";
-import React from "react";
-import { providerData } from "@/constants/providerData";
-import { userSelector } from "@/redux/selector";
-import { useSelector } from "react-redux";
-import CreateMoodleConnectionModal from "./CreateMoodleConnectionModal";
+} from '@chakra-ui/react';
+import React from 'react';
+import { providerData } from '@/constants/providerData';
+import { userSelector } from '@/redux/selector';
+import { useSelector } from 'react-redux';
+import CreateMoodleConnectionModal from './CreateMoodleConnectionModal';
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   isOpen: boolean;
@@ -24,7 +25,13 @@ interface Props {
   workspaceId?: string;
 }
 
-const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess, workspaceId }) => {
+const CreateNewConnectionModal: React.FC<Props> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  workspaceId,
+}) => {
+  const { t } = useTranslation('integration-service');
   const user = useSelector(userSelector);
   const {
     isOpen: isMoodleModalOpen,
@@ -32,7 +39,7 @@ const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess,
     onClose: onMoodleModalClose,
   } = useDisclosure();
 
-  const handleCreateNewConnection = (provider: typeof providerData[0]) => {
+  const handleCreateNewConnection = (provider: (typeof providerData)[0]) => {
     if (provider.name === AuthorizationProvider.MOODLE) {
       onClose();
       onMoodleModalOpen();
@@ -41,13 +48,13 @@ const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess,
         // Workspace OAuth flow - use workspace-specific endpoints
         window.open(
           `${process.env.NEXT_PUBLIC_DEV_API}/auth/workspace/${workspaceId}/${provider.slug}?fromUser=${user.id}&reconnect=false`,
-          "_self"
+          '_self'
         );
       } else {
         // User OAuth flow - keep original behavior
         window.open(
           `${process.env.NEXT_PUBLIC_DEV_API}/auth/${provider.slug}?fromUser=${user.id}`,
-          "_self"
+          '_self'
         );
       }
     }
@@ -65,7 +72,7 @@ const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess,
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Create new connection</ModalHeader>
+          <ModalHeader>{t('modal.createNewConnection')}</ModalHeader>
           <ModalCloseButton />
           <ModalBody pb={6}>
             <div className="grid grid-cols-3 gap-[15px]">
@@ -84,7 +91,7 @@ const CreateNewConnectionModal: React.FC<Props> = ({ isOpen, onClose, onSuccess,
             </div>
           </ModalBody>
           <ModalFooter>
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onClose}>{t('modal.cancel')}</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

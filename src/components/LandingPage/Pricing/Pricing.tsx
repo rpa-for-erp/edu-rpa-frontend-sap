@@ -14,6 +14,7 @@ import {
   Button,
 } from '@chakra-ui/react';
 import { FaCheckCircle } from 'react-icons/fa';
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   children: React.ReactNode;
@@ -34,22 +35,24 @@ function PriceWrapper(props: Props) {
         transition: 'transform .2s',
       }}
       borderColor={useColorModeValue('gray.200', 'gray.500')}
-      borderRadius={'xl'}>
+      borderRadius={'xl'}
+    >
       {children}
     </Box>
   );
 }
 
 export default function PricingHome() {
+  const { t } = useTranslation('landing');
+
   return (
     <Box py={12} bgColor={'white'}>
       <VStack spacing={2} textAlign="center">
         <Heading as="h1" fontSize="4xl" color="teal.500">
-          Plans that fit your need
+          {t('pricing.title')}
         </Heading>
         <Text fontSize="lg" color={'gray.500'}>
-          Start with 14-day free trial. No credit card needed. Cancel at
-          anytime.
+          {t('pricing.subtitle')}
         </Text>
       </VStack>
       <Stack
@@ -57,11 +60,12 @@ export default function PricingHome() {
         textAlign="center"
         justify="center"
         spacing={{ base: 4, lg: 10 }}
-        py={10}>
+        py={10}
+      >
         <PriceWrapper>
           <Box py={4} px={12}>
             <Text fontWeight="500" fontSize="2xl">
-              Hobby
+              {t('pricing.hobby.name')}
             </Text>
             <HStack justifyContent="center">
               <Text fontSize="3xl" fontWeight="600">
@@ -71,31 +75,32 @@ export default function PricingHome() {
                 5
               </Text>
               <Text fontSize="3xl" color="gray.500">
-                /month
+                {t('pricing.month')}
               </Text>
             </HStack>
           </Box>
           <VStack
             bg={useColorModeValue('gray.50', 'gray.700')}
             py={4}
-            borderBottomRadius={'xl'}>
+            borderBottomRadius={'xl'}
+          >
             <List spacing={3} textAlign="start" px={12}>
               <ListItem>
                 <ListIcon as={FaCheckCircle} color="green.500" />
-                Unlimited build minutes
+                {t('pricing.hobby.feature1')}
               </ListItem>
               <ListItem>
                 <ListIcon as={FaCheckCircle} color="green.500" />
-                1GB robot function storage.
+                {t('pricing.hobby.feature2')}
               </ListItem>
               <ListItem>
                 <ListIcon as={FaCheckCircle} color="green.500" />
-                2GB file storage.
+                {t('pricing.hobby.feature3')}
               </ListItem>
             </List>
             <Box w="80%" pt={7}>
               <Button w="full" colorScheme="teal" variant="outline">
-                Start trial
+                {t('pricing.startTrial')}
               </Button>
             </Box>
           </VStack>
@@ -107,7 +112,8 @@ export default function PricingHome() {
               position="absolute"
               top="-16px"
               left="50%"
-              style={{ transform: 'translate(-50%)' }}>
+              style={{ transform: 'translate(-50%)' }}
+            >
               <Text
                 textTransform="uppercase"
                 bg={useColorModeValue('teal.300', 'teal.700')}
@@ -116,13 +122,14 @@ export default function PricingHome() {
                 color={useColorModeValue('gray.900', 'gray.300')}
                 fontSize="sm"
                 fontWeight="600"
-                rounded="xl">
+                rounded="xl"
+              >
                 Most Popular
               </Text>
             </Box>
             <Box py={4} px={12}>
               <Text fontWeight="500" fontSize="2xl">
-                Growth
+                {t('pricing.standard.name')}
               </Text>
               <HStack justifyContent="center">
                 <Text fontSize="3xl" fontWeight="600">
@@ -132,31 +139,36 @@ export default function PricingHome() {
                   10
                 </Text>
                 <Text fontSize="3xl" color="gray.500">
-                  /month
+                  {t('pricing.month')}
                 </Text>
               </HStack>
             </Box>
             <VStack
               bg={useColorModeValue('gray.50', 'gray.700')}
               py={4}
-              borderBottomRadius={'xl'}>
+              borderBottomRadius={'xl'}
+            >
               <List spacing={3} textAlign="start" px={12}>
                 <ListItem>
                   <ListIcon as={FaCheckCircle} color="green.500" />
-                  Unlimited build minutes.
+                  {t('pricing.standard.feature1')}
                 </ListItem>
                 <ListItem>
                   <ListIcon as={FaCheckCircle} color="green.500" />
-                  3GB robot function storage.
+                  {t('pricing.standard.feature2')}
                 </ListItem>
                 <ListItem>
                   <ListIcon as={FaCheckCircle} color="green.500" />
-                  2GB file storage.
+                  {t('pricing.standard.feature3')}
+                </ListItem>
+                <ListItem>
+                  <ListIcon as={FaCheckCircle} color="green.500" />
+                  {t('pricing.standard.feature4')}
                 </ListItem>
               </List>
               <Box w="80%" pt={7}>
                 <Button w="full" colorScheme="teal">
-                  Start trial
+                  {t('pricing.startTrial')}
                 </Button>
               </Box>
             </VStack>
@@ -165,7 +177,7 @@ export default function PricingHome() {
         <PriceWrapper>
           <Box py={4} px={12}>
             <Text fontWeight="500" fontSize="2xl">
-              Scale
+              {t('pricing.premium.name')}
             </Text>
             <HStack justifyContent="center">
               <Text fontSize="3xl" fontWeight="600">
@@ -175,31 +187,40 @@ export default function PricingHome() {
                 15
               </Text>
               <Text fontSize="3xl" color="gray.500">
-                /month
+                {t('pricing.month')}
               </Text>
             </HStack>
           </Box>
           <VStack
             bg={useColorModeValue('gray.50', 'gray.700')}
             py={4}
-            borderBottomRadius={'xl'}>
+            borderBottomRadius={'xl'}
+          >
             <List spacing={3} textAlign="start" px={12}>
               <ListItem>
                 <ListIcon as={FaCheckCircle} color="green.500" />
-                Unlimited build minutes
+                {t('pricing.premium.feature1')}
               </ListItem>
               <ListItem>
                 <ListIcon as={FaCheckCircle} color="green.500" />
-                5GB robot function storage.
+                {t('pricing.premium.feature2')}
               </ListItem>
               <ListItem>
                 <ListIcon as={FaCheckCircle} color="green.500" />
-                4GB file storage.
+                {t('pricing.premium.feature3')}
+              </ListItem>
+              <ListItem>
+                <ListIcon as={FaCheckCircle} color="green.500" />
+                {t('pricing.premium.feature4')}
+              </ListItem>
+              <ListItem>
+                <ListIcon as={FaCheckCircle} color="green.500" />
+                {t('pricing.premium.feature5')}
               </ListItem>
             </List>
             <Box w="80%" pt={7}>
               <Button w="full" colorScheme="teal" variant="outline">
-                Start trial
+                {t('pricing.startTrial')}
               </Button>
             </Box>
           </VStack>

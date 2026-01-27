@@ -28,6 +28,39 @@
     "success": "Thành công",
     "pageNotFound": "Không tìm thấy trang",
     "pageNotFoundDescription": "Trang bạn đang tìm kiếm dường như không tồn tại"
+  },
+  "tooltips": {
+    "studioService": "Dịch vụ Studio cung cấp môi trường phát triển toàn diện để thiết kế, kiểm thử và triển khai các quy trình tự động hóa của bạn.",
+    "robotService": "Dịch vụ Robot quản lý việc thực thi các tác vụ tự động của bạn. Sau khi quy trình được triển khai, robot có thể chạy các tác vụ này một cách tự động.",
+    "integrationService": "Với dịch vụ tích hợp, bạn có thể tạo kết nối đến các dịch vụ khác. Các kết nối này có thể được robot sử dụng để thực hiện tác vụ thay mặt bạn.",
+    "documentTemplateService": "Mẫu tài liệu là một mẫu chứa thông tin của tài liệu mà bạn muốn trích xuất.",
+    "storageService": "Lưu trữ file là nơi bạn có thể lưu các tệp của mình. Robot có thể truy cập các tệp này để thực hiện nhiệm vụ của chúng"
+  },
+  "table": {
+    "itemsPerPage": "Số mục mỗi trang:"
+  },
+  "footer": {
+    "product": "Sản phẩm",
+    "overview": "Tổng quan",
+    "features": "Tính năng",
+    "new": "Mới",
+    "tutorials": "Hướng dẫn",
+    "pricing": "Bảng giá",
+    "releases": "Phát hành",
+    "company": "Công ty",
+    "aboutUs": "Về chúng tôi",
+    "press": "Báo chí",
+    "careers": "Tuyển dụng",
+    "contactUs": "Liên hệ",
+    "partners": "Đối tác",
+    "legal": "Pháp lý",
+    "cookiesPolicy": "Chính sách Cookie",
+    "privacyPolicy": "Chính sách bảo mật",
+    "termsOfService": "Điều khoản dịch vụ",
+    "lawEnforcement": "Thực thi pháp luật",
+    "status": "Trạng thái",
+    "stayUpToDate": "Cập nhật tin tức",
+    "emailPlaceholder": "Địa chỉ email của bạn",
+    "copyright": "@ 2026, Được tạo với ❤️ bởi ErpRpa và EduRpa Team cho giải pháp kinh doanh tốt hơn."
   }
 }
-

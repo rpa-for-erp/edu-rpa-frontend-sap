@@ -13,6 +13,7 @@ import {
 } from '@chakra-ui/react';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import React from 'react';
+import { useTranslation } from 'next-i18next';
 import SVGIcon from '../Icons/SVGIcon';
 import GoogleIcon from '@/assets/svgs/google-icon.svg';
 import BaseForm from './BaseForm';
@@ -36,6 +37,7 @@ export default function SignUpForm(props: SignUpFormProps) {
   const authPayload = useSelector(authSelector);
   const dispatch = useDispatch();
   const toast = useToast();
+  const { t } = useTranslation('auth');
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -43,13 +45,13 @@ export default function SignUpForm(props: SignUpFormProps) {
       password: '',
     },
     validationSchema: Yup.object({
-      name: Yup.string().required('Fullname is required'),
+      name: Yup.string().required(t('validation.fullNameRequired')),
       email: Yup.string()
-        .email('Invalid email address')
-        .required('Email is required'),
+        .email(t('validation.invalidEmail'))
+        .required(t('validation.emailRequired')),
       password: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
-        .required('Password is required'),
+        .min(6, t('validation.passwordMinLength'))
+        .required(t('validation.passwordRequired')),
     }),
     onSubmit: (values, actions) => {},
   });
@@ -59,7 +61,7 @@ export default function SignUpForm(props: SignUpFormProps) {
     },
     onSuccess: () => {
       toast({
-        title: 'Fill the confirm successfully !',
+        title: t('messages.registerSuccess'),
         status: 'success',
         position: 'top-right',
         duration: 1000,
@@ -70,7 +72,7 @@ export default function SignUpForm(props: SignUpFormProps) {
     },
     onError: () => {
       toast({
-        title: 'There are some errors in form. Please check carefully !',
+        title: t('messages.formErrors'),
         status: 'error',
         position: 'top-right',
         duration: 1000,
@@ -88,7 +90,7 @@ export default function SignUpForm(props: SignUpFormProps) {
   const handleSigninWithGoogle = async () => {
     window.open(
       `${process.env.NEXT_PUBLIC_DEV_API}/auth/google?redirectUrl=${process.env.NEXT_PUBLIC_URL}/auth/login`,
-      '_self',
+      '_self'
     );
   };
 
@@ -97,7 +99,7 @@ export default function SignUpForm(props: SignUpFormProps) {
       <BaseForm>
         <form onSubmit={formik.handleSubmit}>
           <h1 className="text-primary font-bold text-2xl text-center">
-            Register Form
+            {t('registerForm')}
           </h1>
           {/* Google Button  */}
           <div className="flex justify-center items-center my-[20px]">
@@ -105,22 +107,24 @@ export default function SignUpForm(props: SignUpFormProps) {
               colorScheme="teal"
               variant="outline"
               onClick={handleSigninWithGoogle}
-              leftIcon={<SVGIcon svgComponent={GoogleIcon} />}>
-              Sign up with Google
+              leftIcon={<SVGIcon svgComponent={GoogleIcon} />}
+            >
+              {t('signUpWithGoogle')}
             </Button>
           </div>
           <Box position="relative" padding="5">
             <Divider />
             <AbsoluteCenter
               px="4"
-              className="text-[14px] text-secondary bg-[#fff]">
-              or fill in the form
+              className="text-[14px] text-secondary bg-[#fff]"
+            >
+              {t('orFillInForm')}
             </AbsoluteCenter>
           </Box>
           <FormControl isInvalid={formik.touched.name && !!formik.errors.name}>
-            <FormLabel htmlFor="name">Full Name</FormLabel>
+            <FormLabel htmlFor="name">{t('fullName')}</FormLabel>
             <Input
-              placeholder="Your full name"
+              placeholder={t('enterFullName')}
               id="name"
               name="name"
               type="text"
@@ -133,13 +137,14 @@ export default function SignUpForm(props: SignUpFormProps) {
             )}
           </FormControl>
           <FormControl
-            isInvalid={formik.touched.email && !!formik.errors.email}>
-            <FormLabel htmlFor="email">Email</FormLabel>
+            isInvalid={formik.touched.email && !!formik.errors.email}
+          >
+            <FormLabel htmlFor="email">{t('emailAddress')}</FormLabel>
             <Input
               type="email"
               id="email"
               name="email"
-              placeholder="Your email"
+              placeholder={t('enterEmail')}
               value={formik.values.email}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -150,14 +155,15 @@ export default function SignUpForm(props: SignUpFormProps) {
           </FormControl>
 
           <FormControl
-            isInvalid={formik.touched.password && !!formik.errors.password}>
-            <FormLabel htmlFor="password">Password</FormLabel>
+            isInvalid={formik.touched.password && !!formik.errors.password}
+          >
+            <FormLabel htmlFor="password">{t('password')}</FormLabel>
             <InputGroup>
               <Input
                 type={isVisible ? 'text' : 'password'}
                 id="password"
                 name="password"
-                placeholder="Your password"
+                placeholder={t('enterPassword')}
                 value={formik.values.password}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -190,13 +196,14 @@ export default function SignUpForm(props: SignUpFormProps) {
             isLoading={handleSignUp.isPending}
             onClick={() => {
               handleSignUp.mutate(formik.values);
-            }}>
-            Sign up
+            }}
+          >
+            {t('signUp')}
           </Button>
           <div className="text-center mt-[10px]">
-            Already have an account?{' '}
+            {t('alreadyHaveAccount')}{' '}
             <Link className="text-primary" href="/auth/login">
-              Sign in ?
+              {t('signInQuestion')}
             </Link>
           </div>
         </form>

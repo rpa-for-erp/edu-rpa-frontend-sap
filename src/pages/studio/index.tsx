@@ -1,5 +1,5 @@
-import CustomTable from "@/components/CustomTable/CustomTable";
-import React, { useEffect, useRef, useState } from "react";
+import CustomTable from '@/components/CustomTable/CustomTable';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -21,40 +21,43 @@ import {
   useToast,
   HStack,
   Text,
-} from "@chakra-ui/react";
-import { QuestionIcon, SearchIcon } from "@chakra-ui/icons";
-import TemplateCard from "@/components/TemplateCard/TemplateCard";
-import SidebarContent from "@/components/Sidebar/SidebarContent/SidebarContent";
+} from '@chakra-ui/react';
+import { QuestionIcon, SearchIcon } from '@chakra-ui/icons';
+import TemplateCard from '@/components/TemplateCard/TemplateCard';
+import SidebarContent from '@/components/Sidebar/SidebarContent/SidebarContent';
 import {
   getLocalStorageObject,
   setLocalStorageObject,
-} from "@/utils/localStorageService";
-import { LocalStorage } from "@/constants/localStorage";
-import { Process } from "@/types/process";
-import { exportFile, formatDate } from "@/utils/common";
-import { VariableItem } from "@/types/variable";
+} from '@/utils/localStorageService';
+import { LocalStorage } from '@/constants/localStorage';
+import { Process } from '@/types/process';
+import { exportFile, formatDate } from '@/utils/common';
+import { VariableItem } from '@/types/variable';
 import {
   defaultXML,
   deleteProcessById,
   generateProcessID,
   getProcessFromLocalStorage,
   initProcess,
-} from "@/utils/processService";
-import { useRouter } from "next/router";
-import { deleteVariableById } from "@/utils/variableService";
-import AutomationTemplateImage from "@/assets/images/AutomationTemplate.jpg";
-import { QueryClient, useMutation, useQuery } from "@tanstack/react-query";
-import { CreateProcessDto } from "@/dtos/processDto";
-import processApi from "@/apis/processApi";
-import { QUERY_KEY } from "@/constants/queryKey";
-import LoadingIndicator from "@/components/LoadingIndicator/LoadingIndicator";
-import { ToolTipExplain } from "@/constants/description";
-import { formatDateTime } from "@/utils/time";
+} from '@/utils/processService';
+import { useRouter } from 'next/router';
+import { deleteVariableById } from '@/utils/variableService';
+import AutomationTemplateImage from '@/assets/images/AutomationTemplate.jpg';
+import { QueryClient, useMutation, useQuery } from '@tanstack/react-query';
+import { CreateProcessDto } from '@/dtos/processDto';
+import processApi from '@/apis/processApi';
+import { QUERY_KEY } from '@/constants/queryKey';
+import LoadingIndicator from '@/components/LoadingIndicator/LoadingIndicator';
+import { ToolTipExplain } from '@/constants/description';
+import { formatDateTime } from '@/utils/time';
 import { GetServerSideProps } from 'next';
 import { getServerSideTranslations } from '@/utils/i18n';
+import { useTranslation } from 'next-i18next';
 
 export default function Studio() {
   const router = useRouter();
+  const { t } = useTranslation('studio');
+  const { t: tCommon } = useTranslation('common');
   const { isOpen, onOpen, onClose } = useDisclosure();
   const {
     isOpen: isDuplicateOpen,
@@ -80,14 +83,14 @@ export default function Studio() {
   const settingsNameRef = useRef<HTMLInputElement>(null);
   const settingsDescRef = useRef<HTMLInputElement>(null);
 
-  const [processType, setProcessType] = useState("free");
-  const [selectFilter, setSelectFilter] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [ownerFilter, setOwnerFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc" | null>("desc");
-  const [activeTab, setActiveTab] = useState<"processes" | "templates">(
-    "processes"
+  const [processType, setProcessType] = useState('free');
+  const [selectFilter, setSelectFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [ownerFilter, setOwnerFilter] = useState('all');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | null>('desc');
+  const [activeTab, setActiveTab] = useState<'processes' | 'templates'>(
+    'processes'
   );
   const [selectedProcessId, setSelectedProcessId] = useState<string | null>(
     null
@@ -122,7 +125,7 @@ export default function Studio() {
           processID: item.id,
           processName: item.name,
           processDesc: item.description,
-          xml: "",
+          xml: '',
           activities: [],
           variables: [],
           sharedByUser: item.sharedByUser,
@@ -139,7 +142,7 @@ export default function Studio() {
     );
 
     // Load pinned processes
-    const savedPinned = localStorage.getItem("pinnedProcesses");
+    const savedPinned = localStorage.getItem('pinnedProcesses');
     if (savedPinned) {
       setPinnedProcesses(JSON.parse(savedPinned));
     }
@@ -176,11 +179,11 @@ export default function Studio() {
         id: item.id,
         name: item.name,
         description: item.description,
-        sharedBy: item.sharedByUser ? item.sharedByUser.name : "me",
+        sharedBy: item.sharedByUser ? item.sharedByUser.name : 'me',
         last_modified: formatDateTime(item.updatedAt),
         last_modified_timestamp: new Date(item.updatedAt).getTime(),
         version: item.version,
-        status: item.status || "draft",
+        status: item.status || 'draft',
         pinned: pinnedProcesses.includes(item.id),
       };
     });
@@ -196,14 +199,14 @@ export default function Studio() {
   }
 
   // Filter by status
-  if (statusFilter && statusFilter !== "all") {
+  if (statusFilter && statusFilter !== 'all') {
     filteredData = filteredData.filter(
       (item: any) => item.status === statusFilter
     );
   }
 
   // Filter by owner
-  if (ownerFilter && ownerFilter !== "all") {
+  if (ownerFilter && ownerFilter !== 'all') {
     filteredData = filteredData.filter(
       (item: any) => item.sharedBy === ownerFilter
     );
@@ -212,7 +215,7 @@ export default function Studio() {
   // Sort by last modified
   if (sortOrder) {
     filteredData = [...filteredData].sort((a: any, b: any) => {
-      if (sortOrder === "asc") {
+      if (sortOrder === 'asc') {
         return a.last_modified_timestamp - b.last_modified_timestamp;
       } else {
         return b.last_modified_timestamp - a.last_modified_timestamp;
@@ -229,20 +232,20 @@ export default function Studio() {
 
   const tableProps = {
     header: [
-      "Process name",
-      "Process description",
-      "Owner",
-      "Last Modified",
-      "Version",
-      "Status",
+      t('table.processName'),
+      t('table.processDescription'),
+      t('table.owner'),
+      t('table.lastModified'),
+      t('table.version'),
+      t('table.status'),
     ],
     headerKeys: [
-      "name",
-      "description",
-      "sharedBy",
-      "last_modified",
-      "version",
-      "status",
+      'name',
+      'description',
+      'sharedBy',
+      'last_modified',
+      'version',
+      'status',
     ],
     data: filteredData,
   };
@@ -252,7 +255,7 @@ export default function Studio() {
       return await processApi.createProcess(payload);
     },
     onSuccess: () => {
-      console.log("Process import sucessfully");
+      console.log('Process import sucessfully');
     },
     onError: (error) => {
       console.log(error);
@@ -266,9 +269,9 @@ export default function Studio() {
     onSuccess: () => {
       queryClient.refetchQueries([QUERY_KEY.PROCESS_LIST] as any);
       toast({
-        title: "Delete item sucessfully!",
-        status: "success",
-        position: "top-right",
+        title: t('toasts.deleteSuccess'),
+        status: 'success',
+        position: 'top-right',
         duration: 1000,
         isClosable: true,
       });
@@ -315,7 +318,7 @@ export default function Studio() {
     const variableListAfterDelete = deleteVariableById(processID);
     setLocalStorageObject(LocalStorage.PROCESS_LIST, processListAfterDelete);
     setLocalStorageObject(LocalStorage.VARIABLE_LIST, variableListAfterDelete);
-    console.log("Detele ProcessID", processID);
+    console.log('Detele ProcessID', processID);
     handleDeleteProcessWithApi.mutate(processID);
   };
 
@@ -338,7 +341,7 @@ export default function Studio() {
     const file = event.target.files ? event.target.files[0] : null;
 
     if (!file) {
-      throw new Error("No file selected.");
+      throw new Error('No file selected.');
     }
 
     const reader = new FileReader();
@@ -348,18 +351,18 @@ export default function Studio() {
         // console.log("Import BPMN", e.target?.result);
         const xml = e.target?.result as string;
         const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xml, "text/xml");
-        const bpmnNamespace = "http://www.omg.org/spec/BPMN/20100524/MODEL";
+        const xmlDoc = parser.parseFromString(xml, 'text/xml');
+        const bpmnNamespace = 'http://www.omg.org/spec/BPMN/20100524/MODEL';
         const processElement = xmlDoc.getElementsByTagNameNS(
           bpmnNamespace,
-          "process"
+          'process'
         )[0];
-        const processID = processElement.getAttribute("id");
+        const processID = processElement.getAttribute('id');
 
         const importProcess = {
           processName: processID,
-          processType: "free",
-          processDesc: "Import XML",
+          processType: 'free',
+          processDesc: 'Import XML',
           processID: processID,
           xml: xml,
           activities: [],
@@ -376,12 +379,12 @@ export default function Studio() {
           `/studio/modeler/${processID}?name=${importProcess.processName}&version=0`
         );
       } catch (error) {
-        console.error("Error during XML file import:", error);
+        console.error('Error during XML file import:', error);
         toast({
-          title: "Error during XML file import",
-          description: "Please check the XML file and try again.",
-          position: "top-right",
-          status: "error",
+          title: 'Error during XML file import',
+          description: 'Please check the XML file and try again.',
+          position: 'top-right',
+          status: 'error',
           duration: 2000,
           isClosable: true,
         });
@@ -412,8 +415,8 @@ export default function Studio() {
       newProcessID,
       xml,
       duplicateNameRef.current.value,
-      process.description + " (Copy)",
-      "free"
+      process.description + ' (Copy)',
+      'free'
     );
 
     setLocalStorageObject(LocalStorage.PROCESS_LIST, [
@@ -424,9 +427,9 @@ export default function Studio() {
     handleInsertToBackend(duplicatedProcess);
 
     toast({
-      title: "Process duplicated successfully!",
-      status: "success",
-      position: "top-right",
+      title: t('toasts.duplicateSuccess'),
+      status: 'success',
+      position: 'top-right',
       duration: 2000,
       isClosable: true,
     });
@@ -443,9 +446,9 @@ export default function Studio() {
   const confirmShare = () => {
     if (!shareEmailRef.current?.value) {
       toast({
-        title: "Please enter an email address",
-        status: "warning",
-        position: "top-right",
+        title: t('toasts.emailRequired'),
+        status: 'warning',
+        position: 'top-right',
         duration: 2000,
         isClosable: true,
       });
@@ -454,9 +457,9 @@ export default function Studio() {
 
     // TODO: Implement actual share API call
     toast({
-      title: `Process shared with ${shareEmailRef.current.value}`,
-      status: "success",
-      position: "top-right",
+      title: t('toasts.shareSuccess', { email: shareEmailRef.current.value }),
+      status: 'success',
+      position: 'top-right',
       duration: 2000,
       isClosable: true,
     });
@@ -470,14 +473,14 @@ export default function Studio() {
       : [...pinnedProcesses, processId];
 
     setPinnedProcesses(newPinnedProcesses);
-    localStorage.setItem("pinnedProcesses", JSON.stringify(newPinnedProcesses));
+    localStorage.setItem('pinnedProcesses', JSON.stringify(newPinnedProcesses));
 
     toast({
       title: pinnedProcesses.includes(processId)
-        ? "Process unpinned"
-        : "Process pinned",
-      status: "success",
-      position: "top-right",
+        ? t('toasts.unpinSuccess')
+        : t('toasts.pinSuccess'),
+      status: 'success',
+      position: 'top-right',
       duration: 1000,
       isClosable: true,
     });
@@ -499,9 +502,9 @@ export default function Studio() {
 
     if (!newName) {
       toast({
-        title: "Process name is required",
-        status: "warning",
-        position: "top-right",
+        title: t('toasts.nameRequired'),
+        status: 'warning',
+        position: 'top-right',
         duration: 2000,
         isClosable: true,
       });
@@ -510,9 +513,9 @@ export default function Studio() {
 
     // TODO: Implement actual update API call
     toast({
-      title: "Process settings updated successfully!",
-      status: "success",
-      position: "top-right",
+      title: t('toasts.settingsSuccess'),
+      status: 'success',
+      position: 'top-right',
       duration: 2000,
       isClosable: true,
     });
@@ -522,7 +525,7 @@ export default function Studio() {
   };
 
   const handleSortToggle = () => {
-    setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
   };
 
   if (isLoadingProcess || handleDeleteProcessWithApi.isPending) {
@@ -535,44 +538,44 @@ export default function Studio() {
         <div className="flex items-center justify-between w-90 mx-auto mb-[10px]">
           <div className="relative flex items-center gap-[30px] border-b border-gray-200">
             <button
-              onClick={() => setActiveTab("processes")}
+              onClick={() => setActiveTab('processes')}
               className={`px-4 py-3 font-semibold text-lg transition-colors duration-300 ${
-                activeTab === "processes"
-                  ? "text-[#319795]"
-                  : "text-gray-600 hover:text-[#319795]"
+                activeTab === 'processes'
+                  ? 'text-[#319795]'
+                  : 'text-gray-600 hover:text-[#319795]'
               }`}
             >
-              Process List
+              {t('tabs.processes')}
             </button>
             <button
-              onClick={() => setActiveTab("templates")}
+              onClick={() => setActiveTab('templates')}
               className={`px-4 py-3 font-semibold text-lg transition-colors duration-300 ${
-                activeTab === "templates"
-                  ? "text-[#319795]"
-                  : "text-gray-600 hover:text-[#319795]"
+                activeTab === 'templates'
+                  ? 'text-[#319795]'
+                  : 'text-gray-600 hover:text-[#319795]'
               }`}
             >
-              Templates
+              {t('tabs.templates')}
             </button>
             {/* Sliding underline */}
             <div
               className={`absolute bottom-0 h-[3px] bg-[#319795] transition-all duration-300 ease-in-out ${
-                activeTab === "processes"
-                  ? "left-0 w-[130px]"
-                  : "left-[150px] w-[120px]"
+                activeTab === 'processes'
+                  ? 'left-0 w-[130px]'
+                  : 'left-[150px] w-[120px]'
               }`}
             ></div>
           </div>
           <Tooltip
             hasArrow
-            label={ToolTipExplain.STUDIO_SERVICE}
+            label={tCommon('tooltips.studioService')}
             bg="gray.300"
             color="black"
           >
             <QuestionIcon color="blue.500" />
           </Tooltip>
         </div>
-        {activeTab === "processes" && (
+        {activeTab === 'processes' && (
           <div className="flex justify-between w-90 mx-auto my-[25px] ">
             <div className="flex gap-[10px] items-center">
               <InputGroup width="320px">
@@ -582,7 +585,7 @@ export default function Studio() {
                 <Input
                   bg="white"
                   type="text"
-                  placeholder="Search by name..."
+                  placeholder={t('filters.search')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -590,7 +593,7 @@ export default function Studio() {
               <Box>
                 <HStack spacing={2}>
                   <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                    Owner:
+                    {t('filters.owner')}:
                   </Text>
                   <Select
                     size="sm"
@@ -599,17 +602,17 @@ export default function Studio() {
                     value={ownerFilter}
                     onChange={(e) => setOwnerFilter(e.target.value)}
                   >
-                    <option value="all">All</option>
+                    <option value="all">{t('filters.all')}</option>
                     {allProcess &&
                       Array.from(
                         new Set(
                           allProcess.map((p: any) =>
-                            p.sharedByUser ? p.sharedByUser.name : "me"
+                            p.sharedByUser ? p.sharedByUser.name : 'me'
                           )
                         )
                       ).map((owner: any) => (
                         <option key={owner} value={owner}>
-                          {owner}
+                          {owner === 'me' ? t('filters.me') : owner}
                         </option>
                       ))}
                   </Select>
@@ -618,25 +621,25 @@ export default function Studio() {
               <Box>
                 <HStack spacing={2}>
                   <Text fontSize="sm" fontWeight="medium" color="gray.700">
-                    Status:
+                    {t('filters.status')}:
                   </Text>
                   <Select
                     size="sm"
-                    width="80px"
+                    width="100px"
                     bg="white"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                   >
-                    <option value="all">All</option>
-                    <option value="draft">draft</option>
-                    <option value="deployed">deployed</option>
+                    <option value="all">{t('filters.all')}</option>
+                    <option value="draft">{t('filters.draft')}</option>
+                    <option value="deployed">{t('filters.published')}</option>
                   </Select>
                 </HStack>
               </Box>
             </div>
             <div className="flex justify-between gap-[10px]">
               <Button colorScheme="teal" onClick={onOpen}>
-                New Process
+                {t('actions.create')}
               </Button>
               <input
                 type="file"
@@ -653,17 +656,17 @@ export default function Studio() {
                   if (inputFileRef.current) {
                     inputFileRef.current.click();
                   } else {
-                    console.error("BPMN file not found!");
+                    console.error('BPMN file not found!');
                   }
                 }}
               >
-                Import Process
+                {t('actions.import')}
               </Button>
             </div>
           </div>
         )}
 
-        {activeTab === "processes" && (
+        {activeTab === 'processes' && (
           <>
             <div className="w-90 m-auto">
               <CustomTable
@@ -696,7 +699,7 @@ export default function Studio() {
           </>
         )}
 
-        {activeTab === "templates" && (
+        {activeTab === 'templates' && (
           <div className="w-90 m-auto">
             <div className="grid grid-cols-3 gap-[15px] mt-[30px]">
               <TemplateCard
@@ -732,16 +735,22 @@ export default function Studio() {
         >
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Create new process</ModalHeader>
+            <ModalHeader>{t('modals.createProcess.title')}</ModalHeader>
             <ModalCloseButton />
             <ModalBody pb={6}>
               <FormControl>
-                <FormLabel>Process name</FormLabel>
-                <Input ref={initialRef} placeholder="Process name" />
+                <FormLabel>{t('modals.createProcess.nameLabel')}</FormLabel>
+                <Input
+                  ref={initialRef}
+                  placeholder={t('modals.createProcess.namePlaceholder')}
+                />
               </FormControl>
               <FormControl>
-                <FormLabel>Description</FormLabel>
-                <Input ref={descRepf} placeholder="Your description" />
+                <FormLabel>{t('modals.createProcess.descLabel')}</FormLabel>
+                <Input
+                  ref={descRepf}
+                  placeholder={t('modals.createProcess.descPlaceholder')}
+                />
               </FormControl>
             </ModalBody>
             <ModalFooter>
@@ -751,10 +760,10 @@ export default function Studio() {
                 mr={3}
                 onClick={onClose}
               >
-                Cancel
+                {t('modals.createProcess.cancel')}
               </Button>
               <Button colorScheme="teal" onClick={handleCreateNewProcess}>
-                Save
+                {t('modals.createProcess.create')}
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -768,14 +777,14 @@ export default function Studio() {
         >
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Duplicate Process</ModalHeader>
+            <ModalHeader>{t('modals.duplicate.title')}</ModalHeader>
             <ModalCloseButton />
             <ModalBody pb={6}>
               <FormControl>
-                <FormLabel>New Process Name</FormLabel>
+                <FormLabel>{t('modals.duplicate.nameLabel')}</FormLabel>
                 <Input
                   ref={duplicateNameRef}
-                  placeholder="Enter new process name"
+                  placeholder={t('modals.duplicate.namePlaceholder')}
                 />
               </FormControl>
             </ModalBody>
@@ -786,10 +795,10 @@ export default function Studio() {
                 mr={3}
                 onClick={onDuplicateClose}
               >
-                Cancel
+                {t('modals.duplicate.cancel')}
               </Button>
               <Button colorScheme="teal" onClick={confirmDuplicate}>
-                Duplicate
+                {t('modals.duplicate.duplicate')}
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -803,15 +812,15 @@ export default function Studio() {
         >
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Share Process</ModalHeader>
+            <ModalHeader>{t('modals.share.title')}</ModalHeader>
             <ModalCloseButton />
             <ModalBody pb={6}>
               <FormControl>
-                <FormLabel>Email Address</FormLabel>
+                <FormLabel>{t('modals.share.emailLabel')}</FormLabel>
                 <Input
                   ref={shareEmailRef}
                   type="email"
-                  placeholder="Enter email to share with"
+                  placeholder={t('modals.share.emailPlaceholder')}
                 />
               </FormControl>
             </ModalBody>
@@ -822,10 +831,10 @@ export default function Studio() {
                 mr={3}
                 onClick={onShareClose}
               >
-                Cancel
+                {t('modals.share.cancel')}
               </Button>
               <Button colorScheme="teal" onClick={confirmShare}>
-                Share
+                {t('modals.share.share')}
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -839,11 +848,11 @@ export default function Studio() {
         >
           <ModalOverlay />
           <ModalContent>
-            <ModalHeader>Process Settings</ModalHeader>
+            <ModalHeader>{t('modals.settings.title')}</ModalHeader>
             <ModalCloseButton />
             <ModalBody pb={6}>
               <FormControl mb={4}>
-                <FormLabel>Process Name</FormLabel>
+                <FormLabel>{t('modals.settings.nameLabel')}</FormLabel>
                 <Input
                   ref={settingsNameRef}
                   defaultValue={
@@ -853,28 +862,28 @@ export default function Studio() {
                   placeholder="Process name"
                   borderColor="teal.500"
                   borderWidth="2px"
-                  _hover={{ borderColor: "teal.600" }}
+                  _hover={{ borderColor: 'teal.600' }}
                   _focus={{
-                    borderColor: "teal.600",
-                    boxShadow: "0 0 0 1px #319795",
+                    borderColor: 'teal.600',
+                    boxShadow: '0 0 0 1px #319795',
                   }}
                 />
               </FormControl>
               <FormControl>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('modals.settings.descLabel')}</FormLabel>
                 <Input
                   ref={settingsDescRef}
                   defaultValue={
                     allProcess?.find((p: any) => p.id === selectedProcessId)
                       ?.description
                   }
-                  placeholder="Description"
+                  placeholder={t('modals.settings.descLabel')}
                   borderColor="teal.500"
                   borderWidth="2px"
-                  _hover={{ borderColor: "teal.600" }}
+                  _hover={{ borderColor: 'teal.600' }}
                   _focus={{
-                    borderColor: "teal.600",
-                    boxShadow: "0 0 0 1px #319795",
+                    borderColor: 'teal.600',
+                    boxShadow: '0 0 0 1px #319795',
                   }}
                 />
               </FormControl>
@@ -886,10 +895,10 @@ export default function Studio() {
                 mr={3}
                 onClick={onSettingsClose}
               >
-                Cancel
+                {t('modals.settings.cancel')}
               </Button>
               <Button colorScheme="teal" onClick={confirmProcessSettings}>
-                Save
+                {t('modals.settings.save')}
               </Button>
             </ModalFooter>
           </ModalContent>
@@ -902,7 +911,13 @@ export default function Studio() {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'studio',
+        'activities',
+      ])),
     },
   };
 };

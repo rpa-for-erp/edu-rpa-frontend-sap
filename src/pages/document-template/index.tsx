@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'next-i18next';
 import SidebarContent from '@/components/Sidebar/SidebarContent/SidebarContent';
 import {
   Box,
@@ -35,6 +36,7 @@ export interface DocumentTemplateListProps {
 }
 
 export default function DocumentTemplateList(props: DocumentTemplateListProps) {
+  const { t } = useTranslation(['document-template', 'common']);
   const { isEditable = true, handleSelectDocumentTemplate = (e: any) => {} } =
     props;
 
@@ -72,7 +74,13 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
   }, [documentType]);
 
   const tableProps = {
-    header: ['ID', 'Name', 'Description', 'Type', 'Actions'],
+    header: [
+      t('table.headers.id'),
+      t('table.headers.name'),
+      t('table.headers.description'),
+      t('table.headers.type'),
+      t('table.headers.actions'),
+    ],
     data: documentTemplates.map((documentTemplate) => ({
       id: documentTemplate.id,
       name: documentTemplate.name,
@@ -119,7 +127,7 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
     );
     onCloseEditModal();
     setEditedDocumentTemplate(undefined);
-    toastSuccess(toast, 'Document template updated successfully');
+    toastSuccess(toast, t('messages.updated'));
   };
 
   const handleCreateNewDocumentTemplate = async (
@@ -132,7 +140,7 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
     onCloseCreateModal();
     setSelectedDocumentTemplate(res);
     onOpenDetailModal();
-    toastSuccess(toast, 'Document template created successfully');
+    toastSuccess(toast, t('messages.created'));
   };
 
   const handleSaveDocumentTemplate = async (
@@ -145,7 +153,7 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
     );
     onCloseDetailModal();
     setSelectedDocumentTemplate(undefined);
-    toastSuccess(toast, 'Document template saved successfully');
+    toastSuccess(toast, t('messages.saved'));
   };
 
   const handleDeleteDocumentTemplate = async (documentTemplateId: string) => {
@@ -155,7 +163,7 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
         (documentTemplate) => documentTemplate.id !== documentTemplateId
       )
     );
-    toastSuccess(toast, 'Document template deleted successfully');
+    toastSuccess(toast, t('messages.deleted'));
   };
 
   const handleCloseDetailModal = () => {
@@ -172,13 +180,14 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
       <SidebarContent>
         <div className="flex flex-start">
           <h1 className="pl-[20px] pr-[10px] ml-[35px] font-bold text-2xl text-[#319795]">
-            Document Template List
+            {t('title')}
           </h1>
           <Tooltip
             hasArrow
             label={ToolTipExplain.DOCUMENT_TEMPLATE_SERVICE}
             bg="gray.300"
-            color="black">
+            color="black"
+          >
             <QuestionIcon color="blue.500" />
           </Tooltip>
         </div>
@@ -191,21 +200,21 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
               width="30vw"
               bg="white.300"
               type="text"
-              placeholder="Search..."
+              placeholder={t('search')}
             />
           </InputGroup>
 
           <div className="flex justify-between gap-[5px]">
             <Box className="w-[10vw]">
               <Select onChange={(e) => handleSelectFilterType(e)}>
-                <option value="">All</option>
-                <option value="image">Image</option>
+                <option value="">{t('filters.all')}</option>
+                <option value="image">{t('filters.image')}</option>
               </Select>
             </Box>
 
             {isEditable && (
               <Button colorScheme="teal" onClick={onOpenCreateModal}>
-                Create
+                {t('buttons.create')}
               </Button>
             )}
           </div>
@@ -213,11 +222,8 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
 
         {documentTemplates.length === 0 && (
           <div className="flex flex-col justify-center items-center">
-            <h1 className="text-2xl font-bold">No document template found</h1>
-            <div className="text-gray-500">
-              Create a new document template to help you automate
-              document-related tasks
-            </div>
+            <h1 className="text-2xl font-bold">{t('empty.title')}</h1>
+            <div className="text-gray-500">{t('empty.description')}</div>
           </div>
         )}
 
@@ -264,7 +270,12 @@ export default function DocumentTemplateList(props: DocumentTemplateListProps) {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   return {
     props: {
-      ...(await getServerSideTranslations(context, ['common', 'sidebar', 'navbar'])),
+      ...(await getServerSideTranslations(context, [
+        'common',
+        'sidebar',
+        'navbar',
+        'document-template',
+      ])),
     },
   };
 };

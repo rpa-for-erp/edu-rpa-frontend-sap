@@ -21,6 +21,7 @@ import * as Yup from 'yup';
 import moodleConnectionApi, {
   CreateMoodleConnectionDto,
 } from '@/apis/moodleConnectionApi';
+import { useTranslation } from 'next-i18next';
 
 interface Props {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
   onSuccess,
   workspaceId,
 }) => {
+  const { t } = useTranslation('integration-service');
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
 
@@ -46,16 +48,13 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
     },
     validationSchema: Yup.object({
       baseUrl: Yup.string()
-        .url('Must be a valid URL (e.g., https://moodle.example.com)')
-        .matches(
-          /^https?:\/\/.+/,
-          'URL must start with http:// or https://'
-        )
-        .required('Moodle URL is required'),
+        .url(t('modal.moodle.validation.urlInvalid'))
+        .matches(/^https?:\/\/.+/, t('modal.moodle.validation.urlProtocol'))
+        .required(t('modal.moodle.validation.urlRequired')),
       token: Yup.string()
-        .min(10, 'Token must be at least 10 characters')
-        .required('Web Service Token is required'),
-      name: Yup.string().max(100, 'Name must be less than 100 characters'),
+        .min(10, t('modal.moodle.validation.tokenMin'))
+        .required(t('modal.moodle.validation.tokenRequired')),
+      name: Yup.string().max(100, t('modal.moodle.validation.nameMax')),
     }),
     onSubmit: async (values) => {
       setIsLoading(true);
@@ -82,8 +81,10 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
         }
 
         toast({
-          title: 'Success!',
-          description: `Moodle connection "${response.connection.name}" created successfully`,
+          title: t('modal.moodle.success'),
+          description: t('modal.moodle.successDescription', {
+            name: response.connection.name,
+          }),
           status: 'success',
           position: 'top-right',
           duration: 3000,
@@ -99,10 +100,10 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
         const errorMessage =
           error?.response?.data?.error ||
           error?.response?.data?.message ||
-          'Failed to create Moodle connection';
+          t('modal.moodle.errorDefault');
 
         toast({
-          title: 'Error',
+          title: t('modal.moodle.error'),
           description: errorMessage,
           status: 'error',
           position: 'top-right',
@@ -124,15 +125,13 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
     <Modal isOpen={isOpen} onClose={handleClose} size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Create Moodle Connection</ModalHeader>
+        <ModalHeader>{t('modal.moodle.title')}</ModalHeader>
         <ModalCloseButton />
         <form onSubmit={formik.handleSubmit}>
           <ModalBody pb={6}>
             <Box mb={4}>
               <Text fontSize="sm" color="gray.600">
-                Connect to your Moodle site using a Web Service Token. You can
-                generate this token from your Moodle site's administration
-                panel.
+                {t('modal.moodle.description')}
               </Text>
             </Box>
 
@@ -142,13 +141,16 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
               mb={4}
             >
               <FormLabel htmlFor="baseUrl">
-                Moodle URL <Text as="span" color="red.500">*</Text>
+                {t('modal.moodle.baseUrl')}{' '}
+                <Text as="span" color="red.500">
+                  {t('modal.moodle.required')}
+                </Text>
               </FormLabel>
               <Input
                 id="baseUrl"
                 name="baseUrl"
                 type="url"
-                placeholder="https://moodle.example.com"
+                placeholder={t('modal.moodle.baseUrlPlaceholder')}
                 value={formik.values.baseUrl}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -164,13 +166,16 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
               mb={4}
             >
               <FormLabel htmlFor="token">
-                Web Service Token <Text as="span" color="red.500">*</Text>
+                {t('modal.moodle.token')}{' '}
+                <Text as="span" color="red.500">
+                  {t('modal.moodle.required')}
+                </Text>
               </FormLabel>
               <Input
                 id="token"
                 name="token"
                 type="password"
-                placeholder="Enter your Moodle web service token"
+                placeholder={t('modal.moodle.tokenPlaceholder')}
                 value={formik.values.token}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -179,7 +184,7 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
                 <FormErrorMessage>{formik.errors.token}</FormErrorMessage>
               )}
               <Text fontSize="xs" color="gray.500" mt={1}>
-                This token will be securely stored and encrypted
+                {t('modal.moodle.tokenHelp')}
               </Text>
             </FormControl>
 
@@ -188,13 +193,16 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
               isInvalid={formik.touched.name && !!formik.errors.name}
             >
               <FormLabel htmlFor="name">
-                Connection Name <Text as="span" color="gray.500">(Optional)</Text>
+                {t('modal.moodle.name')}{' '}
+                <Text as="span" color="gray.500">
+                  {t('modal.moodle.nameOptional')}
+                </Text>
               </FormLabel>
               <Input
                 id="name"
                 name="name"
                 type="text"
-                placeholder="My Moodle Site"
+                placeholder={t('modal.moodle.namePlaceholder')}
                 value={formik.values.name}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
@@ -203,22 +211,22 @@ const CreateMoodleConnectionModal: React.FC<Props> = ({
                 <FormErrorMessage>{formik.errors.name}</FormErrorMessage>
               )}
               <Text fontSize="xs" color="gray.500" mt={1}>
-                Leave empty to auto-detect from your Moodle site
+                {t('modal.moodle.nameHelp')}
               </Text>
             </FormControl>
           </ModalBody>
 
           <ModalFooter>
             <Button variant="ghost" mr={3} onClick={handleClose}>
-              Cancel
+              {t('modal.cancel')}
             </Button>
             <Button
               colorScheme="teal"
               type="submit"
               isLoading={isLoading}
-              loadingText="Creating..."
+              loadingText={t('modal.moodle.creating')}
             >
-              Create Connection
+              {t('modal.moodle.createConnection')}
             </Button>
           </ModalFooter>
         </form>

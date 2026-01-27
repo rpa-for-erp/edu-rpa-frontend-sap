@@ -14,6 +14,7 @@ import {
   FormHelperText,
   useToast,
 } from '@chakra-ui/react';
+import { useTranslation } from 'next-i18next';
 import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -31,6 +32,7 @@ import { LoginSuccessResponse } from '@/interfaces/auth';
 export default function LoginForm() {
   const router = useRouter();
   const toast = useToast();
+  const { t } = useTranslation('auth');
   const [isVisible, setIsVisible] = useState(false);
 
   const formik = useFormik({
@@ -40,18 +42,18 @@ export default function LoginForm() {
     },
     validationSchema: Yup.object({
       email: Yup.string()
-        .email('Invalid email address')
-        .required('Email is required'),
+        .email(t('validation.invalidEmail'))
+        .required(t('validation.emailRequired')),
       password: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
-        .required('Password is required'),
+        .min(6, t('validation.passwordMinLength'))
+        .required(t('validation.passwordRequired')),
     }),
     onSubmit: (values, actions) => {},
   });
 
   const onLoginSuccess = (data: LoginSuccessResponse) => {
     toast({
-      title: 'Login successfully!',
+      title: t('messages.loginSuccess'),
       status: 'success',
       position: 'top-right',
       duration: 1000,
@@ -68,7 +70,7 @@ export default function LoginForm() {
     onSuccess: onLoginSuccess,
     onError: () => {
       toast({
-        title: 'There are some errors in form. Please check carefully !',
+        title: t('messages.formErrors'),
         status: 'error',
         position: 'top-right',
         duration: 1000,
@@ -87,18 +89,18 @@ export default function LoginForm() {
   return (
     <BaseForm>
       <form onSubmit={formik.handleSubmit}>
-        <h1 className="text-primary font-bold text-3xl">Welcome</h1>
+        <h1 className="text-primary font-bold text-3xl">{t('welcome')}</h1>
         <p className="text-secondary font-bold text-[15px] my-[20px]">
-          Enter your email and password to sign in
+          {t('enterEmailPasswordToSignIn')}
         </p>
 
         <FormControl isInvalid={formik.touched.email && !!formik.errors.email}>
-          <FormLabel htmlFor="email">Email</FormLabel>
+          <FormLabel htmlFor="email">{t('emailAddress')}</FormLabel>
           <Input
             type="email"
             id="email"
             name="email"
-            placeholder="Your email"
+            placeholder={t('enterEmail')}
             value={formik.values.email}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
@@ -109,14 +111,15 @@ export default function LoginForm() {
         </FormControl>
 
         <FormControl
-          isInvalid={formik.touched.password && !!formik.errors.password}>
-          <FormLabel htmlFor="password">Password</FormLabel>
+          isInvalid={formik.touched.password && !!formik.errors.password}
+        >
+          <FormLabel htmlFor="password">{t('password')}</FormLabel>
           <InputGroup>
             <Input
               type={isVisible ? 'text' : 'password'}
               id="password"
               name="password"
-              placeholder="Your password"
+              placeholder={t('enterPassword')}
               value={formik.values.password}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
@@ -142,7 +145,7 @@ export default function LoginForm() {
           )}
           <FormHelperText>
             <Link href="/auth/forget-password">
-              <p className="text-primary">Forgot password?</p>
+              <p className="text-primary">{t('forgotPassword')}</p>
             </Link>
           </FormHelperText>
         </FormControl>
@@ -153,16 +156,18 @@ export default function LoginForm() {
           colorScheme="teal"
           variant="solid"
           isLoading={handleLogin.isPending}
-          onClick={() => handleLogin.mutate(formik.values)}>
-          Sign in
+          onClick={() => handleLogin.mutate(formik.values)}
+        >
+          {t('signIn')}
         </Button>
 
         <Box position="relative" padding="5">
           <Divider />
           <AbsoluteCenter
             px="4"
-            className="text-[14px] text-secondary bg-[#fff]">
-            or log in with Google
+            className="text-[14px] text-secondary bg-[#fff]"
+          >
+            {t('orLoginWithGoogle')}
           </AbsoluteCenter>
         </Box>
 
@@ -171,8 +176,9 @@ export default function LoginForm() {
           colorScheme="teal"
           variant="outline"
           onClick={handleSigninWithGoogle}
-          leftIcon={<SVGIcon svgComponent={GoogleIcon} />}>
-          Sign in with Google
+          leftIcon={<SVGIcon svgComponent={GoogleIcon} />}
+        >
+          {t('signInWithGoogle')}
         </Button>
       </form>
     </BaseForm>

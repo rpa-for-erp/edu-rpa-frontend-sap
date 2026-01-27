@@ -1,0 +1,43 @@
+{
+  "title": "Hồ sơ",
+  "myProfile": "Hồ sơ của tôi",
+  "editProfile": "Chỉnh sửa hồ sơ",
+  "personalInformation": "Thông tin cá nhân",
+  "accountSettings": "Cài đặt tài khoản",
+  "fullName": "Họ và tên",
+  "fullNamePlaceholder": "Tên của bạn",
+  "email": "Email",
+  "emailPlaceholder": "Email của bạn",
+  "firstName": "Tên",
+  "lastName": "Họ",
+  "displayName": "Tên hiển thị",
+  "phoneNumber": "Số điện thoại",
+  "bio": "Tiểu sử",
+  "enterBio": "Giới thiệu về bản thân",
+  "avatar": "Ảnh đại diện",
+  "changeAvatar": "Đổi ảnh đại diện",
+  "uploadAvatar": "Tải lên ảnh đại diện",
+  "currentPassword": "Mật khẩu hiện tại",
+  "newPassword": "Mật khẩu mới",
+  "confirmPassword": "Xác nhận mật khẩu",
+  "changePassword": "Đổi mật khẩu",
+  "emailNotifications": "Thông báo qua email",
+  "pushNotifications": "Thông báo đẩy",
+  "language": "Ngôn ngữ",
+  "timezone": "Múi giờ",
+  "deleteAccount": "Xóa tài khoản",
+  "buttons": {
+    "save": "Lưu"
+  },
+  "messages": {
+    "profileUpdated": "Đã cập nhật hồ sơ.",
+    "profileUpdatedDescription": "Hồ sơ của bạn đã được cập nhật thành công.",
+    "passwordChanged": "Đổi mật khẩu thành công",
+    "avatarUpdated": "Cập nhật ảnh đại diện thành công",
+    "failedToUpdate": "Cập nhật hồ sơ thất bại",
+    "failedToChangePassword": "Đổi mật khẩu thất bại",
+    "passwordsDoNotMatch": "Mật khẩu không khớp",
+    "passwordTooShort": "Mật khẩu phải có ít nhất 8 ký tự",
+    "confirmDeleteAccount": "Bạn có chắc chắn muốn xóa tài khoản của mình? Hành động này không thể hoàn tác."
+  }
+}

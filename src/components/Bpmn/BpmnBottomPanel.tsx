@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -9,11 +9,12 @@ import {
   TabPanel,
   IconButton,
   Text,
-} from "@chakra-ui/react";
-import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import VariablesPanel from "./VariablesPanel/VariablesPanel";
+} from '@chakra-ui/react';
+import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import VariablesPanel from './VariablesPanel/VariablesPanel';
+import { useTranslation } from 'next-i18next';
 
-interface BpmnBottomPanelProps {  
+interface BpmnBottomPanelProps {
   processID: string;
 }
 
@@ -22,6 +23,7 @@ const MAX_HEIGHT = 600;
 const DEFAULT_HEIGHT = 300;
 
 export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
+  const { t } = useTranslation('studio');
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [panelHeight, setPanelHeight] = useState(DEFAULT_HEIGHT);
@@ -60,17 +62,17 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
 
   useEffect(() => {
     if (isResizing) {
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "ns-resize";
-      document.body.style.userSelect = "none";
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'ns-resize';
+      document.body.style.userSelect = 'none';
     }
 
     return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
@@ -89,7 +91,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
         py={1}
         cursor="pointer"
         onClick={() => setIsOpen(!isOpen)}
-        _hover={{ bg: "gray.50" }}
+        _hover={{ bg: 'gray.50' }}
       >
         <Tabs
           index={activeTab}
@@ -100,9 +102,9 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
           <TabList>
             <Tab
               _selected={{
-                color: "teal.600",
-                borderBottom: "2px solid",
-                borderColor: "teal.600",
+                color: 'teal.600',
+                borderBottom: '2px solid',
+                borderColor: 'teal.600',
               }}
               fontSize="sm"
               fontWeight="medium"
@@ -111,13 +113,13 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              Problems
+              {t('bottomPanel.problems')}
             </Tab>
             <Tab
               _selected={{
-                color: "teal.600",
-                borderBottom: "2px solid",
-                borderColor: "teal.600",
+                color: 'teal.600',
+                borderBottom: '2px solid',
+                borderColor: 'teal.600',
               }}
               fontSize="sm"
               fontWeight="medium"
@@ -126,13 +128,13 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              Logs
+              {t('bottomPanel.logs')}
             </Tab>
             <Tab
               _selected={{
-                color: "teal.600",
-                borderBottom: "2px solid",
-                borderColor: "teal.600",
+                color: 'teal.600',
+                borderBottom: '2px solid',
+                borderColor: 'teal.600',
               }}
               fontSize="sm"
               fontWeight="medium"
@@ -141,13 +143,13 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              Variables
+              {t('bottomPanel.variables')}
             </Tab>
             <Tab
               _selected={{
-                color: "teal.600",
-                borderBottom: "2px solid",
-                borderColor: "teal.600",
+                color: 'teal.600',
+                borderBottom: '2px solid',
+                borderColor: 'teal.600',
               }}
               fontSize="sm"
               fontWeight="medium"
@@ -156,17 +158,21 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              Connections
+              {t('bottomPanel.connections')}
             </Tab>
           </TabList>
         </Tabs>
 
         <IconButton
-          aria-label={isOpen ? "Collapse panel" : "Expand panel"}
+          aria-label={
+            isOpen
+              ? t('bottomPanel.collapsePanel')
+              : t('bottomPanel.expandPanel')
+          }
           icon={
             <Box
               as="span"
-              transform={isOpen ? "rotate(180deg)" : "rotate(0deg)"}
+              transform={isOpen ? 'rotate(180deg)' : 'rotate(0deg)'}
               transition="transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)"
               display="flex"
               alignItems="center"
@@ -177,19 +183,19 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
           }
           size="sm"
           variant="ghost"
-          _hover={{ bg: "gray.100" }}
+          _hover={{ bg: 'gray.100' }}
         />
       </Flex>
 
       {/* Panel Content - Custom smooth animation */}
       <Box
         overflow="hidden"
-        height={isOpen ? `${panelHeight}px` : "0px"}
+        height={isOpen ? `${panelHeight}px` : '0px'}
         opacity={isOpen ? 1 : 0}
         transition={
           isResizing
-            ? "none"
-            : "height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-in-out"
+            ? 'none'
+            : 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease-in-out'
         }
         willChange="height, opacity"
       >
@@ -203,10 +209,10 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
           height="6px"
           cursor="ns-resize"
           bg="transparent"
-          _hover={{ bg: "teal.200" }}
+          _hover={{ bg: 'teal.200' }}
           sx={{
-            transition: isResizing ? "none" : "background-color 0.2s",
-            ...(isResizing && { bg: "teal.400" }),
+            transition: isResizing ? 'none' : 'background-color 0.2s',
+            ...(isResizing && { bg: 'teal.400' }),
           }}
           onMouseDown={handleMouseDown}
           zIndex={10}
@@ -223,7 +229,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
               <TabPanel>
                 <Box p={4}>
                   <Text color="gray.500" fontSize="sm">
-                    No problems detected in the BPMN diagram.
+                    {t('bottomPanel.noProblems')}
                   </Text>
                 </Box>
               </TabPanel>
@@ -232,7 +238,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
               <TabPanel>
                 <Box p={4}>
                   <Text color="gray.500" fontSize="sm">
-                    No logs available. Run the process to see execution logs.
+                    {t('bottomPanel.noLogs')}
                   </Text>
                 </Box>
               </TabPanel>
@@ -246,7 +252,7 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
               <TabPanel>
                 <Box p={4}>
                   <Text color="gray.500" fontSize="sm">
-                    No external connections configured.
+                    {t('bottomPanel.noConnections')}
                   </Text>
                 </Box>
               </TabPanel>

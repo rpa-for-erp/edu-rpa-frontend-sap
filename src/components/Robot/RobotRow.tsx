@@ -20,6 +20,7 @@ import { toastError, toastSuccess } from '@/utils/common';
 import { useRouter } from 'next/router';
 import { LOG_ROBOT } from '@/constants/robot';
 import { mapStatus, mapStatusColor } from '@/utils/robot';
+import { useTranslation } from 'next-i18next';
 
 interface RobotRowProps {
   data: Omit<Robot, 'userId'>;
@@ -38,6 +39,7 @@ interface RobotRowProps {
 }
 
 const RobotRow = (props: RobotRowProps) => {
+  const { t } = useTranslation('robot');
   const [isLoadingStatus, setIsLoadingStatus] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState('');
@@ -66,10 +68,10 @@ const RobotRow = (props: RobotRowProps) => {
     try {
       await robotApi.runRobot(user.id, data.processId, data.processVersion);
       setStatus('pending');
-      toastSuccess(toast, 'Run robot successfully');
+      toastSuccess(toast, t('messages.robotCreated'));
     } catch (error) {
       console.log(error);
-      toastError(toast, 'Run robot failed');
+      toastError(toast, t('messages.failedToCreate'));
     }
     setIsLoading(false);
   };
@@ -79,10 +81,10 @@ const RobotRow = (props: RobotRowProps) => {
     try {
       await robotApi.stopRobot(user.id, data.processId, data.processVersion);
       setStatus('stopping');
-      toastSuccess(toast, 'Stop robot successfully');
+      toastSuccess(toast, t('messages.robotUpdated'));
     } catch (error) {
       console.log(error);
-      toastError(toast, 'Stop robot failed');
+      toastError(toast, t('messages.failedToUpdate'));
     }
     setIsLoading(false);
   };
@@ -104,7 +106,8 @@ const RobotRow = (props: RobotRowProps) => {
         cursor: 'pointer',
         color: 'white',
         borderRadius: '15px',
-      }}>
+      }}
+    >
       {data &&
         Object.keys(data).map((key, columnIndex) => (
           <Td key={key}>
@@ -119,7 +122,8 @@ const RobotRow = (props: RobotRowProps) => {
             colorScheme="teal"
             variant="outline"
             size="sm"
-            onClick={handleGetStatus}>
+            onClick={handleGetStatus}
+          >
             Loading
           </Button>
         ) : (
@@ -127,7 +131,8 @@ const RobotRow = (props: RobotRowProps) => {
             colorScheme={mapStatusColor(status)}
             size="md"
             p={3}
-            rounded={10}>
+            rounded={10}
+          >
             {mapStatus(status)}
           </Tag>
         )}
@@ -140,7 +145,8 @@ const RobotRow = (props: RobotRowProps) => {
               loadingText="Running"
               colorScheme="teal"
               variant="outline"
-              size="sm">
+              size="sm"
+            >
               Run
             </Button>
           ) : (
