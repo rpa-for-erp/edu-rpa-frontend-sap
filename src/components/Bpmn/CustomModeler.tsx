@@ -1003,7 +1003,7 @@ function CustomModeler() {
           modelerRef={bpmnReactJs}
         />
       }
-      bottomPanel={<BpmnBottomPanel processID={processID as string} />}
+      bottomPanel={<BpmnBottomPanel processID={processID as string} modelerRef={bpmnReactJs} />}
     >
       <BpmnJsReact mode="edit" useBpmnJsReact={bpmnReactJs} ref={ref} />
 

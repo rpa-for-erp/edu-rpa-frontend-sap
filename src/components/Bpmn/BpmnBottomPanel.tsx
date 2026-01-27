@@ -9,19 +9,23 @@ import {
   TabPanel,
   IconButton,
   Text,
+  Badge,
 } from "@chakra-ui/react";
 import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
 import VariablesPanel from "./VariablesPanel/VariablesPanel";
+import ProblemsPanel, { Problem, getErrorCount } from "./ProblemsPanel/ProblemsPanel";
+import { useProblemTracker } from "@/hooks/useProblemTracker";
 
 interface BpmnBottomPanelProps {  
   processID: string;
+  modelerRef?: any;
 }
 
 const MIN_HEIGHT = 150;
 const MAX_HEIGHT = 600;
 const DEFAULT_HEIGHT = 300;
 
-export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
+export default function BpmnBottomPanel({ processID, modelerRef }: BpmnBottomPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [panelHeight, setPanelHeight] = useState(DEFAULT_HEIGHT);
@@ -29,6 +33,10 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
   const resizeRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
+  
+  // Track problems using hook - includes both activity validation and bpmnlint issues
+  const problems = useProblemTracker(processID, modelerRef);
+  const errorCount = getErrorCount(problems);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -111,7 +119,25 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              Problems
+              <Flex align="center" gap={2}>
+                <Text>Problems</Text>
+                {errorCount > 0 && (
+                  <Badge
+                    bg="red.500"
+                    color="white"
+                    borderRadius="full"
+                    fontSize="xs"
+                    px={1.5}
+                    minW="18px"
+                    h="18px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {errorCount}
+                  </Badge>
+                )}
+              </Flex>
             </Tab>
             <Tab
               _selected={{
@@ -220,12 +246,8 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
           <Tabs index={activeTab} isLazy>
             <TabPanels>
               {/* Problems Tab */}
-              <TabPanel>
-                <Box p={4}>
-                  <Text color="gray.500" fontSize="sm">
-                    No problems detected in the BPMN diagram.
-                  </Text>
-                </Box>
+              <TabPanel p={0}>
+                <ProblemsPanel problems={problems} modelerRef={modelerRef} />
               </TabPanel>
 
               {/* Logs Tab */}

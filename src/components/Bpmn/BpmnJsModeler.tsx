@@ -21,15 +21,19 @@ import gridModule from "diagram-js-grid";
 import TokenSimulationModule from "bpmn-js-token-simulation";
 //@ts-ignore
 import EmbeddedCommentsModule from "bpmn-js-embedded-comments";
+//@ts-ignore
+import lintModule from "bpmn-js-bpmnlint";
 import "bpmn-js/dist/assets/diagram-js.css";
 import "bpmn-font/dist/css/bpmn-embedded.css";
 import "bpmn-js-token-simulation/assets/css/bpmn-js-token-simulation.css";
 import "bpmn-js-embedded-comments/assets/comments.css";
+import "bpmn-js-bpmnlint/dist/assets/css/bpmn-js-bpmnlint.css";
 import { useParams } from "next/navigation";
 import { QUERY_KEY } from "@/constants/queryKey";
 import processApi from "@/apis/processApi";
 import { useQuery } from "@tanstack/react-query";
 import CustomContextPadProvider from "./CustomContextPadProvider";
+import customBpmnlintConfig from "@/utils/bpmnlint-custom-config";
 
 const BpmnJsModeler: ForwardRefRenderFunction<
   BpmnJsReactHandle,
@@ -57,6 +61,10 @@ const BpmnJsModeler: ForwardRefRenderFunction<
       keyboard: {
         bindTo: window,
       },
+      linting: {
+        bpmnlint: customBpmnlintConfig,
+        active: true,
+      },
       additionalModules: [
         CustomContextPadProvider,
         BpmnColorPickerModule,
@@ -64,6 +72,7 @@ const BpmnJsModeler: ForwardRefRenderFunction<
         minimapModule,
         TokenSimulationModule,
         EmbeddedCommentsModule,
+        lintModule,
       ],
       height: "100%",
     });
@@ -134,6 +143,17 @@ const BpmnJsModeler: ForwardRefRenderFunction<
       {/* Hide the default token simulation toggle button on canvas */}
       <style>{`
         .bts-toggle-mode {
+          display: none !important;
+        }
+        
+        /* Hide the default bpmnlint panel and overlays - we show errors in the Problems tab instead */
+        .bjsl-button,
+        .bjsl-button-error,
+        .bjsl-button-warning,
+        .bjsl-button-success,
+       
+        .bjsl-issues,
+        .bjsl-dropdown {
           display: none !important;
         }
         
