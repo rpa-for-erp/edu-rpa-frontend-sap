@@ -11,21 +11,33 @@ import {
   Text,
   Badge,
 } from "@chakra-ui/react";
-import { ChevronUpIcon, ChevronDownIcon } from "@chakra-ui/icons";
+import { ChevronUpIcon } from "@chakra-ui/icons";
 import VariablesPanel from "./VariablesPanel/VariablesPanel";
 import ProblemsPanel, { Problem, getErrorCount } from "./ProblemsPanel/ProblemsPanel";
+import ExecutionLogsPanel from "./ExecutionLogsPanel";
 import { useProblemTracker } from "@/hooks/useProblemTracker";
+import { RobotLogEntry } from "@/contexts/RobotTrackingContext";
 
 interface BpmnBottomPanelProps {  
   processID: string;
   modelerRef?: any;
+  // Robot tracking logs
+  executionLogs?: RobotLogEntry[];
+  selectedLog?: RobotLogEntry | null;
+  onSelectLog?: (log: RobotLogEntry) => void;
 }
 
 const MIN_HEIGHT = 150;
 const MAX_HEIGHT = 600;
 const DEFAULT_HEIGHT = 300;
 
-export default function BpmnBottomPanel({ processID, modelerRef }: BpmnBottomPanelProps) {
+export default function BpmnBottomPanel({ 
+  processID, 
+  modelerRef,
+  executionLogs = [],
+  selectedLog = null,
+  onSelectLog,
+}: BpmnBottomPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
   const [panelHeight, setPanelHeight] = useState(DEFAULT_HEIGHT);
@@ -37,6 +49,7 @@ export default function BpmnBottomPanel({ processID, modelerRef }: BpmnBottomPan
   // Track problems using hook - includes both activity validation and bpmnlint issues
   const problems = useProblemTracker(processID, modelerRef);
   const errorCount = getErrorCount(problems);
+  const logsCount = executionLogs.length;
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -81,6 +94,19 @@ export default function BpmnBottomPanel({ processID, modelerRef }: BpmnBottomPan
       document.body.style.userSelect = "";
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  // Auto-switch to Logs tab when new logs come in
+  useEffect(() => {
+    if (executionLogs.length > 0 && activeTab !== 1) {
+      // Optionally auto-open and switch to logs tab
+      // setActiveTab(1);
+      // setIsOpen(true);
+    }
+  }, [executionLogs.length]);
+
+  const handleSelectLog = (log: RobotLogEntry) => {
+    onSelectLog?.(log);
+  };
 
   return (
     <Box
@@ -152,7 +178,25 @@ export default function BpmnBottomPanel({ processID, modelerRef }: BpmnBottomPan
                 setIsOpen(true);
               }}
             >
-              Logs
+              <Flex align="center" gap={2}>
+                <Text>Logs</Text>
+                {logsCount > 0 && (
+                  <Badge
+                    bg="blue.500"
+                    color="white"
+                    borderRadius="full"
+                    fontSize="xs"
+                    px={1.5}
+                    minW="18px"
+                    h="18px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {logsCount}
+                  </Badge>
+                )}
+              </Flex>
             </Tab>
             <Tab
               _selected={{
@@ -251,12 +295,13 @@ export default function BpmnBottomPanel({ processID, modelerRef }: BpmnBottomPan
               </TabPanel>
 
               {/* Logs Tab */}
-              <TabPanel>
-                <Box p={4}>
-                  <Text color="gray.500" fontSize="sm">
-                    No logs available. Run the process to see execution logs.
-                  </Text>
-                </Box>
+              <TabPanel p={0} h={`${panelHeight - 10}px`}>
+                <ExecutionLogsPanel
+                  logs={executionLogs}
+                  selectedLog={selectedLog}
+                  onSelectLog={handleSelectLog}
+                  modelerRef={modelerRef}
+                />
               </TabPanel>
 
               {/* Variables Tab */}

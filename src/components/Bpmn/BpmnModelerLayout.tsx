@@ -4,6 +4,8 @@ import BpmnTopHeader from "./BpmnTopHeader";
 import BpmnSubHeader from "./BpmnSubHeader";
 import BpmnZoomControls from "./BpmnZoomControls";
 import { AIChatbot, AIChatbotButton } from "./AIChatbot";
+import { RobotTrackingState } from "@/hooks/useRobotTrackingSocket";
+import { SimulationMode, RobotLogEntry } from "@/contexts/RobotTrackingContext";
 
 interface BpmnModelerLayoutProps {
   processID: string;
@@ -34,6 +36,16 @@ interface BpmnModelerLayoutProps {
   // Token Simulation props
   tokenSimulation?: boolean;
   onTokenSimulationChange?: (enabled: boolean) => void;
+  // Robot Tracking props
+  trackingState?: RobotTrackingState;
+  simulationMode?: SimulationMode;
+  onSimulationModeChange?: (mode: SimulationMode) => void;
+  onConnectRobot?: () => void;
+  onDisconnectRobot?: () => void;
+  onContinueStep?: () => void;
+  onResetTracking?: () => void;
+  onStartRobot?: () => void;
+  onStopRobot?: () => void;
 }
 
 export default function BpmnModelerLayout({
@@ -55,6 +67,16 @@ export default function BpmnModelerLayout({
   onApplyXml,
   tokenSimulation = false,
   onTokenSimulationChange,
+  // Robot Tracking props
+  trackingState,
+  simulationMode,
+  onSimulationModeChange,
+  onConnectRobot,
+  onDisconnectRobot,
+  onContinueStep,
+  onResetTracking,
+  onStartRobot,
+  onStopRobot,
 }: BpmnModelerLayoutProps) {
   return (
     <Flex direction="column" height="100vh" overflow="hidden">
@@ -72,6 +94,16 @@ export default function BpmnModelerLayout({
         onShowVersions={onShowVersions}
         tokenSimulation={tokenSimulation}
         onTokenSimulationChange={onTokenSimulationChange}
+        // Robot Tracking props
+        trackingState={trackingState}
+        simulationMode={simulationMode}
+        onSimulationModeChange={onSimulationModeChange}
+        onConnectRobot={onConnectRobot}
+        onDisconnectRobot={onDisconnectRobot}
+        onContinueStep={onContinueStep}
+        onResetTracking={onResetTracking}
+        onStartRobot={onStartRobot}
+        onStopRobot={onStopRobot}
       />
 
       {/* Main Content Area */}

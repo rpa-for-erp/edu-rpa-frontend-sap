@@ -1,7 +1,7 @@
 import { useBpmn } from "@/hooks/useBpmn";
 import { useSubProcessContext } from "@/hooks/useSubProcessContext";
 import { BpmnJsReactHandle } from "@/interfaces/bpmnJsReact.interface";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import BpmnJsReact from "./BpmnJsReact";
 import {
   Box,
@@ -59,6 +59,9 @@ import { convertJsonToProcess } from "@/utils/bpmn-parser/json-to-bpmn-xml.util"
 import { PublishRobotModal } from "./FunctionalTabBar/PublishRobotModal";
 import { Modal, ModalOverlay } from "@chakra-ui/react";
 import UnsavedChangesModal from "./UnsavedChangesModal";
+import { useRobotTrackingSocket, ExecutedStep, StepStatus } from "@/hooks/useRobotTrackingSocket";
+import { BpmnExecutionHighlighter } from "@/services/bpmnExecutionHighlighter";
+import { SimulationMode, RobotLogEntry } from "@/contexts/RobotTrackingContext";
 
 interface OriginalObject {
   [key: string]: {
@@ -117,6 +120,14 @@ function CustomModeler() {
   const isSavedChanges = useSelector(bpmnSelector);
   const shouldBlockNavigationRef = useRef(false);
   const allowNavigationRef = useRef(false);
+
+  // Robot tracking state
+  const [simulationMode, setSimulationMode] = useState<SimulationMode>("step-by-step");
+  const [executionLogs, setExecutionLogs] = useState<RobotLogEntry[]>([]);
+  const [selectedLog, setSelectedLog] = useState<RobotLogEntry | null>(null);
+  const highlighterRef = useRef<BpmnExecutionHighlighter | null>(null);
+  const previousStepRef = useRef<ExecutedStep | null>(null);
+  const logIdCounter = useRef(0);
 
   const processName = router?.query?.name as string;
   const version = router?.query?.version as string;
@@ -676,6 +687,217 @@ function CustomModeler() {
     }
   };
 
+  // Robot tracking - get activities for keyword mapping
+  const activities = useMemo(() => {
+    const process = getProcessFromLocalStorage(processID as string);
+    return process?.activities || [];
+  }, [processID]);
+
+  // Handle step start - highlight node and add to logs
+  const handleStepStart = useCallback((step: ExecutedStep) => {
+    console.log('[CustomModeler] Step started:', step);
+    
+    if (highlighterRef.current) {
+      highlighterRef.current.highlightNode(step.bpmnNodeId, 'RUNNING');
+      highlighterRef.current.centerOnNode(step.bpmnNodeId);
+
+      if (previousStepRef.current) {
+        highlighterRef.current.animateSequenceFlow(
+          previousStepRef.current.bpmnNodeId,
+          step.bpmnNodeId
+        );
+      }
+    }
+
+    const newLog: RobotLogEntry = {
+      id: `log-${++logIdCounter.current}`,
+      timestamp: new Date(step.startTime).toLocaleTimeString('en-US', { 
+        hour12: false, 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+      }),
+      stepName: step.stepId,
+      status: 'RUNNING',
+      bpmnNodeId: step.bpmnNodeId,  // Add BPMN node ID for navigation
+      packageActivity: step.stepId,
+    };
+    
+    setExecutionLogs(prev => [...prev, newLog]);
+  }, []);
+
+  // Handle step end - update highlight and log
+  const handleStepEnd = useCallback((step: ExecutedStep) => {
+    console.log('[CustomModeler] Step ended:', step);
+    
+    if (highlighterRef.current) {
+      highlighterRef.current.highlightNode(step.bpmnNodeId, step.status);
+    }
+
+    previousStepRef.current = step;
+
+    // Parse variables from args - extract ${varName} patterns
+    let extractedVariables: { name: string; value: string }[] = [];
+    if (step.args && step.args.length > 0) {
+      const variableStorage = getVariableItemFromLocalStorage(processID as string);
+      const variableRegex = /\$\{([^}]+)\}/g;
+      const foundVarNames = new Set<string>();
+      
+      step.args.forEach(arg => {
+        let match;
+        while ((match = variableRegex.exec(arg)) !== null) {
+          foundVarNames.add(match[1]); // match[1] is the variable name without ${}
+        }
+      });
+
+      // Look up variable values from storage
+      if (variableStorage?.variables) {
+        foundVarNames.forEach(varName => {
+          const variable = variableStorage.variables.find(
+            (v: any) => v.name === varName
+          );
+          extractedVariables.push({
+            name: varName,
+            value: variable?.value ?? 'undefined',
+          });
+        });
+      } else {
+        // If no storage, just add the names with undefined value
+        foundVarNames.forEach(varName => {
+          extractedVariables.push({
+            name: varName,
+            value: 'undefined',
+          });
+        });
+      }
+    }
+
+    setExecutionLogs(prev => prev.map(log => 
+      log.stepName === step.stepId && log.status === 'RUNNING'
+        ? {
+            ...log,
+            status: step.status,
+            durationMs: step.durationMs,
+            args: step.args,
+            variables: extractedVariables,
+            error: step.status === 'ERROR' || step.status === 'FAIL' 
+              ? step.message || 'Step execution failed'
+              : undefined,
+          }
+        : log
+    ));
+
+    const statusEmoji = step.status === 'PASS' ? '✅' : step.status === 'ERROR' ? '❌' : '⏭️';
+    toast({
+      title: `${statusEmoji} ${step.stepId}: ${step.status}`,
+      description: step.durationMs ? `Duration: ${step.durationMs}ms` : undefined,
+      status: step.status === 'PASS' ? 'success' : step.status === 'ERROR' ? 'error' : 'warning',
+      duration: 2000,
+      isClosable: true,
+      position: 'bottom-right',
+    });
+  }, [toast, processID]);
+
+  // Handle run end
+  const handleRunEnd = useCallback((status: StepStatus) => {
+    console.log('[CustomModeler] Run ended:', status);
+    previousStepRef.current = null;
+
+    toast({
+      title: status === 'PASS' ? '🎉 Robot completed successfully!' : '⚠️ Robot finished with errors',
+      status: status === 'PASS' ? 'success' : 'error',
+      duration: 5000,
+      isClosable: true,
+      position: 'top',
+    });
+  }, [toast]);
+
+  // Initialize robot tracking WebSocket hook
+  const {
+    trackingState,
+    connect: connectRobot,
+    disconnect: disconnectRobot,
+    continueStep,
+    resetTracking: resetTrackingState,
+  } = useRobotTrackingSocket({
+    processId: processID as string,
+    activities,
+    onStepStart: handleStepStart,
+    onStepEnd: handleStepEnd,
+    onRunEnd: handleRunEnd,
+    autoConnect: false,
+  });
+
+  // Initialize highlighter when modeler is ready
+  useEffect(() => {
+    if (bpmnReactJs.bpmnModeler) {
+      highlighterRef.current = new BpmnExecutionHighlighter(bpmnReactJs.bpmnModeler);
+      console.log('[CustomModeler] Highlighter initialized');
+    }
+
+    return () => {
+      if (highlighterRef.current) {
+        highlighterRef.current.clearAllHighlights();
+        highlighterRef.current = null;
+      }
+    };
+  }, [bpmnReactJs.bpmnModeler]);
+
+  // Inject highlighter global styles
+  useEffect(() => {
+    const styleId = 'bpmn-execution-highlighter-styles';
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = BpmnExecutionHighlighter.getGlobalStyles();
+      document.head.appendChild(style);
+    }
+
+    return () => {
+      const style = document.getElementById(styleId);
+      if (style) {
+        style.remove();
+      }
+    };
+  }, []);
+
+  // Robot tracking handlers for SubHeader
+  const handleConnectRobot = () => {
+    connectRobot();
+  };
+
+  const handleDisconnectRobot = () => {
+    disconnectRobot();
+  };
+
+  const handleContinueStep = () => {
+    continueStep();
+  };
+
+  const handleResetTracking = () => {
+    resetTrackingState();
+    setExecutionLogs([]);
+    setSelectedLog(null);
+    if (highlighterRef.current) {
+      highlighterRef.current.clearAllHighlights();
+    }
+    previousStepRef.current = null;
+  };
+
+  const handleStartRobot = () => {
+    console.log('[CustomModeler] Start robot in mode:', simulationMode);
+    // In real implementation, this would trigger robot execution on backend
+  };
+
+  const handleStopRobot = () => {
+    console.log('[CustomModeler] Stop robot');
+    // In real implementation, this would stop robot execution on backend
+  };
+
+  const handleSelectLog = (log: RobotLogEntry) => {
+    setSelectedLog(log);
+  };
+
   const handleApplyXml = async (
     xml: string,
     activities?: any[],
@@ -1003,7 +1225,25 @@ function CustomModeler() {
           modelerRef={bpmnReactJs}
         />
       }
-      bottomPanel={<BpmnBottomPanel processID={processID as string} modelerRef={bpmnReactJs} />}
+      bottomPanel={
+        <BpmnBottomPanel 
+          processID={processID as string} 
+          modelerRef={bpmnReactJs}
+          executionLogs={executionLogs}
+          selectedLog={selectedLog}
+          onSelectLog={handleSelectLog}
+        />
+      }
+      // Robot tracking props
+      trackingState={trackingState}
+      simulationMode={simulationMode}
+      onSimulationModeChange={setSimulationMode}
+      onConnectRobot={handleConnectRobot}
+      onDisconnectRobot={handleDisconnectRobot}
+      onContinueStep={handleContinueStep}
+      onResetTracking={handleResetTracking}
+      onStartRobot={handleStartRobot}
+      onStopRobot={handleStopRobot}
     >
       <BpmnJsReact mode="edit" useBpmnJsReact={bpmnReactJs} ref={ref} />
 

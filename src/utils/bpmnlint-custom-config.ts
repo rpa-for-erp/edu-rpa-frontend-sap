@@ -23,10 +23,10 @@ const customRules = {
   "link-event": "off",
   "no-bpmndi": "off",
   "no-complex-gateway": "off",
-  "no-duplicate-sequence-flows": "off",
+  "no-duplicate-sequence-flows": "error",
   "no-implicit-split": "off",
-  "no-implicit-end": "off",
-  "no-implicit-start": "off",
+  "no-implicit-end": "error",
+  "no-implicit-start": "error",
   "no-inclusive-gateway": "off",
   "no-overlapping-elements": "off",
   "single-event-definition": "off",
@@ -35,11 +35,11 @@ const customRules = {
   "superfluous-termination": "off",
 
   // Enable only the requested rules
-  "no-gateway-join-fork": "error",       // No Gateway Join Fork
+  "no-gateway-join-fork": "warn",       // No Gateway Join Fork
   "start-event-required": "error",        // Start event required
   "end-event-required": "error",          // End event required  
-  "fake-join": "error",                   // Fake Join
-  "conditional-flows": "error",           // Conditional Flows
+  "fake-join": "warn",                   // Fake Join
+  "conditional-flows": "off",           // Conditional Flows
   "no-disconnected": "error",             // No disconnected elements
   "single-blank-start-event": "error",    // Single Blank Start Event
 };
