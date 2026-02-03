@@ -1,3 +1,5 @@
+import { LocalStorage } from "@/constants/localStorage";
+
 const getLocalStorageObject = (key: string) => {
   const currentStorage = localStorage.getItem(key);
   if (!currentStorage) {
@@ -13,6 +15,10 @@ const getLocalStorageObject = (key: string) => {
 
 const setLocalStorageObject = (key: string, value: object[] | string) => {
   localStorage.setItem(key, JSON.stringify(value));
+  // Dispatch custom event for same-tab updates when process list changes
+  if (key === LocalStorage.PROCESS_LIST) {
+    window.dispatchEvent(new Event("processUpdated"));
+  }
 };
 
 export { getLocalStorageObject, setLocalStorageObject };

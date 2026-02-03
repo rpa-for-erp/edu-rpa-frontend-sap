@@ -9,20 +9,36 @@ import {
   TabPanel,
   IconButton,
   Text,
+  Badge,
 } from '@chakra-ui/react';
-import { ChevronUpIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import { ChevronUpIcon } from '@chakra-ui/icons';
 import VariablesPanel from './VariablesPanel/VariablesPanel';
 import { useTranslation } from 'next-i18next';
+import ProblemsPanel, { Problem, getErrorCount } from "./ProblemsPanel/ProblemsPanel";
+import ExecutionLogsPanel from "./ExecutionLogsPanel";
+import { useProblemTracker } from "@/hooks/useProblemTracker";
+import { RobotLogEntry } from "@/contexts/RobotTrackingContext";
 
 interface BpmnBottomPanelProps {
   processID: string;
+  modelerRef?: any;
+  // Robot tracking logs
+  executionLogs?: RobotLogEntry[];
+  selectedLog?: RobotLogEntry | null;
+  onSelectLog?: (log: RobotLogEntry) => void;
 }
 
 const MIN_HEIGHT = 150;
 const MAX_HEIGHT = 600;
 const DEFAULT_HEIGHT = 300;
 
-export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
+export default function BpmnBottomPanel({ 
+  processID, 
+  modelerRef,
+  executionLogs = [],
+  selectedLog = null,
+  onSelectLog,
+}: BpmnBottomPanelProps) {
   const { t } = useTranslation('studio');
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -31,6 +47,11 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
   const resizeRef = useRef<HTMLDivElement>(null);
   const startYRef = useRef(0);
   const startHeightRef = useRef(0);
+  
+  // Track problems using hook - includes both activity validation and bpmnlint issues
+  const problems = useProblemTracker(processID, modelerRef);
+  const errorCount = getErrorCount(problems);
+  const logsCount = executionLogs.length;
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -76,6 +97,19 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
     };
   }, [isResizing, handleMouseMove, handleMouseUp]);
 
+  // Auto-switch to Logs tab when new logs come in
+  useEffect(() => {
+    if (executionLogs.length > 0 && activeTab !== 1) {
+      // Optionally auto-open and switch to logs tab
+      // setActiveTab(1);
+      // setIsOpen(true);
+    }
+  }, [executionLogs.length]);
+
+  const handleSelectLog = (log: RobotLogEntry) => {
+    onSelectLog?.(log);
+  };
+
   return (
     <Box
       position="relative"
@@ -113,7 +147,25 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              {t('bottomPanel.problems')}
+              <Flex align="center" gap={2}>
+                <Text>Problems</Text>
+                {errorCount > 0 && (
+                  <Badge
+                    bg="red.500"
+                    color="white"
+                    borderRadius="full"
+                    fontSize="xs"
+                    px={1.5}
+                    minW="18px"
+                    h="18px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {errorCount}
+                  </Badge>
+                )}
+              </Flex>
             </Tab>
             <Tab
               _selected={{
@@ -128,7 +180,25 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
                 setIsOpen(true);
               }}
             >
-              {t('bottomPanel.logs')}
+              <Flex align="center" gap={2}>
+                <Text>Logs</Text>
+                {logsCount > 0 && (
+                  <Badge
+                    bg="blue.500"
+                    color="white"
+                    borderRadius="full"
+                    fontSize="xs"
+                    px={1.5}
+                    minW="18px"
+                    h="18px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    {logsCount}
+                  </Badge>
+                )}
+              </Flex>
             </Tab>
             <Tab
               _selected={{
@@ -226,21 +296,18 @@ export default function BpmnBottomPanel({ processID }: BpmnBottomPanelProps) {
           <Tabs index={activeTab} isLazy>
             <TabPanels>
               {/* Problems Tab */}
-              <TabPanel>
-                <Box p={4}>
-                  <Text color="gray.500" fontSize="sm">
-                    {t('bottomPanel.noProblems')}
-                  </Text>
-                </Box>
+              <TabPanel p={0}>
+                <ProblemsPanel problems={problems} modelerRef={modelerRef} />
               </TabPanel>
 
               {/* Logs Tab */}
-              <TabPanel>
-                <Box p={4}>
-                  <Text color="gray.500" fontSize="sm">
-                    {t('bottomPanel.noLogs')}
-                  </Text>
-                </Box>
+              <TabPanel p={0} h={`${panelHeight - 10}px`}>
+                <ExecutionLogsPanel
+                  logs={executionLogs}
+                  selectedLog={selectedLog}
+                  onSelectLog={handleSelectLog}
+                  modelerRef={modelerRef}
+                />
               </TabPanel>
 
               {/* Variables Tab */}

@@ -81,6 +81,7 @@ const Navbar = () => {
         try {
           const userData = await userApi.getMe();
           setUserInfo(userData);
+          dispatch(setUser(userData));
         } catch (error) {
           console.error('Failed to fetch user data', error);
         }
