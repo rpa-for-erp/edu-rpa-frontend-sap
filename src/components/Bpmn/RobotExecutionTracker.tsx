@@ -5,7 +5,7 @@
  * Shows step-by-step progress with smooth animations and status indicators.
  */
 
-import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import {
   Box,
   VStack,
@@ -36,7 +36,6 @@ import {
 } from 'react-icons/fi';
 import { useRobotTrackingSocket, ExecutedStep, StepStatus } from '@/hooks/useRobotTrackingSocket';
 import { BpmnExecutionHighlighter } from '@/services/bpmnExecutionHighlighter';
-import { getProcessFromLocalStorage } from '@/utils/processService';
 
 interface RobotExecutionTrackerProps {
   processId: string;
@@ -72,12 +71,6 @@ export const RobotExecutionTracker: React.FC<RobotExecutionTrackerProps> = ({
   const [isExpanded, setIsExpanded] = React.useState(true);
   const [isPanelVisible, setIsPanelVisible] = React.useState(false);
   const previousStepRef = useRef<ExecutedStep | null>(null);
-
-  // Get activities from localStorage for keyword mapping
-  const activities = useMemo(() => {
-    const process = getProcessFromLocalStorage(processId);
-    return process?.activities || [];
-  }, [processId]);
 
   // Handle step start - highlight with running animation
   const handleStepStart = useCallback((step: ExecutedStep) => {
@@ -150,7 +143,6 @@ export const RobotExecutionTracker: React.FC<RobotExecutionTrackerProps> = ({
     resetTracking,
   } = useRobotTrackingSocket({
     processId,
-    activities,
     onStepStart: handleStepStart,
     onStepEnd: handleStepEnd,
     onRunEnd: handleRunEnd,

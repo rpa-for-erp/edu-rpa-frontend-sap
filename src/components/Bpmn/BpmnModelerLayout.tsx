@@ -11,7 +11,7 @@ interface BpmnModelerLayoutProps {
   processID: string;
   processName: string;
   isSaved: boolean;
-  version?: string;
+  version?: number;
   onSaveAll: () => void;
   onPublish: () => void;
   onRobotCode: () => void;
@@ -46,6 +46,8 @@ interface BpmnModelerLayoutProps {
   onResetTracking?: () => void;
   onStartRobot?: () => void;
   onStopRobot?: () => void;
+  // Get robot code for simulation
+  getRobotCode?: () => Promise<{ code: string; credentials: any } | null>;
 }
 
 export default function BpmnModelerLayout({
@@ -75,8 +77,7 @@ export default function BpmnModelerLayout({
   onDisconnectRobot,
   onContinueStep,
   onResetTracking,
-  onStartRobot,
-  onStopRobot,
+  getRobotCode,
 }: BpmnModelerLayoutProps) {
   return (
     <Flex direction="column" height="100vh" overflow="hidden">
@@ -87,6 +88,7 @@ export default function BpmnModelerLayout({
       <BpmnSubHeader
         isSaved={isSaved}
         version={version}
+        processId={processID}
         onSaveAll={onSaveAll}
         onPublish={onPublish}
         onRobotCode={onRobotCode}
@@ -102,8 +104,7 @@ export default function BpmnModelerLayout({
         onDisconnectRobot={onDisconnectRobot}
         onContinueStep={onContinueStep}
         onResetTracking={onResetTracking}
-        onStartRobot={onStartRobot}
-        onStopRobot={onStopRobot}
+        getRobotCode={getRobotCode}
       />
 
       {/* Main Content Area */}

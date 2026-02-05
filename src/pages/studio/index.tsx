@@ -129,6 +129,9 @@ export default function Studio() {
           activities: [],
           variables: [],
           sharedByUser: item.sharedByUser,
+          version: item.version,
+          workspaceId: item.workspaceId,
+          scope: item.scope
         };
       })
     );

@@ -69,14 +69,30 @@ const stopRobot = async (
     });
 };
 
-const runRobot = async (userId: number, processId: string, version: number) => {
+const runRobot = async (
+  userId: number,
+  processId: string,
+  version: number,
+  options?: {
+    isSimulate?: boolean;
+    runType?: 'step-by-step' | 'run-all';
+  }
+) => {
+  const body: Record<string, any> = {
+    user_id: userId.toString(),
+    process_id: processId,
+    version: version,
+    trigger_type: 'manual',
+  };
+
+  // Add simulation parameters if provided
+  if (options?.isSimulate) {
+    body.is_simulate = true;
+    body.run_type = options.runType || 'run-all';
+  }
+
   return await apiBase
-    .post(`${process.env.NEXT_PUBLIC_AWS_ROBOT_API_GATEWAY_URL}/robot/run`, {
-      user_id: userId.toString(),
-      process_id: processId,
-      version: version,
-      trigger_type: 'manual',
-    })
+    .post(`${process.env.NEXT_PUBLIC_AWS_ROBOT_API_GATEWAY_URL}/robot/run`, body)
     .then((res: any) => {
       return res.data;
     });
@@ -179,6 +195,48 @@ const getAllRobotsByConnectionKey = async (
     });
 };
 
+/**
+ * Run robot in simulation mode with robot code
+ * Calls /robot/simulate endpoint
+ */
+const runSimulate = async (
+  userId: number,
+  processId: string,
+  version: number,
+  robotCode: string,
+  options?: {
+    runType?: 'step-by-step' | 'run-all';
+  }
+) => {
+  const body = {
+    user_id: userId.toString(),
+    process_id: processId,
+    version: version,
+    trigger_type: 'manual',
+    robot_code: robotCode,
+    is_simulate: true,
+    run_type: options?.runType || 'run-all',
+  };
+
+  return await apiBase
+    .post(`${process.env.NEXT_PUBLIC_SIMULATE_PROCESS_API}/robot/simulate`, body)
+    .then((res: any) => {
+      return res.data;
+    });
+};
+
+/**
+ * Stop robot simulation
+ * Calls /robot/stop/{process_id} endpoint
+ */
+const stopSimulate = async (processId: string) => {
+  return await apiBase
+    .post(`${process.env.NEXT_PUBLIC_SIMULATE_PROCESS_API}/robot/stop/${processId}`)
+    .then((res: any) => {
+      return res.data;
+    });
+};
+
 const robotApi = {
   getAllRobot,
   createRobot,
@@ -187,6 +245,8 @@ const robotApi = {
   getRobotDetail,
   stopRobot,
   runRobot,
+  runSimulate,
+  stopSimulate,
   getSchedule,
   deleteSchedule,
   createSchedule,
