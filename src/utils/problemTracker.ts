@@ -9,11 +9,14 @@ interface ActivityProperties {
   activityPackage?: string;
   activityName?: string;
   library?: string;
-  arguments?: Record<string, {
-    keywordArg?: string;
-    overrideType?: string | null;
-    value?: string | null;
-  }>;
+  arguments?: Record<
+    string,
+    {
+      keywordArg?: string;
+      overrideType?: string | null;
+      value?: string | null;
+    }
+  >;
   return?: string | null;
 }
 
@@ -38,7 +41,10 @@ function extractVariableName(value: string): string | null {
 /**
  * Check if variable exists in variables object
  */
-function variableExists(variableName: string, variables: ProcessVariables): boolean {
+function variableExists(
+  variableName: string,
+  variables: ProcessVariables,
+): boolean {
   return variableName in variables;
 }
 
@@ -62,7 +68,7 @@ export function trackProblems(processID: string): Problem[] {
 
   const problems: Problem[] = [];
   const activities = process.activities || [];
-  
+
   // Handle variables - can be object or array
   let variablesObj: ProcessVariables = {};
   if (process.variables) {
@@ -89,7 +95,13 @@ export function trackProblems(processID: string): Problem[] {
     if (
       activity.activityType === "label" ||
       activity.activityType === "bpmn:SequenceFlow" ||
-      activity.activityType === "bpmn:sequenceFlow"
+      activity.activityType === "bpmn:sequenceFlow" ||
+      activity.activityType === "bpmn:MessageFlow" ||
+      activity.activityType === "bpmn:StartEvent" ||
+      activity.activityType === "bpmn:EndEvent" ||
+      activity.activityType === "bpmn:ExclusiveGateway" ||
+      activity.activityType === "bpmn:ParallelGateway" ||
+      activity.activityType === "bpmn:InclusiveGateway"
     ) {
       return;
     }
@@ -112,7 +124,7 @@ export function trackProblems(processID: string): Problem[] {
     if (properties.arguments && typeof properties.arguments === "object") {
       const activityPackage = properties.activityPackage || "";
       const activityName = properties.activityName || "";
-      
+
       Object.entries(properties.arguments).forEach(([argName, argValue]) => {
         if (!argValue || typeof argValue !== "object") return;
 
@@ -133,9 +145,9 @@ export function trackProblems(processID: string): Problem[] {
                 React.createElement(
                   Text,
                   { as: "span", fontWeight: "medium", fontStyle: "italic" },
-                  highlightedPart
+                  highlightedPart,
                 ),
-                " must not be empty"
+                " must not be empty",
               ),
             });
           } else {

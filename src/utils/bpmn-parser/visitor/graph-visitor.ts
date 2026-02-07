@@ -11,7 +11,7 @@ import {
   BpmnInclusiveGateway,
   BpmnSubProcess,
 } from "../model/bpmn";
-import { Sequence, Branch, BlankBlock, IfBranchBlock } from "./BasicBlock";
+import { Sequence, Branch, BlankBlock, IfBranchBlock, ParallelBlock, ParallelBranchBlock } from "./BasicBlock";
 import { CustomGraph } from "./graph";
 
 export class GraphVisitor {
@@ -181,7 +181,7 @@ export class ConcreteGraphVisitor extends GraphVisitor {
           this.visit(this.graph.getNode(n), new Sequence([], curBlock));
         let conditionFlow = this.findEdgeId(nodeId, n);
         if (!conditionFlow) {
-          throw new BpmnParseError("Unknow Error", nodeId);
+          throw new BpmnParseError("Branch of Exclusive Gateway Must Have Condition", nodeId);
         }
         let ifBranch = new IfBranchBlock(branchSequence, conditionFlow);
         curBlock.branches.push(ifBranch);
@@ -209,22 +209,21 @@ export class ConcreteGraphVisitor extends GraphVisitor {
 
     if (this.splitNode.includes(nodeId)) {
       // Parallel Gateway: Execute all branches in parallel
-      // For now, we'll treat it sequentially as Robot Framework doesn't support true parallelism
-      // All branches will execute without conditions
-      let curBlock = new Branch(nodeId, null, [], "parallel");
+      // Use ParallelBlock instead of Branch for clearer semantics
+      let curBlock = new ParallelBlock(nodeId, null, []);
       let joinNodeId: string = "";
 
-      // Visit all branch except join node
+      // Visit all branches
       for (let n of adjacent) {
         let { sequence: branchSequence, joinNodeId: branchJoinNodeId } =
-          this.visit(this.graph.getNode(n), new Sequence([], curBlock));
-        let conditionFlow = this.findEdgeId(nodeId, n);
-        if (!conditionFlow) {
-          throw new BpmnParseError("Unknow Error", nodeId);
+          this.visit(this.graph.getNode(n), new Sequence([], undefined));
+        let flowId = this.findEdgeId(nodeId, n);
+        if (!flowId) {
+          throw new BpmnParseError("Unknown Error - missing flow", nodeId);
         }
         // Parallel branches don't need conditions
-        let ifBranch = new IfBranchBlock(branchSequence, conditionFlow);
-        curBlock.branches.push(ifBranch);
+        let parallelBranch = new ParallelBranchBlock(branchSequence, flowId);
+        curBlock.branches.push(parallelBranch);
         joinNodeId = branchJoinNodeId;
       }
       curBlock.join = joinNodeId; // Set join node of branching
@@ -234,7 +233,7 @@ export class ConcreteGraphVisitor extends GraphVisitor {
       return this.visit(this.graph.getNode(joinNodeId), sequence);
     } else if (this.joinNode.includes(nodeId)) {
       let curBlock = sequence.block.at(-1);
-      if (curBlock instanceof Branch && curBlock.join == nodeId) {
+      if (curBlock instanceof ParallelBlock && curBlock.join == nodeId) {
         return this.visit(this.graph.getNode(adjacent[0]), sequence);
       }
       return { sequence, joinNodeId: nodeId };

@@ -160,6 +160,31 @@ export class If extends BodyItem {
   }
 }
 
+// Parallel Branch - no condition needed
+export class ParallelBranch {
+  constructor(
+    public body: BodyItem[]
+  ) {}
+  toJSON() {
+    return {
+      body: this.body.map((bodyItem) => bodyItem.toJSON()),
+    };
+  }
+}
+
+// Parallel execution block - all branches run
+export class Parallel extends BodyItem {
+  constructor(public branches: ParallelBranch[]) {
+    super();
+  }
+  toJSON() {
+    return {
+      type: "PARALLEL",
+      branches: this.branches.map((branch) => branch.toJSON()),
+    };
+  }
+}
+
 export class For extends BodyItem {
   constructor(
     public variables: ProcessVariable[],

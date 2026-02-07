@@ -8,6 +8,8 @@ import {
   IfBranchBlock,
   Sequence,
   SequenceItem,
+  ParallelBlock,
+  ParallelBranchBlock,
 } from "./BasicBlock";
 import {
   Argument,
@@ -21,6 +23,8 @@ import {
   Resource,
   Robot,
   Test,
+  Parallel,
+  ParallelBranch,
 } from "./robot";
 import { AuthorizationProvider } from "@/interfaces/enums/provider.enum";
 import _ from "lodash";
@@ -51,6 +55,7 @@ export class SequenceVisitor {
   visitBpmnTask(node: BpmnTask, params: any) {}
   visitSequence(node: Sequence, params: any) {}
   visitBranch(node: Branch, params: any) {}
+  visitParallelBlock(node: ParallelBlock, params: any) {}
 }
 
 export class ConcreteSequenceVisitor extends SequenceVisitor {
@@ -234,25 +239,6 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
       ifBranch.push(branchCode);
     }
 
-    // For Parallel Gateway, all branches execute without conditions
-    if (node.gatewayType === "parallel") {
-      // Mark all branches to execute sequentially (Robot Framework limitation)
-      // First branch will be IF with empty condition (always true)
-      // Other branches will also execute
-      for (let i = 0; i < ifBranch.length; i++) {
-        ifBranch[i].condition = ""; // No condition needed for parallel
-        if (i === 0) {
-          ifBranch[i].type = "IF";
-        } else {
-          // For subsequent branches, we can use ELSE IF with True condition
-          // Or just execute them sequentially
-          ifBranch[i].type = "ELSE IF";
-          ifBranch[i].condition = "True"; // Always execute
-        }
-      }
-      return [new If(ifBranch)];
-    }
-
     // For Exclusive and Inclusive Gateways, validate conditions
     // Check branch with empty condition
     let emptyFlow = [];
@@ -336,6 +322,22 @@ export class ConcreteSequenceVisitor extends SequenceVisitor {
     }
 
     return new IfBranch("IF", conditionList.join(" "), body);
+  }
+
+  // Parallel Block - all branches execute without conditions
+  visitParallelBlock(node: ParallelBlock, params: any[]) {
+    let parallelBranches: ParallelBranch[] = [];
+    for (let branch of node.branches) {
+      let branchBody: BodyItem[] = this.visit(branch, params);
+      parallelBranches.push(new ParallelBranch(branchBody));
+    }
+    return [new Parallel(parallelBranches)];
+  }
+
+  // Parallel Branch Block - simple body without condition
+  visitParallelBranchBlock(node: ParallelBranchBlock, params: any[]) {
+    let body: BodyItem[] = this.visit(node.sequence, params);
+    return body;
   }
 
   visitBlankBlock(node: BlankBlock, params: any[]) {

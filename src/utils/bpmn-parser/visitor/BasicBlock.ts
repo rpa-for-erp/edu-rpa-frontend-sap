@@ -1,7 +1,7 @@
 import { log } from "console";
 import { BpmnNode } from "../model/bpmn";
 
-export type SequenceItem = BpmnNode | Branch | Sequence | IfBranchBlock;
+export type SequenceItem = BpmnNode | Branch | Sequence | IfBranchBlock | ParallelBlock | ParallelBranchBlock;
 export class Block {
   accept(visitor: any, param: any) {
     // visitor: Visitor
@@ -76,6 +76,42 @@ export class Branch extends Block {
       branchCode += this.branches[i].sequence.block.length
         ? this.branches[i].toString(indent + 1)
         : genIndent(indent + 1, "[Empty]");
+      branchCode += "\n";
+    }
+    return branchCode;
+  }
+}
+
+// Block for parallel branches (no condition needed)
+export class ParallelBranchBlock extends Block {
+  constructor(public sequence: Sequence, public flowId: string) {
+    super();
+  }
+  toString(indent: number): string {
+    return this.sequence.block
+      .map((b) => {
+        return b.toString(indent);
+      })
+      .join("\n");
+  }
+}
+
+// Parallel gateway block - all branches execute
+export class ParallelBlock extends Block {
+  constructor(
+    public split: string,
+    public join: string | null,
+    public branches: ParallelBranchBlock[] = []
+  ) {
+    super();
+  }
+  public toString(indent: number): string {
+    let branchCode = genIndent(indent, `PARALLEL: ${this.split}\n`);
+    for (let i = 0; i < this.branches.length; i++) {
+      branchCode += genIndent(indent + 1, `BRANCH ${i + 1}:\n`);
+      branchCode += this.branches[i].sequence.block.length
+        ? this.branches[i].toString(indent + 2)
+        : genIndent(indent + 2, "[Empty]");
       branchCode += "\n";
     }
     return branchCode;
