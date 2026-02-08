@@ -1688,7 +1688,7 @@
           type: "activity",
           keyword: "Setup ERPNext Connection",
           arguments: {
-            "Token File Path": {
+            "Connection": {
               type: "connection.ERPNext",
               description: "Đường dẫn đến file token JSON chứa base_url và credentials",
               keywordArg: "token_file_path",
@@ -1697,7 +1697,7 @@
           },
           return: {
             displayName: "Connection Status",
-            type: "dictionary",
+            type: "void",
             description: "Trạng thái kết nối với base_url",
           },
         },
