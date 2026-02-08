@@ -72,7 +72,6 @@ export interface RobotTrackingState {
 
 interface UseRobotTrackingSocketOptions {
   processId: string;
-  activities: Array<{ activityID: string; keyword?: string }>;
   onStepStart?: (step: ExecutedStep) => void;
   onStepEnd?: (step: ExecutedStep) => void;
   onRunEnd?: (status: StepStatus) => void;
@@ -95,7 +94,6 @@ const SOCKET_PATH = '/robot-report-logs-realtime';
 
 export function useRobotTrackingSocket({
   processId,
-  activities,
   onStepStart,
   onStepEnd,
   onRunEnd,
@@ -110,12 +108,6 @@ export function useRobotTrackingSocket({
     executedSteps: [],
   });
 
-  // Store activities in ref for easy lookup
-  const activitiesRef = useRef(activities);
-  useEffect(() => {
-    activitiesRef.current = activities;
-  }, [activities]);
-
   // Callbacks refs
   const onStepStartRef = useRef(onStepStart);
   const onStepEndRef = useRef(onStepEnd);
@@ -129,13 +121,45 @@ export function useRobotTrackingSocket({
 
   /**
    * Find BPMN node ID by keyword name
+   * Reads activities from localStorage
    */
   const findBpmnNodeByKeyword = useCallback((keyword: string): string | null => {
-    const activity = activitiesRef.current.find(
+    let currentActivities: Array<{ activityID: string; keyword?: string }> = [];
+    
+    // Get activities from localStorage
+    try {
+      const processList = getLocalStorageObject(LocalStorage.PROCESS_LIST);
+      if (processList && Array.isArray(processList)) {
+        const currentProcess = processList.find(
+          (p: any) => p.processID === processId || p.id === processId
+        );
+        if (currentProcess?.activities) {
+          currentActivities = currentProcess.activities;
+        }
+      }
+    } catch (error) {
+      console.error('[RobotTracking] Failed to load activities from localStorage:', error);
+    }
+
+    if (currentActivities.length === 0) {
+      console.warn('[RobotTracking] No activities available to find BPMN node for keyword:', keyword);
+      return null;
+    }
+
+    // Find activity by keyword
+    const activity = currentActivities.find(
       (a) => a.keyword === keyword
     );
+    
+    if (activity) {
+      console.log('[RobotTracking] Found BPMN node:', activity.activityID, 'for keyword:', keyword);
+    } else {
+      console.warn('[RobotTracking] No activity found for keyword:', keyword, 
+        'Available keywords:', currentActivities.map((a: any) => a.keyword).filter(Boolean));
+    }
+    
     return activity?.activityID || null;
-  }, []);
+  }, [processId]);
 
   /**
    * Connect to WebSocket

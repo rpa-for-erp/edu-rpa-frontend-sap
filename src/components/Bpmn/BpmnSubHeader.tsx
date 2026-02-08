@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Flex,
@@ -18,6 +18,8 @@ import {
   Tooltip,
   ButtonGroup,
   Divider,
+  useToast,
+  Spinner,
 } from '@chakra-ui/react';
 import { ChevronDownIcon, HamburgerIcon } from '@chakra-ui/icons';
 import { FaSave, FaPlay, FaStop, FaStepForward, FaRedo } from 'react-icons/fa';
@@ -26,10 +28,13 @@ import { useSaveShortcut } from '@/hooks/useSaveShortCut';
 import { useTranslation } from 'next-i18next';
 import { SimulationMode } from "@/contexts/RobotTrackingContext";
 import { RobotTrackingState } from "@/hooks/useRobotTrackingSocket";
+import robotApi from '@/apis/robotApi';
+import { useSelector } from 'react-redux';
+import { userSelector } from '@/redux/selector';
 
 interface BpmnSubHeaderProps {
   isSaved: boolean;
-  version?: string;
+  version?: number;
   onSaveAll: () => void;
   onPublish: () => void;
   onRobotCode: () => void;
@@ -45,8 +50,10 @@ interface BpmnSubHeaderProps {
   onDisconnectRobot?: () => void;
   onContinueStep?: () => void;
   onResetTracking?: () => void;
-  onStartRobot?: () => void;
-  onStopRobot?: () => void;
+  // Simulation API props
+  processId?: string;
+  // Get robot code callback for simulation
+  getRobotCode?: () => Promise<{ code: string; credentials: any } | null>;
 }
 
 export default function BpmnSubHeader({
@@ -67,11 +74,17 @@ export default function BpmnSubHeader({
   onDisconnectRobot,
   onContinueStep,
   onResetTracking,
-  onStartRobot,
-  onStopRobot,
+  // Simulation API props
+  processId,
+  getRobotCode,
 }: BpmnSubHeaderProps) {
   const { t } = useTranslation('studio');
+  const toast = useToast();
   const [activeTab, setActiveTab] = useState(0);
+  const [isStartingSimulation, setIsStartingSimulation] = useState(false);
+  const [isWaitingForFirstLog, setIsWaitingForFirstLog] = useState(false);
+  const [isStoppingSimulation, setIsStoppingSimulation] = useState(false);
+  const user = useSelector(userSelector);
 
   const handleChangeToSimulateTab = () => {
     setActiveTab(1);
@@ -81,6 +94,128 @@ export default function BpmnSubHeader({
   // Add Ctrl+S shortcut support
   useSaveShortcut(onSaveAll);
 
+  // Handler for starting simulation with API call
+  const handleStartSimulation = async (mode: SimulationMode) => {
+    const userId = user?.id;
+    console.log(userId, processId, version);
+    if (!userId || !processId || version === undefined) {
+      toast({
+        title: 'Missing Information',
+        description: 'User ID, Process ID, or Version is missing.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    // Check if getRobotCode is available
+    if (!getRobotCode) {
+      toast({
+        title: 'Configuration Error',
+        description: 'Robot code generator is not configured.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsStartingSimulation(true);
+    try {
+      // Get robot code first
+      const robotCodeResult = await getRobotCode();
+      if (!robotCodeResult || !robotCodeResult.code) {
+        toast({
+          title: 'Failed to Generate Robot Code',
+          description: 'Could not generate robot code. Please check your workflow for errors.',
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      // Set simulation mode first
+      onSimulationModeChange?.(mode);
+      
+      // Call the runSimulate API with robot code
+      await robotApi.runSimulate(userId, processId, version, robotCodeResult.code, {
+        runType: mode,
+      });
+
+      // Connect to robot tracking and start
+      onConnectRobot?.();
+
+      // Start waiting for first log
+      setIsWaitingForFirstLog(true);
+
+      toast({
+        title: 'Simulation Started',
+        description: `Robot simulation started in ${mode === 'run-all' ? 'Run All' : 'Step by Step'} mode.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error: any) {
+      console.error('Failed to start simulation:', error);
+      toast({
+        title: 'Failed to Start Simulation',
+        description: error?.response?.data?.message || error?.message || 'An error occurred while starting the simulation.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsStartingSimulation(false);
+    }
+  };
+
+  // Handler for stopping simulation with API call
+  const handleStopSimulation = async () => {
+    if (!processId) {
+      toast({
+        title: 'Missing Information',
+        description: 'Process ID is missing.',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    setIsStoppingSimulation(true);
+    try {
+      // Call the stopSimulate API
+      await robotApi.stopSimulate(processId);
+
+      // Reset waiting state
+      setIsWaitingForFirstLog(false);
+
+      // Reset tracking state (executed steps, running status, etc.)
+      onResetTracking?.();
+
+      toast({
+        title: 'Simulation Stopped',
+        description: 'Robot simulation has been stopped.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error: any) {
+      console.error('Failed to stop simulation:', error);
+      toast({
+        title: 'Failed to Stop Simulation',
+        description: error?.response?.data?.message || error?.message || 'An error occurred while stopping the simulation.',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsStoppingSimulation(false);
+    }
+  };
+
   const isConnected = trackingState?.isConnected ?? false;
   const isRunning = trackingState?.isRunning ?? false;
   const waitingForContinue = trackingState?.waitingForContinue ?? false;
@@ -88,6 +223,20 @@ export default function BpmnSubHeader({
   const lastCompletedStep = trackingState?.lastCompletedStep;
   const executedSteps = trackingState?.executedSteps ?? [];
   
+  // Detect when first log is received and stop waiting
+  useEffect(() => {
+    if (isWaitingForFirstLog && executedSteps.length > 0) {
+      setIsWaitingForFirstLog(false);
+    }
+  }, [isWaitingForFirstLog, executedSteps.length]);
+
+  // Reset waiting state when simulation stops
+  useEffect(() => {
+    if (!isRunning && !isConnected) {
+      setIsWaitingForFirstLog(false);
+    }
+  }, [isRunning, isConnected]);
+
   // Check if any step has error status - if so, we should stop the execution
   const hasError = executedSteps.some(
     (step) => step.status === 'ERROR' || step.status === 'FAIL'
@@ -98,6 +247,9 @@ export default function BpmnSubHeader({
   // - OR when there's a currentStep (for backward compatibility)
   // - AND there's no error in any previous step
   const canContinue = (waitingForContinue || !!currentStep) && !hasError;
+
+  // Combined loading state: starting simulation OR waiting for first log
+  const isLoading = isStartingSimulation || isWaitingForFirstLog;
 
   return (
     <Box
@@ -163,28 +315,37 @@ export default function BpmnSubHeader({
             <Flex align="center" gap={4}>
               {/* Connection Status */}
               <HStack spacing={2}>
-                <Tooltip label={isConnected ? "Connected to robot" : "Not connected"}>
-                  <Box
-                    w={2}
-                    h={2}
-                    borderRadius="full"
-                    bg={isConnected ? "green.400" : "gray.400"}
-                    animation={isRunning ? "pulse 1s infinite" : undefined}
-                  />
+                <Tooltip label={
+                  isLoading 
+                    ? "Starting simulation..." 
+                    : isConnected 
+                      ? "Connected to robot" 
+                      : "Not connected"
+                }>
+                 
+                    <Box
+                      w={2}
+                      h={2}
+                      borderRadius="full"
+                      bg={isConnected ? "green.400" : "gray.400"}
+                      animation={isRunning ? "pulse 1s infinite" : undefined}
+                    />
+                  
                 </Tooltip>
                 <Text fontSize="sm" color="gray.600">
-                  {isConnected 
-                    ? isRunning 
-                      ? "Running" 
-                      : "Connected" 
-                    : "Ready"}
+                  {
+                     isConnected 
+                      ? isRunning 
+                        ? "Running" 
+                        : "Connected" 
+                      : "Ready"}
                 </Text>
               </HStack>
 
               <Divider orientation="vertical" h="24px" />
 
               {/* Run Button with Dropdown */}
-              {!isRunning ? (
+              {!isRunning && !isLoading ? (
                 <Menu>
                   <MenuButton
                     as={Button}
@@ -193,16 +354,14 @@ export default function BpmnSubHeader({
                     colorScheme="green"
                     fontWeight="medium"
                     leftIcon={<FaPlay />}
+                    isDisabled={isLoading}
                   >
                     Run
                   </MenuButton>
                   <MenuList minW="180px">
                     <MenuItem
-                      onClick={() => {
-                        onSimulationModeChange?.("run-all");
-                        onConnectRobot?.();
-                        onStartRobot?.();
-                      }}
+                      onClick={() => handleStartSimulation('run-all')}
+                      isDisabled={isStartingSimulation}
                       _hover={{ bg: "green.50" }}
                     >
                       <HStack spacing={3}>
@@ -214,11 +373,8 @@ export default function BpmnSubHeader({
                       </HStack>
                     </MenuItem>
                     <MenuItem
-                      onClick={() => {
-                        onSimulationModeChange?.("step-by-step");
-                        onConnectRobot?.();
-                        onStartRobot?.();
-                      }}
+                      onClick={() => handleStartSimulation('step-by-step')}
+                      isDisabled={isStartingSimulation}
                       _hover={{ bg: "blue.50" }}
                     >
                       <HStack spacing={3}>
@@ -231,13 +387,23 @@ export default function BpmnSubHeader({
                     </MenuItem>
                   </MenuList>
                 </Menu>
+              ) : isLoading ? (
+                <Button
+                  size="sm"
+                  colorScheme="blue"
+                  isLoading
+                  loadingText="Starting..."
+                  fontWeight="medium"
+                />
               ) : (
                 <Tooltip label="Stop Execution">
                   <Button
                     leftIcon={<FaStop />}
                     colorScheme="red"
                     size="sm"
-                    onClick={onStopRobot}
+                    onClick={handleStopSimulation}
+                    isLoading={isStoppingSimulation}
+                    loadingText="Stopping..."
                   >
                     Stop
                   </Button>

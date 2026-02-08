@@ -126,6 +126,9 @@ export default function WorkspaceStudio() {
               activities: [],
               variables: [],
               sharedByUser: item.sharedByUser,
+              version: item.version,
+              workspaceId: item.workspaceId,
+              scope: item.scope
             };
           })
         : []

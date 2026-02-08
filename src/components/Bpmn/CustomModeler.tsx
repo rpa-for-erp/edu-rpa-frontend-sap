@@ -136,6 +136,7 @@ function CustomModeler() {
 
   const processName = router?.query?.name as string;
   const version = router?.query?.version as string;
+  const versionNumber = Number(version);
 
   // Original standalone query - unchanged
   const { data: processDetailByID, isLoading } = useQuery({
@@ -539,6 +540,79 @@ function CustomModeler() {
     );
 
     return robotCode;
+  };
+
+  /**
+   * Get robot code for simulation mode
+   * Syncs modeler state to localStorage first, then compiles robot code
+   * Returns null on error (with toast notification)
+   */
+  const getSimulationRobotCode = async (): Promise<{ code: string; credentials: any } | null> => {
+    // Sync XML and activities from modeler to localStorage before compiling
+    if (bpmnReactJs.bpmnModeler) {
+      try {
+        const xmlResult = await bpmnReactJs.saveXML();
+        const activityList = bpmnReactJs
+          .getElementList(processID as string)
+          .slice(1);
+
+        const currentProcess = getProcessFromLocalStorage(processID as string);
+        const updatedProcess = {
+          ...currentProcess,
+          id: processID as string,
+          xml: xmlResult.xml,
+          activities: activityList,
+        };
+        const newLocalStorage = updateLocalStorage(updatedProcess);
+        setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
+
+        console.log('📦 Synced modeler state to localStorage for simulation');
+      } catch (syncError) {
+        console.error('Failed to sync modeler state:', syncError);
+        toast({
+          title: t('modeler.syncBeforeCompile'),
+          status: 'warning',
+          position: 'top-right',
+          duration: 3000,
+          isClosable: true,
+        });
+        return null;
+      }
+    }
+
+    try {
+      const result = compileRobotCodePublish(processID as string);
+      if (!result || !result.code || !result.credentials) {
+        throw new Error('Invalid robot code: Missing code or credentials');
+      }
+      // Serialize code to JSON string for API
+      return {
+        code: JSON.stringify(result.code),
+        credentials: result.credentials,
+      };
+    } catch (error) {
+      console.error('Failed to compile robot code:', error);
+      if (error instanceof BpmnParseError) {
+        toast({
+          title: t('modeler.bpmnParseError'),
+          description: `${error.message}: ${error.bpmnId}`,
+          status: 'error',
+          position: 'top-right',
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: t('modeler.failedCompileCode'),
+          description: (error as Error).message || t('modeler.errorOccurred'),
+          status: 'error',
+          position: 'top-right',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
+      return null;
+    }
   };
 
   const handlePublish = async () => {
@@ -953,7 +1027,6 @@ function CustomModeler() {
     resetTracking: resetTrackingState,
   } = useRobotTrackingSocket({
     processId: processID as string,
-    activities,
     onStepStart: handleStepStart,
     onStepEnd: handleStepEnd,
     onRunEnd: handleRunEnd,
@@ -1014,16 +1087,6 @@ function CustomModeler() {
       highlighterRef.current.clearAllHighlights();
     }
     previousStepRef.current = null;
-  };
-
-  const handleStartRobot = () => {
-    console.log('[CustomModeler] Start robot in mode:', simulationMode);
-    // In real implementation, this would trigger robot execution on backend
-  };
-
-  const handleStopRobot = () => {
-    console.log('[CustomModeler] Stop robot');
-    // In real implementation, this would stop robot execution on backend
   };
 
   const handleSelectLog = (log: RobotLogEntry) => {
@@ -1336,7 +1399,7 @@ function CustomModeler() {
       processID={processID as string}
       processName={processName}
       isSaved={isSavedChanges.isSaved}
-      version={version}
+      version={versionNumber}
       onSaveAll={handleSaveAll}
       onPublish={handlePublish}
       onRobotCode={handleRobotCode}
@@ -1374,8 +1437,7 @@ function CustomModeler() {
       onDisconnectRobot={handleDisconnectRobot}
       onContinueStep={handleContinueStep}
       onResetTracking={handleResetTracking}
-      onStartRobot={handleStartRobot}
-      onStopRobot={handleStopRobot}
+      getRobotCode={getSimulationRobotCode}
     >
       <BpmnJsReact
         mode="edit"
