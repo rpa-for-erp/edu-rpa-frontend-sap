@@ -52,12 +52,12 @@ interface TableProps {
   data: any[];
   maxRows?: number;
   isLoading?: boolean;
-  onView?: (id: string, name: string, version: number) => void;
+  onView?: (id: string, name: string, version: string | number) => void;
   onDownload?: (id: string) => void;
   onDelete?: (id: string) => void;
-  onEdit?: (id: string, name: string, version: number) => void;
+  onEdit?: (id: string, name: string, version: string | number) => void;
   onRun?: (id: string) => void;
-  onViewFile?: (id: string, name: string, version: number) => void;
+  onViewFile?: (id: string, name: string, version: string | number) => void;
   onDuplicate?: (id: string) => void;
   onShare?: (id: string) => void;
   onPin?: (id: string) => void;
@@ -144,6 +144,25 @@ const CustomTable = (props: TableProps) => {
             {item?.pinned && <BsPinAngleFill color="#319795" />}
             <Text>{value}</Text>
           </HStack>
+        );
+      case 'parseStatus':
+        return (
+          <Tag
+            colorScheme={
+              value === 'success'
+                ? 'green'
+                : value === 'pending'
+                  ? 'blue'
+                  : value === 'failed'
+                    ? 'red'
+                    : 'gray'
+            }
+            size="md"
+            p={2}
+            rounded={8}
+          >
+            {value ? value.toUpperCase() : 'N/A'}
+          </Tag>
         );
       default:
         return <Text>{value}</Text>;
