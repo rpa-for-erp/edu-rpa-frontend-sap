@@ -31,6 +31,7 @@ import { RobotTrackingState } from "@/hooks/useRobotTrackingSocket";
 import robotApi from '@/apis/robotApi';
 import { useSelector } from 'react-redux';
 import { userSelector } from '@/redux/selector';
+import connectionApi from '@/apis/connectionApi';
 
 interface BpmnSubHeaderProps {
   isSaved: boolean;
@@ -125,6 +126,7 @@ export default function BpmnSubHeader({
     try {
       // Get robot code first
       const robotCodeResult = await getRobotCode();
+      console.log("[robotCodeResult]",robotCodeResult);
       if (!robotCodeResult || !robotCodeResult.code) {
         toast({
           title: 'Failed to Generate Robot Code',
@@ -135,12 +137,11 @@ export default function BpmnSubHeader({
         });
         return;
       }
-
       // Set simulation mode first
       onSimulationModeChange?.(mode);
       
       // Call the runSimulate API with robot code
-      await robotApi.runSimulate(userId, processId, version, robotCodeResult.code, {
+      await robotApi.runSimulate(userId, processId, version, robotCodeResult.code, robotCodeResult.credentials.map((k: any) => k.connectionKey), {
         runType: mode,
       });
 
