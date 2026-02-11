@@ -79,6 +79,16 @@ const activateConnection = async (
     });
 };
 
+const testERPNextConnection = async (name: string): Promise<void> => {
+  return await apiBase
+    .get(
+      `${process.env.NEXT_PUBLIC_DEV_API}/connection/erpnext/test?name=${name}`
+    )
+    .then((res: any) => {
+      return res.data;
+    });
+};
+
 const connectionApi = {
   queryConnections,
   refreshConnection,
@@ -86,6 +96,7 @@ const connectionApi = {
   getAllConnectionsByRobotKey,
   getConnectionsByConnectionKey,
   activateConnection,
+  testERPNextConnection,
 };
 
 export default connectionApi;

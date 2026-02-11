@@ -54,6 +54,10 @@ const ConnectionRow = (props: ConnectionRowProps) => {
       if (data.provider === AuthorizationProvider.MOODLE) {
         await moodleConnectionApi.testMoodleConnection(data.name);
         setStatus('Connected');
+      } else if (data.provider === AuthorizationProvider.ERP_NEXT) {
+        // For ERPNext connections, use the test endpoint
+        await connectionApi.testERPNextConnection(data.name);
+        setStatus('Connected');
       } else {
         // For OAuth connections, use the existing refresh endpoint
         await connectionApi.refreshConnection(data.provider, data.name);
