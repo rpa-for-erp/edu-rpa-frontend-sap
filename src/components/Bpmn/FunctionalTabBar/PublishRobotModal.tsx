@@ -147,11 +147,19 @@ export const PublishRobotModal = (props: Props) => {
             result.credentials.map((k: any) => k.connectionKey)
           );
 
-          let nonMoodleConnections = connections.filter(
-            (conn) => conn.provider !== 'Moodle'
+          // Separate connections by type
+          let moodleConnections = connections.filter(
+            (conn) => conn.provider === 'Moodle'
+          );
+          let erpnextConnections = connections.filter(
+            (conn) => conn.provider === 'ERP_Next'
+          );
+          let oauthConnections = connections.filter(
+            (conn) => conn.provider !== 'Moodle' && conn.provider !== 'ERP_Next'
           );
 
-          let refreshConnectionPromises = nonMoodleConnections.map(
+          // Test OAuth connections using refreshConnection
+          let oauthPromises = oauthConnections.map(
             async (conn) => {
               try {
                 await connectionApi.refreshConnection(conn.provider, conn.name);
@@ -162,13 +170,29 @@ export const PublishRobotModal = (props: Props) => {
             }
           );
 
-          let connectionExpiredMask = await Promise.all(
-            refreshConnectionPromises
+          // Test ERPNext connections using testERPNextConnection
+          let erpnextPromises = erpnextConnections.map(
+            async (conn) => {
+              try {
+                await connectionApi.testERPNextConnection(conn.name);
+                return true;
+              } catch (error) {
+                return false;
+              }
+            }
           );
 
-          let expiredConnections = nonMoodleConnections.filter(
-            (conn, index) => !connectionExpiredMask[index]
+          let oauthResults = await Promise.all(oauthPromises);
+          let erpnextResults = await Promise.all(erpnextPromises);
+
+          // Combine expired connections from both OAuth and ERPNext
+          let expiredOauthConnections = oauthConnections.filter(
+            (conn, index) => !oauthResults[index]
           );
+          let expiredErpnextConnections = erpnextConnections.filter(
+            (conn, index) => !erpnextResults[index]
+          );
+          let expiredConnections = [...expiredOauthConnections, ...expiredErpnextConnections];
 
           if (expiredConnections.length) {
             throw new UserCredentialError(
