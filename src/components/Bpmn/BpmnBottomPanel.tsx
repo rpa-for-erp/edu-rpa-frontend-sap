@@ -307,6 +307,7 @@ export default function BpmnBottomPanel({
                   selectedLog={selectedLog}
                   onSelectLog={handleSelectLog}
                   modelerRef={modelerRef}
+                  processID={processID}
                 />
               </TabPanel>
 
