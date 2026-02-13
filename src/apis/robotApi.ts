@@ -1,9 +1,5 @@
-import {
-  CreateRobotDto,
-  CreateScheduleDto,
-  UpdateScheduleDto,
-  EventSchedule,
-} from '@/dtos/robotDto';
+
+import { CreateRobotDto, CreateScheduleDto, EventSchedule, UpdateScheduleDto } from '@/dtos/robotDto';
 import apiBase from './config';
 import { Robot, Schedule } from '@/interfaces/robot';
 
@@ -204,6 +200,7 @@ const runSimulate = async (
   processId: string,
   version: number,
   robotCode: string,
+  connectionKeys: string[],
   options?: {
     runType?: 'step-by-step' | 'run-all';
   }
@@ -216,6 +213,7 @@ const runSimulate = async (
     robot_code: robotCode,
     is_simulate: true,
     run_type: options?.runType || 'run-all',
+    connection_keys: connectionKeys,
   };
 
   return await apiBase

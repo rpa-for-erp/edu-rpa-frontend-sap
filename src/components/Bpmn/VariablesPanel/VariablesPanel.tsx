@@ -1,21 +1,21 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Box } from '@chakra-ui/react';
-import DynamicVariableTable from '@/components/Bpmn/DynamicVariableTable/DynamicVariableTable';
-import { Variable } from '@/types/variable';
+import React, { useEffect, useState, useCallback } from "react";
+import { Box } from "@chakra-ui/react";
+import DynamicVariableTable from "@/components/Bpmn/DynamicVariableTable/DynamicVariableTable";
+import { Variable } from "@/types/variable";
 import {
   convertToRefactoredObject,
   getVariableItemFromLocalStorage,
   replaceVariableStorage,
-} from '@/utils/variableService';
+} from "@/utils/variableService";
 import {
   getLocalStorageObject,
   setLocalStorageObject,
-} from '@/utils/localStorageService';
-import { LocalStorage } from '@/constants/localStorage';
+} from "@/utils/localStorageService";
+import { LocalStorage } from "@/constants/localStorage";
 import {
   getProcessFromLocalStorage,
   updateProcessInProcessList,
-} from '@/utils/processService';
+} from "@/utils/processService";
 
 interface VariablesPanelProps {
   processID: string;
@@ -23,8 +23,9 @@ interface VariablesPanelProps {
 
 export default function VariablesPanel({ processID }: VariablesPanelProps) {
   const initialStorage = getVariableItemFromLocalStorage(processID);
+  console.log("initialStorage", initialStorage);
   const [variableList, setVariableList] = useState<Variable[]>(
-    initialStorage ? initialStorage.variables : []
+    initialStorage ? initialStorage.variables : [],
   );
 
   // Listen for variables-updated event from CustomModeler
@@ -40,14 +41,24 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
 
     // Check immediately on mount
     const initialStorage = getVariableItemFromLocalStorage(processID);
-    if (initialStorage && initialStorage.variables && initialStorage.variables.length > 0) {
+    if (
+      initialStorage &&
+      initialStorage.variables &&
+      initialStorage.variables.length > 0
+    ) {
       setVariableList(initialStorage.variables);
     }
 
-    window.addEventListener('variables-updated', handleVariablesUpdate as EventListener);
+    window.addEventListener(
+      "variables-updated",
+      handleVariablesUpdate as EventListener,
+    );
 
     return () => {
-      window.removeEventListener('variables-updated', handleVariablesUpdate as EventListener);
+      window.removeEventListener(
+        "variables-updated",
+        handleVariablesUpdate as EventListener,
+      );
     };
   }, [processID]);
 
@@ -57,9 +68,9 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
       processID: processID,
       variables: variableList,
     };
-    
+
     const existingStorage = getVariableItemFromLocalStorage(processID);
-    
+
     if (!existingStorage) {
       setLocalStorageObject(LocalStorage.VARIABLE_LIST, [
         ...getLocalStorageObject(LocalStorage.VARIABLE_LIST),
@@ -68,7 +79,7 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
     } else {
       const newStorage = replaceVariableStorage(processID, currentVariable);
       setLocalStorageObject(LocalStorage.VARIABLE_LIST, newStorage);
-      
+
       const variableListByID = getVariableItemFromLocalStorage(processID);
       const processProperties = getProcessFromLocalStorage(processID as string);
       const refactoredVariables = convertToRefactoredObject(variableListByID);
@@ -79,7 +90,7 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
       };
       const replaceStorageSnapshot = updateProcessInProcessList(
         processID as string,
-        updateStorageByID
+        updateStorageByID,
       );
       setLocalStorageObject(LocalStorage.PROCESS_LIST, replaceStorageSnapshot);
     }
@@ -102,4 +113,3 @@ export default function VariablesPanel({ processID }: VariablesPanelProps) {
     </Box>
   );
 }
-

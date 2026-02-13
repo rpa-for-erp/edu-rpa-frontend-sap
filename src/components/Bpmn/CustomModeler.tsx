@@ -1,67 +1,71 @@
-import { useBpmn } from '@/hooks/useBpmn';
-import { useSubProcessContext } from '@/hooks/useSubProcessContext';
-import { BpmnJsReactHandle } from '@/interfaces/bpmnJsReact.interface';
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import BpmnJsReact from './BpmnJsReact';
+import { useBpmn } from "@/hooks/useBpmn";
+import { useSubProcessContext } from "@/hooks/useSubProcessContext";
+import { BpmnJsReactHandle } from "@/interfaces/bpmnJsReact.interface";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
+import BpmnJsReact from "./BpmnJsReact";
 import {
   Box,
   Button,
   IconButton,
   useDisclosure,
   useToast,
-} from '@chakra-ui/react';
-import ModelerSideBar from './ModelerSidebar';
-import { BpmnParser } from '@/utils/bpmn-parser/bpmn-parser.util';
+} from "@chakra-ui/react";
+import ModelerSideBar from "./ModelerSidebar";
+import { BpmnParser } from "@/utils/bpmn-parser/bpmn-parser.util";
 import {
   getLocalStorageObject,
   setLocalStorageObject,
-} from '@/utils/localStorageService';
+} from "@/utils/localStorageService";
 import {
   getProcessFromLocalStorage,
   updateProcessInProcessList,
   updateLocalStorage,
-} from '@/utils/processService';
-import { useRouter } from 'next/router';
-import { LocalStorage } from '@/constants/localStorage';
-import { exportFile, stringifyCyclicObject } from '@/utils/common';
-import UndoRedoButtons from './UndoRedoButtons';
-import SubProcessControls from './SubProcessControls';
-import CreateProcessFromSubProcessModal from './CreateProcessFromSubProcessModal';
+} from "@/utils/processService";
+import { useRouter } from "next/router";
+import { LocalStorage } from "@/constants/localStorage";
+import { exportFile, stringifyCyclicObject } from "@/utils/common";
+import UndoRedoButtons from "./UndoRedoButtons";
+import SubProcessControls from "./SubProcessControls";
+import CreateProcessFromSubProcessModal from "./CreateProcessFromSubProcessModal";
 import {
   hasNestedSubProcesses,
   extractSubProcessAsProcess,
-} from '@/utils/subprocessExtractor';
-import { extractSubProcessData } from '@/utils/subprocessDataExtractor';
+} from "@/utils/subprocessExtractor";
+import { extractSubProcessData } from "@/utils/subprocessDataExtractor";
 
 import {
   convertToRefactoredObject,
   getIndexVariableStorage,
   getVariableItemFromLocalStorage,
-} from '@/utils/variableService';
+} from "@/utils/variableService";
 import UnsavedChangesModal from "./UnsavedChangesModal";
-import { useParams } from 'next/navigation';
-import { QUERY_KEY } from '@/constants/queryKey';
-import processApi from '@/apis/processApi';
-import { useMutation, useQuery } from '@tanstack/react-query';
-import LoadingIndicator from '../LoadingIndicator/LoadingIndicator';
-import { SaveProcessDto } from '@/dtos/processDto';
-import { useDispatch, useSelector } from 'react-redux';
-import { bpmnSelector } from '@/redux/selector';
-import { isSavedChange } from '@/redux/slice/bpmnSlice';
-import DisplayRobotCode from './DisplayRobotCode/DisplayRobotCode';
-import BpmnModelerLayout from './BpmnModelerLayout';
-import BpmnRightSidebar from './BpmnRightSidebar';
-import BpmnBottomPanel from './BpmnBottomPanel';
-import { BpmnParseError } from '@/utils/bpmn-parser/error';
-import teamApi from '@/apis/teamApi';
-import workspaceApi from '@/apis/workspaceApi';
-import { CreateVersionModal } from './VersionsPanel';
-import versionApi from '@/apis/versionApi';
-import { convertJsonToProcess } from '@/utils/bpmn-parser/json-to-bpmn-xml.util';
-import { PublishRobotModal } from './FunctionalTabBar/PublishRobotModal';
-import { Modal, ModalOverlay } from '@chakra-ui/react';
-import { useTranslation } from 'next-i18next';
-import { useRobotTrackingSocket, ExecutedStep, StepStatus } from "@/hooks/useRobotTrackingSocket";
+import { useParams } from "next/navigation";
+import { QUERY_KEY } from "@/constants/queryKey";
+import processApi from "@/apis/processApi";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import LoadingIndicator from "../LoadingIndicator/LoadingIndicator";
+import { SaveProcessDto } from "@/dtos/processDto";
+import { useDispatch, useSelector } from "react-redux";
+import { bpmnSelector } from "@/redux/selector";
+import { isSavedChange } from "@/redux/slice/bpmnSlice";
+import DisplayRobotCode from "./DisplayRobotCode/DisplayRobotCode";
+import BpmnModelerLayout from "./BpmnModelerLayout";
+import BpmnRightSidebar from "./BpmnRightSidebar";
+import BpmnBottomPanel from "./BpmnBottomPanel";
+import { BpmnParseError } from "@/utils/bpmn-parser/error";
+import teamApi from "@/apis/teamApi";
+import workspaceApi from "@/apis/workspaceApi";
+import { CreateVersionModal } from "./VersionsPanel";
+import versionApi from "@/apis/versionApi";
+import { convertJsonToProcess } from "@/utils/bpmn-parser/json-to-bpmn-xml.util";
+import { PublishRobotModal } from "./FunctionalTabBar/PublishRobotModal";
+import { Modal, ModalOverlay } from "@chakra-ui/react";
+import { useTranslation } from "next-i18next";
+import {
+  useRobotTrackingSocket,
+  ExecutedStep,
+  StepStatus,
+} from "@/hooks/useRobotTrackingSocket";
 import { BpmnExecutionHighlighter } from "@/services/bpmnExecutionHighlighter";
 import { SimulationMode, RobotLogEntry } from "@/contexts/RobotTrackingContext";
 
@@ -75,7 +79,7 @@ interface OriginalObject {
 
 function CustomModeler() {
   const router = useRouter();
-  const { t } = useTranslation('studio');
+  const { t } = useTranslation("studio");
   const ref = useRef<BpmnJsReactHandle>(null);
   const params = useParams();
   const bpmnReactJs = useBpmn();
@@ -106,18 +110,20 @@ function CustomModeler() {
     onOpen: onOpenUnsavedChangesModal,
     onClose: onCloseUnsavedChangesModal,
   } = useDisclosure();
-  const [errorTrace, setErrorTrace] = useState<string>('');
+  const [errorTrace, setErrorTrace] = useState<string>("");
   const [showRobotCode, setShowRobotCode] = useState(false);
-  const [pendingNavigation, setPendingNavigation] = useState<string | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<string | null>(
+    null,
+  );
   const [subProcessInfo, setSubProcessInfo] = useState<{
     name: string;
     elementCount: number;
     hasNested: boolean;
-  }>({ name: '', elementCount: 0, hasNested: false });
+  }>({ name: "", elementCount: 0, hasNested: false });
   const [activityItem, setActivityItem] = useState({
-    activityID: '',
-    activityName: '',
-    activityType: '',
+    activityID: "",
+    activityName: "",
+    activityType: "",
     properties: {},
   });
   const [isChatbotOpen, setIsChatbotOpen] = useState(false);
@@ -127,7 +133,8 @@ function CustomModeler() {
   const allowNavigationRef = useRef(false);
 
   // Robot tracking state
-  const [simulationMode, setSimulationMode] = useState<SimulationMode>("step-by-step");
+  const [simulationMode, setSimulationMode] =
+    useState<SimulationMode>("step-by-step");
   const [executionLogs, setExecutionLogs] = useState<RobotLogEntry[]>([]);
   const [selectedLog, setSelectedLog] = useState<RobotLogEntry | null>(null);
   const highlighterRef = useRef<BpmnExecutionHighlighter | null>(null);
@@ -147,7 +154,7 @@ function CustomModeler() {
 
   // NEW: Team process query
   const { data: teamProcessDetail, isLoading: isLoadingTeam } = useQuery({
-    queryKey: [QUERY_KEY.PROCESS_DETAIL, 'team', teamId, processID],
+    queryKey: [QUERY_KEY.PROCESS_DETAIL, "team", teamId, processID],
     queryFn: () =>
       teamApi.getTeamProcessById(teamId as string, processID as string),
     enabled: !!teamId,
@@ -160,11 +167,11 @@ function CustomModeler() {
   // NEW: Workspace process query
   const { data: workspaceProcessDetail, isLoading: isLoadingWorkspace } =
     useQuery({
-      queryKey: [QUERY_KEY.PROCESS_DETAIL, 'workspace', workspaceId, processID],
+      queryKey: [QUERY_KEY.PROCESS_DETAIL, "workspace", workspaceId, processID],
       queryFn: () =>
         workspaceApi.getWorkspaceProcessById(
           workspaceId as string,
-          processID as string
+          processID as string,
         ),
       enabled: !!workspaceId,
       staleTime: 5 * 60 * 1000,
@@ -188,10 +195,10 @@ function CustomModeler() {
       : isLoading;
 
   const convertObjectToArray = (
-    originalObject: OriginalObject | null | undefined
+    originalObject: OriginalObject | null | undefined,
   ) => {
     // Handle null, undefined, or non-object input
-    if (!originalObject || typeof originalObject !== 'object') {
+    if (!originalObject || typeof originalObject !== "object") {
       return [];
     }
 
@@ -218,13 +225,13 @@ function CustomModeler() {
     const updateStorageByID = {
       ...currentprocessID,
       processID: processID as string,
-      xml: currentProcessDetail.xml || '',
+      xml: currentProcessDetail.xml || "",
       variables: currentProcessDetail.variables || {},
       activities: currentProcessDetail.activities || [],
     };
     const replaceStorageSnapshot = updateProcessInProcessList(
       processID as string,
-      updateStorageByID
+      updateStorageByID,
     );
     // Reset isSaved to true when loading process data
     dispatch(isSavedChange(true));
@@ -239,7 +246,7 @@ function CustomModeler() {
       variables: convertObjectToArray(currentProcessDetail.variables),
     };
     const currentLocalStorageList = getLocalStorageObject(
-      LocalStorage.VARIABLE_LIST
+      LocalStorage.VARIABLE_LIST,
     );
 
     if (indexLocalStorage === undefined) {
@@ -251,15 +258,15 @@ function CustomModeler() {
       currentLocalStorageList[indexLocalStorage] = payloadStorage;
       setLocalStorageObject(
         LocalStorage.VARIABLE_LIST,
-        currentLocalStorageList
+        currentLocalStorageList,
       );
     }
 
     // Dispatch custom event to notify VariablesPanel to refresh
     window.dispatchEvent(
-      new CustomEvent('variables-updated', {
+      new CustomEvent("variables-updated", {
         detail: { processID },
-      })
+      }),
     );
   }, [currentProcessDetail, processID]);
 
@@ -270,13 +277,13 @@ function CustomModeler() {
         return await teamApi.updateTeamProcess(
           teamId as string,
           processID as string,
-          payload
+          payload,
         );
       } else if (workspaceId) {
         return await workspaceApi.saveWorkspaceProcess(
           workspaceId as string,
           processID as string,
-          payload
+          payload,
         );
       } else {
         return await processApi.saveProcessByID(processID as string, payload);
@@ -284,9 +291,9 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: t('modeler.saveSuccess'),
-        status: 'success',
-        position: 'top-right',
+        title: t("modeler.saveSuccess"),
+        status: "success",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
@@ -294,9 +301,9 @@ function CustomModeler() {
     },
     onError: () => {
       toast({
-        title: t('modeler.saveError'),
-        status: 'error',
-        position: 'top-right',
+        title: t("modeler.saveError"),
+        status: "error",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
@@ -308,7 +315,7 @@ function CustomModeler() {
       // Version feature only for standalone processes
       if (teamId || workspaceId) {
         throw new Error(
-          'Version feature is only available for standalone processes'
+          "Version feature is only available for standalone processes",
         );
       }
 
@@ -322,7 +329,7 @@ function CustomModeler() {
             .slice(1);
 
           const currentProcess = getProcessFromLocalStorage(
-            processID as string
+            processID as string,
           );
           const updatedProcess = {
             ...currentProcess,
@@ -334,7 +341,7 @@ function CustomModeler() {
           setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
         } catch (syncError) {
           throw new Error(
-            'Failed to sync canvas state before creating version'
+            "Failed to sync canvas state before creating version",
           );
         }
       }
@@ -342,18 +349,18 @@ function CustomModeler() {
       // Get current data from localStorage (now updated with latest canvas state)
       const processProperties = getProcessFromLocalStorage(processID as string);
       const variableListByID = getVariableItemFromLocalStorage(
-        processID as string
+        processID as string,
       );
       const refactoredVariables = convertToRefactoredObject(variableListByID);
 
       if (!processProperties) {
-        throw new Error('Process data not found in localStorage');
+        throw new Error("Process data not found in localStorage");
       }
 
       // Build full payload for create version
       const payload = {
         processId: processID as string,
-        xml: processProperties.xml || '',
+        xml: processProperties.xml || "",
         variables: refactoredVariables || {},
         activities: processProperties.activities || [],
         tag: data.tag,
@@ -364,9 +371,9 @@ function CustomModeler() {
     },
     onSuccess: () => {
       toast({
-        title: t('modeler.versionCreatedSuccess'),
-        status: 'success',
-        position: 'top-right',
+        title: t("modeler.versionCreatedSuccess"),
+        status: "success",
+        position: "top-right",
         duration: 2000,
         isClosable: true,
       });
@@ -374,10 +381,10 @@ function CustomModeler() {
     },
     onError: (error: any) => {
       toast({
-        title: t('modeler.versionCreatedError'),
-        description: error?.message || t('modeler.errorOccurred'),
-        status: 'error',
-        position: 'top-right',
+        title: t("modeler.versionCreatedError"),
+        description: error?.message || t("modeler.errorOccurred"),
+        status: "error",
+        position: "top-right",
         duration: 2000,
         isClosable: true,
       });
@@ -405,9 +412,9 @@ function CustomModeler() {
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
       } catch (syncError) {
         toast({
-          title: t('modeler.syncError'),
-          status: 'warning',
-          position: 'top-right',
+          title: t("modeler.syncError"),
+          status: "warning",
+          position: "top-right",
           duration: 2000,
           isClosable: true,
         });
@@ -418,15 +425,15 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties) {
       toast({
-        title: t('modeler.refreshError'),
-        status: 'error',
-        position: 'top-right',
+        title: t("modeler.refreshError"),
+        status: "error",
+        position: "top-right",
         duration: 1000,
         isClosable: true,
       });
     } else {
       const variableListByID = getVariableItemFromLocalStorage(
-        processID as string
+        processID as string,
       );
       const refactoredVariables = convertToRefactoredObject(variableListByID);
       const payload = {
@@ -437,7 +444,7 @@ function CustomModeler() {
       mutateSaveAll.mutate(payload);
     }
   };
- const handleSaveAndExit = async () => {
+  const handleSaveAndExit = async () => {
     try {
       await handleSaveAll();
       // Allow navigation after save completes
@@ -476,20 +483,20 @@ function CustomModeler() {
       // Validate process properties
       if (!processProperties) {
         throw new Error(
-          'Process data not found in localStorage. Please refresh the page.'
+          "Process data not found in localStorage. Please refresh the page.",
         );
       }
 
       if (!processProperties.xml) {
         throw new Error(
-          'Process XML is missing. Please save the process first.'
+          "Process XML is missing. Please save the process first.",
         );
       }
 
       const robotCode = bpmnParser.parse(
         processProperties.xml,
         processProperties.activities || [],
-        variableList ? variableList.variables : []
+        variableList ? variableList.variables : [],
       );
 
       setShowRobotCode(true);
@@ -499,17 +506,17 @@ function CustomModeler() {
 
       if (error instanceof BpmnParseError) {
         toast({
-          title: error.message + ': ' + error.bpmnId,
-          status: 'error',
-          position: 'bottom-right',
+          title: error.message + ": " + error.bpmnId,
+          status: "error",
+          position: "bottom-right",
           duration: 1000,
           isClosable: true,
         });
       }
       toast({
         title: (error as Error).message,
-        status: 'error',
-        position: 'bottom-right',
+        status: "error",
+        position: "bottom-right",
         duration: 1000,
         isClosable: true,
       });
@@ -525,18 +532,18 @@ function CustomModeler() {
     // Validate process properties - throw error for caller to handle
     if (!processProperties) {
       throw new Error(
-        'Process data not found in localStorage. Please refresh the page.'
+        "Process data not found in localStorage. Please refresh the page.",
       );
     }
 
     if (!processProperties.xml) {
-      throw new Error('Process XML is missing. Please save the process first.');
+      throw new Error("Process XML is missing. Please save the process first.");
     }
 
     const robotCode = bpmnParser.parse(
       processProperties.xml,
       processProperties.activities || [],
-      variableList ? variableList.variables : []
+      variableList ? variableList.variables : [],
     );
 
     return robotCode;
@@ -547,7 +554,10 @@ function CustomModeler() {
    * Syncs modeler state to localStorage first, then compiles robot code
    * Returns null on error (with toast notification)
    */
-  const getSimulationRobotCode = async (): Promise<{ code: string; credentials: any } | null> => {
+  const getSimulationRobotCode = async (): Promise<{
+    code: string;
+    credentials: any;
+  } | null> => {
     // Sync XML and activities from modeler to localStorage before compiling
     if (bpmnReactJs.bpmnModeler) {
       try {
@@ -566,13 +576,13 @@ function CustomModeler() {
         const newLocalStorage = updateLocalStorage(updatedProcess);
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-        console.log('📦 Synced modeler state to localStorage for simulation');
+        console.log("📦 Synced modeler state to localStorage for simulation");
       } catch (syncError) {
-        console.error('Failed to sync modeler state:', syncError);
+        console.error("Failed to sync modeler state:", syncError);
         toast({
-          title: t('modeler.syncBeforeCompile'),
-          status: 'warning',
-          position: 'top-right',
+          title: t("modeler.syncBeforeCompile"),
+          status: "warning",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
@@ -583,7 +593,7 @@ function CustomModeler() {
     try {
       const result = compileRobotCodePublish(processID as string);
       if (!result || !result.code || !result.credentials) {
-        throw new Error('Invalid robot code: Missing code or credentials');
+        throw new Error("Invalid robot code: Missing code or credentials");
       }
       // Serialize code to JSON string for API
       return {
@@ -591,22 +601,22 @@ function CustomModeler() {
         credentials: result.credentials,
       };
     } catch (error) {
-      console.error('Failed to compile robot code:', error);
+      console.error("Failed to compile robot code:", error);
       if (error instanceof BpmnParseError) {
         toast({
-          title: t('modeler.bpmnParseError'),
+          title: t("modeler.bpmnParseError"),
           description: `${error.message}: ${error.bpmnId}`,
-          status: 'error',
-          position: 'top-right',
+          status: "error",
+          position: "top-right",
           duration: 5000,
           isClosable: true,
         });
       } else {
         toast({
-          title: t('modeler.failedCompileCode'),
-          description: (error as Error).message || t('modeler.errorOccurred'),
-          status: 'error',
-          position: 'top-right',
+          title: t("modeler.failedCompileCode"),
+          description: (error as Error).message || t("modeler.errorOccurred"),
+          status: "error",
+          position: "top-right",
           duration: 5000,
           isClosable: true,
         });
@@ -635,10 +645,10 @@ function CustomModeler() {
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
       } catch (syncError) {
         toast({
-          title: t('modeler.failedSyncWorkflow'),
-          description: t('modeler.pleaseTryAgain'),
-          status: 'warning',
-          position: 'top-right',
+          title: t("modeler.failedSyncWorkflow"),
+          description: t("modeler.pleaseTryAgain"),
+          status: "warning",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
@@ -650,10 +660,10 @@ function CustomModeler() {
     const processProperties = getProcessFromLocalStorage(processID as string);
     if (!processProperties || !processProperties.xml) {
       toast({
-        title: t('modeler.processDataNotReady'),
-        description: t('modeler.processDataNotReadyDesc'),
-        status: 'warning',
-        position: 'top-right',
+        title: t("modeler.processDataNotReady"),
+        description: t("modeler.processDataNotReadyDesc"),
+        status: "warning",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
@@ -662,51 +672,51 @@ function CustomModeler() {
 
     // Check if in subprocess by directly checking canvas root (more reliable than state)
     if (bpmnReactJs.bpmnModeler) {
-      const canvas = bpmnReactJs.bpmnModeler.get('canvas') as any;
+      const canvas = bpmnReactJs.bpmnModeler.get("canvas") as any;
       const currentRoot = canvas.getRootElement();
       const isCurrentlyInSubProcess =
-        currentRoot?.businessObject?.$type === 'bpmn:SubProcess';
+        currentRoot?.businessObject?.$type === "bpmn:SubProcess";
 
-      console.log('📍 Current root type:', currentRoot?.businessObject?.$type);
+      console.log("📍 Current root type:", currentRoot?.businessObject?.$type);
       console.log(
-        '📍 Current root name:',
-        currentRoot?.businessObject?.name || currentRoot?.id
+        "📍 Current root name:",
+        currentRoot?.businessObject?.name || currentRoot?.id,
       );
-      console.log('📍 Is in subprocess:', isCurrentlyInSubProcess);
+      console.log("📍 Is in subprocess:", isCurrentlyInSubProcess);
 
       if (isCurrentlyInSubProcess) {
         // Check if subprocess has nested subprocesses
         const hasNested = hasNestedSubProcesses(
           bpmnReactJs.bpmnModeler,
-          currentRoot.id
+          currentRoot.id,
         );
 
-        console.log('📦 SubProcess has nested:', hasNested);
+        console.log("📦 SubProcess has nested:", hasNested);
 
         if (hasNested) {
           // Has nested subprocess → Show warning, don't allow publish
-          console.log('⚠️ NESTED SUBPROCESS DETECTED!');
-          console.log('→ Showing warning to user...');
+          console.log("⚠️ NESTED SUBPROCESS DETECTED!");
+          console.log("→ Showing warning to user...");
 
           toast({
-            title: t('modeler.cannotPublishNested'),
-            description: t('modeler.cannotPublishNestedDesc'),
-            status: 'warning',
-            position: 'top-right',
+            title: t("modeler.cannotPublishNested"),
+            description: t("modeler.cannotPublishNestedDesc"),
+            status: "warning",
+            position: "top-right",
             duration: 6000,
             isClosable: true,
           });
 
-          console.log('╚═══════════════════════════════════════════╝\n');
+          console.log("╚═══════════════════════════════════════════╝\n");
           return; // Stop here - don't continue to publish
         }
 
         // No nested subprocess → Continue with normal publish flow
-        console.log('✅ No nested subprocess detected');
-        console.log('→ Proceeding with normal publish flow...');
+        console.log("✅ No nested subprocess detected");
+        console.log("→ Proceeding with normal publish flow...");
       } else {
-        console.log('✅ In main process');
-        console.log('→ Proceeding with normal publish flow...');
+        console.log("✅ In main process");
+        console.log("→ Proceeding with normal publish flow...");
       }
     }
 
@@ -716,7 +726,7 @@ function CustomModeler() {
 
       // Check if result is valid
       if (!result || !result.code || !result.credentials) {
-        throw new Error('Invalid robot code: Missing code or credentials');
+        throw new Error("Invalid robot code: Missing code or credentials");
       }
 
       // Only save if validation passed
@@ -727,20 +737,20 @@ function CustomModeler() {
       // Show specific error message (ONLY toast, no modal)
       if (error instanceof BpmnParseError) {
         toast({
-          title: t('modeler.bpmnParseError'),
+          title: t("modeler.bpmnParseError"),
           description: `${error.message}: ${error.bpmnId}`,
-          status: 'error',
-          position: 'top-right',
+          status: "error",
+          position: "top-right",
           duration: 5000,
           isClosable: true,
         });
       } else {
         toast({
-          title: t('modeler.cannotPublishRobot'),
+          title: t("modeler.cannotPublishRobot"),
           description:
-            (error as Error).message || t('modeler.failedValidateCode'),
-          status: 'error',
-          position: 'top-right',
+            (error as Error).message || t("modeler.failedValidateCode"),
+          status: "error",
+          position: "top-right",
           duration: 5000,
           isClosable: true,
         });
@@ -757,10 +767,10 @@ function CustomModeler() {
     // Only allow version creation for standalone processes
     if (teamId || workspaceId) {
       toast({
-        title: t('modeler.versionNotAvailable'),
-        description: t('modeler.versionNotAvailableDesc'),
-        status: 'info',
-        position: 'top-right',
+        title: t("modeler.versionNotAvailable"),
+        description: t("modeler.versionNotAvailableDesc"),
+        status: "info",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
@@ -772,15 +782,15 @@ function CustomModeler() {
   const handleCreateProcessFromSubProcess = async (newProcessName: string) => {
     try {
       if (!bpmnReactJs.bpmnModeler) {
-        throw new Error(t('modeler.modelerNotInitialized'));
+        throw new Error(t("modeler.modelerNotInitialized"));
       }
 
-      const canvas = bpmnReactJs.bpmnModeler.get('canvas') as any;
+      const canvas = bpmnReactJs.bpmnModeler.get("canvas") as any;
       const currentRoot = canvas.getRootElement();
       // Extract subprocess XML
       const extracted = await extractSubProcessAsProcess(
         bpmnReactJs.bpmnModeler,
-        currentRoot.id
+        currentRoot.id,
       );
 
       // Get activities and variables from localStorage
@@ -788,16 +798,16 @@ function CustomModeler() {
       const allActivities = currentProcess?.activities || [];
       const allVariables = currentProcess?.variables || {};
 
-      console.log('📦 Parent process data:');
-      console.log('  - Total activities:', allActivities.length);
-      console.log('  - Total variables:', Object.keys(allVariables).length);
+      console.log("📦 Parent process data:");
+      console.log("  - Total activities:", allActivities.length);
+      console.log("  - Total variables:", Object.keys(allVariables).length);
 
       // Filter activities and variables for subprocess
       const subProcessData = extractSubProcessData(
         bpmnReactJs.bpmnModeler,
         currentRoot.id,
         allActivities,
-        allVariables
+        allVariables,
       );
 
       const newProcessId = `process_${Date.now().toString(36)}`;
@@ -812,35 +822,35 @@ function CustomModeler() {
         variables: subProcessData.variables,
       });
 
-      console.log('✅ Process created successfully!');
-      console.log('  - Process ID:', newProcessId);
-      console.log('  - Activities included:', subProcessData.activities.length);
+      console.log("✅ Process created successfully!");
+      console.log("  - Process ID:", newProcessId);
+      console.log("  - Activities included:", subProcessData.activities.length);
       console.log(
-        '  - Variables included:',
-        Object.keys(subProcessData.variables).length
+        "  - Variables included:",
+        Object.keys(subProcessData.variables).length,
       );
-      console.log('╚═══════════════════════════════════════════╝\n');
+      console.log("╚═══════════════════════════════════════════╝\n");
 
       toast({
-        title: t('modeler.processCreatedSuccess'),
-        description: t('modeler.processCreatedSuccessDesc', {
+        title: t("modeler.processCreatedSuccess"),
+        description: t("modeler.processCreatedSuccessDesc", {
           name: newProcessName,
           count: subProcessData.activities.length,
         }),
-        status: 'success',
-        position: 'top-right',
+        status: "success",
+        position: "top-right",
         duration: 5000,
         isClosable: true,
       });
 
       onCloseCreateFromSubProcess();
     } catch (error: any) {
-      console.error('Error creating process from subprocess:', error);
+      console.error("Error creating process from subprocess:", error);
       toast({
-        title: t('modeler.failedCreateProcess'),
-        description: error?.message || t('modeler.unexpectedError'),
-        status: 'error',
-        position: 'top-right',
+        title: t("modeler.failedCreateProcess"),
+        description: error?.message || t("modeler.unexpectedError"),
+        status: "error",
+        position: "top-right",
         duration: 5000,
         isClosable: true,
       });
@@ -851,10 +861,10 @@ function CustomModeler() {
     // Only allow version viewing for standalone processes
     if (teamId || workspaceId) {
       toast({
-        title: t('modeler.versionNotAvailable'),
-        description: t('modeler.versionNotAvailableDesc'),
-        status: 'info',
-        position: 'top-right',
+        title: t("modeler.versionNotAvailable"),
+        description: t("modeler.versionNotAvailableDesc"),
+        status: "info",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
@@ -872,13 +882,15 @@ function CustomModeler() {
 
   const handleTokenSimulationChange = (enabled: boolean) => {
     setTokenSimulation(enabled);
-    
+
     if (bpmnReactJs.bpmnModeler) {
       try {
         const toggleMode = bpmnReactJs.bpmnModeler.get("toggleMode") as any;
         if (toggleMode) {
           toggleMode.toggleMode(enabled);
-          console.log(`🎮 Token simulation ${enabled ? "enabled" : "disabled"}`);
+          console.log(
+            `🎮 Token simulation ${enabled ? "enabled" : "disabled"}`,
+          );
         }
       } catch (error) {
         console.error("Failed to toggle token simulation:", error);
@@ -901,122 +913,145 @@ function CustomModeler() {
 
   // Handle step start - highlight node and add to logs
   const handleStepStart = useCallback((step: ExecutedStep) => {
-    console.log('[CustomModeler] Step started:', step);
-    
+    console.log("[CustomModeler] Step started:", step);
+
     if (highlighterRef.current) {
-      highlighterRef.current.highlightNode(step.bpmnNodeId, 'RUNNING');
+      highlighterRef.current.highlightNode(step.bpmnNodeId, "RUNNING");
       highlighterRef.current.centerOnNode(step.bpmnNodeId);
 
       if (previousStepRef.current) {
         highlighterRef.current.animateSequenceFlow(
           previousStepRef.current.bpmnNodeId,
-          step.bpmnNodeId
+          step.bpmnNodeId,
         );
       }
     }
 
     const newLog: RobotLogEntry = {
       id: `log-${++logIdCounter.current}`,
-      timestamp: new Date(step.startTime).toLocaleTimeString('en-US', { 
-        hour12: false, 
-        hour: '2-digit', 
-        minute: '2-digit', 
-        second: '2-digit' 
+      timestamp: new Date(step.startTime).toLocaleTimeString("en-US", {
+        hour12: false,
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       }),
       stepName: step.stepId,
-      status: 'RUNNING',
-      bpmnNodeId: step.bpmnNodeId,  // Add BPMN node ID for navigation
+      status: "RUNNING",
+      bpmnNodeId: step.bpmnNodeId, // Add BPMN node ID for navigation
       packageActivity: step.stepId,
     };
-    
-    setExecutionLogs(prev => [...prev, newLog]);
+
+    setExecutionLogs((prev) => [...prev, newLog]);
   }, []);
 
   // Handle step end - update highlight and log
-  const handleStepEnd = useCallback((step: ExecutedStep) => {
-    console.log('[CustomModeler] Step ended:', step);
-    
-    if (highlighterRef.current) {
-      highlighterRef.current.highlightNode(step.bpmnNodeId, step.status);
-    }
+  const handleStepEnd = useCallback(
+    (step: ExecutedStep) => {
+      console.log("[CustomModeler] Step ended:", step);
 
-    previousStepRef.current = step;
-
-    // Parse variables from args - extract ${varName} patterns
-    let extractedVariables: { name: string; value: string }[] = [];
-    if (step.args && step.args.length > 0) {
-      const variableStorage = getVariableItemFromLocalStorage(processID as string);
-      const variableRegex = /\$\{([^}]+)\}/g;
-      const foundVarNames = new Set<string>();
-      
-      step.args.forEach(arg => {
-        let match;
-        while ((match = variableRegex.exec(arg)) !== null) {
-          foundVarNames.add(match[1]); // match[1] is the variable name without ${}
-        }
-      });
-
-      // Look up variable values from storage
-      if (variableStorage?.variables) {
-        foundVarNames.forEach(varName => {
-          const variable = variableStorage.variables.find(
-            (v: any) => v.name === varName
-          );
-          extractedVariables.push({
-            name: varName,
-            value: variable?.value ?? 'undefined',
-          });
-        });
-      } else {
-        // If no storage, just add the names with undefined value
-        foundVarNames.forEach(varName => {
-          extractedVariables.push({
-            name: varName,
-            value: 'undefined',
-          });
-        });
+      if (highlighterRef.current) {
+        highlighterRef.current.highlightNode(step.bpmnNodeId, step.status);
       }
-    }
 
-    setExecutionLogs(prev => prev.map(log => 
-      log.stepName === step.stepId && log.status === 'RUNNING'
-        ? {
-            ...log,
-            status: step.status,
-            durationMs: step.durationMs,
-            args: step.args,
-            variables: extractedVariables,
-            error: step.status === 'ERROR' || step.status === 'FAIL' 
-              ? step.message || 'Step execution failed'
-              : undefined,
+      previousStepRef.current = step;
+
+      // Parse variables from args - extract ${varName} patterns
+      let extractedVariables: { name: string; value: string }[] = [];
+      if (step.args && step.args.length > 0) {
+        const variableStorage = getVariableItemFromLocalStorage(
+          processID as string,
+        );
+        const variableRegex = /\$\{([^}]+)\}/g;
+        const foundVarNames = new Set<string>();
+
+        step.args.forEach((arg) => {
+          let match;
+          while ((match = variableRegex.exec(arg)) !== null) {
+            foundVarNames.add(match[1]); // match[1] is the variable name without ${}
           }
-        : log
-    ));
+        });
 
-    const statusEmoji = step.status === 'PASS' ? '✅' : step.status === 'ERROR' ? '❌' : '⏭️';
-    toast({
-      title: `${statusEmoji} ${step.stepId}: ${step.status}`,
-      description: step.durationMs ? `Duration: ${step.durationMs}ms` : undefined,
-      status: step.status === 'PASS' ? 'success' : step.status === 'ERROR' ? 'error' : 'warning',
-      duration: 2000,
-      isClosable: true,
-      position: 'bottom-right',
-    });
-  }, [toast, processID]);
+        // Look up variable values from storage
+        if (variableStorage?.variables) {
+          foundVarNames.forEach((varName) => {
+            const variable = variableStorage.variables.find(
+              (v: any) => v.name === varName,
+            );
+            extractedVariables.push({
+              name: varName,
+              value: variable?.value ?? "undefined",
+            });
+          });
+        } else {
+          // If no storage, just add the names with undefined value
+          foundVarNames.forEach((varName) => {
+            extractedVariables.push({
+              name: varName,
+              value: "undefined",
+            });
+          });
+        }
+      }
+
+      setExecutionLogs((prev) =>
+        prev.map((log) =>
+          log.stepName === step.stepId && log.status === "RUNNING"
+            ? {
+                ...log,
+                status: step.status,
+                durationMs: step.durationMs,
+                args: step.args,
+                variables: extractedVariables,
+                error:
+                  step.status === "ERROR" || step.status === "FAIL"
+                    ? step.message || "Step execution failed"
+                    : undefined,
+                message: step.message,
+              }
+            : log,
+        ),
+      );
+
+      const statusEmoji =
+        step.status === "PASS" ? "✅" : step.status === "ERROR" ? "❌" : "⏭️";
+      toast({
+        title: `${statusEmoji} ${step.stepId}: ${step.status}`,
+        description: step.durationMs
+          ? `Duration: ${step.durationMs}ms`
+          : undefined,
+        status:
+          step.status === "PASS"
+            ? "success"
+            : step.status === "ERROR"
+              ? "error"
+              : "warning",
+        duration: 2000,
+        isClosable: true,
+        position: "bottom-right",
+      });
+    },
+    [toast, processID],
+  );
 
   // Handle run end
-  const handleRunEnd = useCallback((status: StepStatus) => {
-    console.log('[CustomModeler] Run ended:', status);
-    previousStepRef.current = null;
+  const handleRunEnd = useCallback(
+    (status: StepStatus) => {
+      console.log("[CustomModeler] Run ended:", status);
+      previousStepRef.current = null;
 
-    toast({
-      title: status === 'PASS' ? '🎉 Robot completed successfully!' : '⚠️ Robot finished with errors',
-      status: status === 'PASS' ? 'success' : 'error',
-      duration: 5000,
-      isClosable: true,
-      position: 'top',
-    });
-  }, [toast]);
+      toast({
+        title:
+          status === "PASS"
+            ? "🎉 Robot completed successfully!"
+            : "⚠️ Robot finished with errors",
+        status: status === "PASS" ? "success" : "error",
+        duration: 5000,
+        isClosable: true,
+        position: "top",
+      });
+    },
+    [toast],
+  );
 
   // Initialize robot tracking WebSocket hook
   const {
@@ -1036,8 +1071,10 @@ function CustomModeler() {
   // Initialize highlighter when modeler is ready
   useEffect(() => {
     if (bpmnReactJs.bpmnModeler) {
-      highlighterRef.current = new BpmnExecutionHighlighter(bpmnReactJs.bpmnModeler);
-      console.log('[CustomModeler] Highlighter initialized');
+      highlighterRef.current = new BpmnExecutionHighlighter(
+        bpmnReactJs.bpmnModeler,
+      );
+      console.log("[CustomModeler] Highlighter initialized");
     }
 
     return () => {
@@ -1050,9 +1087,9 @@ function CustomModeler() {
 
   // Inject highlighter global styles
   useEffect(() => {
-    const styleId = 'bpmn-execution-highlighter-styles';
+    const styleId = "bpmn-execution-highlighter-styles";
     if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
+      const style = document.createElement("style");
       style.id = styleId;
       style.textContent = BpmnExecutionHighlighter.getGlobalStyles();
       document.head.appendChild(style);
@@ -1096,41 +1133,41 @@ function CustomModeler() {
   const handleApplyXml = async (
     xml: string,
     activities?: any[],
-    automaticNodeIds?: string[]
+    automaticNodeIds?: string[],
   ) => {
     try {
       if (!bpmnReactJs.bpmnModeler) {
-        throw new Error('Modeler not initialized');
+        throw new Error("Modeler not initialized");
       }
 
       await bpmnReactJs.bpmnModeler.importXML(xml);
-      console.log('✅ [AI Chatbot] XML imported to modeler');
+      console.log("✅ [AI Chatbot] XML imported to modeler");
 
       // Highlight automatic nodes (is_automatic === true) in green
       if (automaticNodeIds && automaticNodeIds.length > 0) {
         try {
-          const modeling = bpmnReactJs.bpmnModeler.get('modeling');
+          const modeling = bpmnReactJs.bpmnModeler.get("modeling");
           const elementRegistry =
-            bpmnReactJs.bpmnModeler.get('elementRegistry');
+            bpmnReactJs.bpmnModeler.get("elementRegistry");
 
           automaticNodeIds.forEach((nodeId) => {
             const element = elementRegistry.get(nodeId);
             if (element) {
               modeling.setColor(element, {
-                fill: '#C6F6D5', // teal.100
-                stroke: '#2F855A', // green.700
+                fill: "#C6F6D5", // teal.100
+                stroke: "#2F855A", // green.700
               });
             }
           });
 
           console.log(
-            '✅ [AI Chatbot] Highlighted automatic nodes:',
-            automaticNodeIds
+            "✅ [AI Chatbot] Highlighted automatic nodes:",
+            automaticNodeIds,
           );
         } catch (e) {
           console.error(
-            '❌ [AI Chatbot] Failed to highlight automatic nodes:',
-            e
+            "❌ [AI Chatbot] Failed to highlight automatic nodes:",
+            e,
           );
         }
       }
@@ -1149,20 +1186,20 @@ function CustomModeler() {
       dispatch(isSavedChange(false));
 
       toast({
-        title: t('modeler.bpmnAppliedSuccess'),
-        description: t('modeler.bpmnAppliedDesc'),
-        status: 'success',
-        position: 'top-right',
+        title: t("modeler.bpmnAppliedSuccess"),
+        description: t("modeler.bpmnAppliedDesc"),
+        status: "success",
+        position: "top-right",
         duration: 3000,
         isClosable: true,
       });
     } catch (error: any) {
-      console.error('❌ [AI Chatbot] Error applying XML:', error);
+      console.error("❌ [AI Chatbot] Error applying XML:", error);
       toast({
-        title: t('modeler.bpmnAppliedError'),
-        description: error?.message || t('modeler.unexpectedError'),
-        status: 'error',
-        position: 'top-right',
+        title: t("modeler.bpmnAppliedError"),
+        description: error?.message || t("modeler.unexpectedError"),
+        status: "error",
+        position: "top-right",
         duration: 5000,
         isClosable: true,
       });
@@ -1223,51 +1260,51 @@ function CustomModeler() {
   const handleRobotCode = async () => {
     // Check if in subprocess by directly checking canvas root (more reliable than state)
     if (bpmnReactJs.bpmnModeler) {
-      const canvas = bpmnReactJs.bpmnModeler.get('canvas') as any;
+      const canvas = bpmnReactJs.bpmnModeler.get("canvas") as any;
       const currentRoot = canvas.getRootElement();
       const isCurrentlyInSubProcess =
-        currentRoot?.businessObject?.$type === 'bpmn:SubProcess';
+        currentRoot?.businessObject?.$type === "bpmn:SubProcess";
 
-      console.log('📍 Current root type:', currentRoot?.businessObject?.$type);
+      console.log("📍 Current root type:", currentRoot?.businessObject?.$type);
       console.log(
-        '📍 Current root name:',
-        currentRoot?.businessObject?.name || currentRoot?.id
+        "📍 Current root name:",
+        currentRoot?.businessObject?.name || currentRoot?.id,
       );
-      console.log('📍 Is in subprocess:', isCurrentlyInSubProcess);
+      console.log("📍 Is in subprocess:", isCurrentlyInSubProcess);
 
       if (isCurrentlyInSubProcess) {
         // Check if subprocess has nested subprocesses
         const hasNested = hasNestedSubProcesses(
           bpmnReactJs.bpmnModeler,
-          currentRoot.id
+          currentRoot.id,
         );
 
-        console.log('📦 SubProcess has nested:', hasNested);
+        console.log("📦 SubProcess has nested:", hasNested);
 
         if (hasNested) {
           // Has nested subprocess → Show warning, don't allow robot code
-          console.log('⚠️ NESTED SUBPROCESS DETECTED!');
-          console.log('→ Showing warning to user...');
+          console.log("⚠️ NESTED SUBPROCESS DETECTED!");
+          console.log("→ Showing warning to user...");
 
           toast({
-            title: t('modeler.nestedSubprocessWarning'),
-            description: t('modeler.nestedSubprocessDesc'),
-            status: 'warning',
-            position: 'top-right',
+            title: t("modeler.nestedSubprocessWarning"),
+            description: t("modeler.nestedSubprocessDesc"),
+            status: "warning",
+            position: "top-right",
             duration: 6000,
             isClosable: true,
           });
 
-          console.log('╚═══════════════════════════════════════════╝\n');
+          console.log("╚═══════════════════════════════════════════╝\n");
           return; // Stop here - don't continue to compile
         }
 
         // No nested subprocess → Continue with normal robot code flow
-        console.log('✅ No nested subprocess detected');
-        console.log('→ Proceeding with normal robot code compilation...');
+        console.log("✅ No nested subprocess detected");
+        console.log("→ Proceeding with normal robot code compilation...");
       } else {
-        console.log('✅ In main process');
-        console.log('→ Proceeding with normal robot code compilation...');
+        console.log("✅ In main process");
+        console.log("→ Proceeding with normal robot code compilation...");
       }
     }
 
@@ -1281,10 +1318,10 @@ function CustomModeler() {
           .slice(1);
 
         // Log for debugging
-        console.log('📦 [Sync] Current XML from modeler:', xmlResult.xml);
+        console.log("📦 [Sync] Current XML from modeler:", xmlResult.xml);
         console.log(
-          '📦 [Sync] Current activities from modeler:',
-          activityList.map((a: any) => a.activityID)
+          "📦 [Sync] Current activities from modeler:",
+          activityList.map((a: any) => a.activityID),
         );
 
         const currentProcess = getProcessFromLocalStorage(processID as string);
@@ -1297,13 +1334,13 @@ function CustomModeler() {
         const newLocalStorage = updateLocalStorage(updatedProcess);
         setLocalStorageObject(LocalStorage.PROCESS_LIST, newLocalStorage);
 
-        console.log('📦 Synced modeler state to localStorage before compiling');
+        console.log("📦 Synced modeler state to localStorage before compiling");
       } catch (syncError) {
-        console.error('Failed to sync modeler state:', syncError);
+        console.error("Failed to sync modeler state:", syncError);
         toast({
-          title: t('modeler.syncBeforeCompile'),
-          status: 'warning',
-          position: 'top-right',
+          title: t("modeler.syncBeforeCompile"),
+          status: "warning",
+          position: "top-right",
           duration: 3000,
           isClosable: true,
         });
@@ -1317,23 +1354,23 @@ function CustomModeler() {
 
   // Listen to element click events
   useEffect(() => {
-    console.log('=== 🔍 CUSTOM MODELER useEffect ===');
-    console.log('bpmnReactJs', bpmnReactJs.bpmnModeler);
+    console.log("=== 🔍 CUSTOM MODELER useEffect ===");
+    console.log("bpmnReactJs", bpmnReactJs.bpmnModeler);
     if (!bpmnReactJs.bpmnModeler) return;
 
     const handleElementClick = (event: any) => {
-      console.log('=== 🎯 ELEMENT CLICK ===');
-      console.log('Event:', event);
+      console.log("=== 🎯 ELEMENT CLICK ===");
+      console.log("Event:", event);
 
       // Get element from event
       const element = event.element;
       if (!element || !element.businessObject) {
-        console.log('❌ No valid element - ignoring');
+        console.log("❌ No valid element - ignoring");
         return;
       }
 
       const eventInfo = element.businessObject;
-      console.log('✅ Clicked element:', {
+      console.log("✅ Clicked element:", {
         id: eventInfo.id,
         name: eventInfo.name,
         type: eventInfo.$type,
@@ -1348,24 +1385,24 @@ function CustomModeler() {
 
       const currentActivity = {
         activityID: eventInfo.id,
-        activityName: eventInfo.name || '',
+        activityName: eventInfo.name || "",
         activityType: eventInfo.$type,
-        keyword: '',
+        keyword: "",
         properties: {},
       };
 
-      console.log('📝 Setting activityItem:', currentActivity);
+      console.log("📝 Setting activityItem:", currentActivity);
       setActivityItem(currentActivity);
-      console.log('✅ activityItem state updated');
+      console.log("✅ activityItem state updated");
 
       if (!isOpen) {
-        console.log('🔓 Opening sidebar (was closed)');
+        console.log("🔓 Opening sidebar (was closed)");
         onOpen();
       } else {
-        console.log('ℹ️ Sidebar already open');
+        console.log("ℹ️ Sidebar already open");
       }
 
-      console.log('=== END ELEMENT CLICK ===\n');
+      console.log("=== END ELEMENT CLICK ===\n");
     };
 
     const handleDoubleClick = (event: any) => {
@@ -1374,19 +1411,19 @@ function CustomModeler() {
       }
     };
 
-    const eventBus = bpmnReactJs.bpmnModeler.get('eventBus');
-    console.log('✅ EventBus obtained:', eventBus);
+    const eventBus = bpmnReactJs.bpmnModeler.get("eventBus");
+    console.log("✅ EventBus obtained:", eventBus);
 
     // Listen to element.click instead of selection.changed
-    eventBus.on('element.click', handleElementClick);
-    eventBus.on('element.dblclick', handleDoubleClick);
+    eventBus.on("element.click", handleElementClick);
+    eventBus.on("element.dblclick", handleDoubleClick);
 
-    console.log('✅ Events registered: element.click, element.dblclick');
+    console.log("✅ Events registered: element.click, element.dblclick");
 
     return () => {
-      console.log('🧹 Cleaning up event listeners');
-      eventBus.off('element.click', handleElementClick);
-      eventBus.off('element.dblclick', handleDoubleClick);
+      console.log("🧹 Cleaning up event listeners");
+      eventBus.off("element.click", handleElementClick);
+      eventBus.off("element.dblclick", handleDoubleClick);
     };
   }, [bpmnReactJs.bpmnModeler]);
 
@@ -1421,8 +1458,8 @@ function CustomModeler() {
         />
       }
       bottomPanel={
-        <BpmnBottomPanel 
-          processID={processID as string} 
+        <BpmnBottomPanel
+          processID={processID as string}
           modelerRef={bpmnReactJs}
           executionLogs={executionLogs}
           selectedLog={selectedLog}
@@ -1478,7 +1515,7 @@ function CustomModeler() {
           isOpen={showRobotCode}
           onClose={() => {
             setShowRobotCode(false);
-            setErrorTrace('');
+            setErrorTrace("");
           }}
         />
       )}
@@ -1516,7 +1553,7 @@ function CustomModeler() {
         elementCount={subProcessInfo.elementCount}
         hasNestedSubProcesses={subProcessInfo.hasNested}
       />
-         {/* Unsaved Changes Modal */}
+      {/* Unsaved Changes Modal */}
       <UnsavedChangesModal
         isOpen={isUnsavedChangesModalOpen}
         onClose={handleCancelNavigation}

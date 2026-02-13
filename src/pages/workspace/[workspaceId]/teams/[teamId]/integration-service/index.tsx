@@ -115,7 +115,7 @@ export default function TeamConnectionsPage() {
               header={tableProps.header}
               data={tableProps.data}
               isLoading={isLoading}
-              readOnly={true}
+   
             />
           </div>
 

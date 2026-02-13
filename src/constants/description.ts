@@ -13,4 +13,6 @@ export const ToolTipExplain = {
 
   STORAGE_SERVICE:
     'File storage is a place where you can store your files. Robots can access these files to perform their tasks',
+  CONNECTION_SERVICE:
+    'Connection service is a place where you can store your connections. Robots can access these connections to perform their tasks',
 };

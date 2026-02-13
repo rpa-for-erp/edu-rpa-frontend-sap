@@ -74,6 +74,7 @@ interface UseRobotTrackingSocketOptions {
   processId: string;
   onStepStart?: (step: ExecutedStep) => void;
   onStepEnd?: (step: ExecutedStep) => void;
+  activities?: Array<{ activityID: string; keyword?: string }>;
   onRunEnd?: (status: StepStatus) => void;
   autoConnect?: boolean;
 }
@@ -96,6 +97,7 @@ export function useRobotTrackingSocket({
   processId,
   onStepStart,
   onStepEnd,
+  activities,
   onRunEnd,
   autoConnect = false,
 }: UseRobotTrackingSocketOptions): UseRobotTrackingSocketReturn {

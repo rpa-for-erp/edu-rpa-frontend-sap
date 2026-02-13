@@ -23,6 +23,7 @@ export interface RobotLogEntry {
   input?: string;
   output?: string;
   error?: string;
+  message?: string;    // Step message (shown for all statuses)
   durationMs?: number;
 }
 
@@ -101,6 +102,7 @@ export function RobotTrackingProvider({
             ...log,
             status: step.status,
             durationMs: step.durationMs,
+            message: step.message || undefined,
             error: step.status === 'ERROR' || step.status === 'FAIL' 
               ? step.message || 'Step execution failed'
               : undefined,
